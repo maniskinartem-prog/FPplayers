@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="ru" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Парк-Координатор PRO v5.4</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;900&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Rubik', 'sans-serif'], brand: ['Montserrat', 'sans-serif'] },
+                    colors: { park: { accent: '#10b981', gold: '#f59e0b', rose: '#f43f5e', sos: '#ef4444' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            -webkit-tap-highlight-color: transparent; 
+            -webkit-text-size-adjust: 100%;
+        }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        .ios-scroll {
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-100 h-[100dvh] flex flex-col justify-between max-w-md mx-auto relative overflow-hidden border-x border-slate-900 shadow-2xl">
+
+    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-park-accent text-slate-950 px-5 py-3 rounded-xl shadow-xl font-bold flex items-center space-x-2 opacity-0 pointer-events-none transition-all duration-300 z-50 text-xs w-[90%] justify-center">
+        <i id="toast-icon" class="fa-solid fa-circle-check"></i>
+        <span id="toast-text">Действие выполнено!</span>
+    </div>
+
+    <div id="view-auth" class="flex-grow flex flex-col justify-center px-6 py-8 space-y-6 overflow-y-auto ios-scroll">
+        <div class="text-center space-y-2">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-park-accent to-emerald-400 flex items-center justify-center text-white text-2xl shadow-xl mx-auto shadow-emerald-950/30">
+                <i class="fa-solid fa-users-gear"></i>
+            </div>
+            <h1 class="font-brand font-black text-xl tracking-tight text-white uppercase">Парк-Координатор <span class="text-park-accent">PRO</span></h1>
+            <p class="text-[11px] text-slate-400">Система диспетчеризации и контроля</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-lg space-y-4">
+            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800">
+                <button onclick="switchAuthTab('login')" id="tab-btn-login" class="py-2 text-xs font-bold text-center rounded-lg bg-slate-900 text-white transition">Вход</button>
+                <button onclick="switchAuthTab('register')" id="tab-btn-register" class="py-2 text-xs font-bold text-center rounded-lg text-slate-500 transition">Регистрация</button>
+            </div>
+
+            <div id="form-login" class="space-y-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Логин</label>
+                    <input type="text" id="login-user" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white focus:outline-none focus:border-park-accent/50">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Пароль</label>
+                    <input type="password" id="login-pass" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white focus:outline-none focus:border-park-accent/50">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-park-accent text-slate-950 font-brand font-black text-xs py-3 rounded-xl uppercase tracking-wider transition active:scale-95 shadow-md shadow-emerald-900/20">Войти в систему</button>
+            </div>
+
+            <div id="form-register" class="space-y-3 hidden">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Ваше ФИО (Имя Фамилия)</label>
+                    <input type="text" id="reg-name" placeholder="Иван Иванов" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white focus:outline-none focus:border-park-accent/50">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Желаемый Логин</label>
+                    <input type="text" id="reg-user" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white focus:outline-none focus:border-park-accent/50">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Придумайте Пароль</label>
+                    <input type="password" id="reg-pass" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white focus:outline-none focus:border-park-accent/50">
+                </div>
+                
+                <div class="pt-2 border-t border-slate-800">
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="reg-is-admin" onchange="toggleAdminPass()" class="rounded bg-slate-900 border-slate-800 accent-park-gold w-4 h-4">
+                        <label for="reg-is-admin" class="text-[10px] font-bold text-slate-400 uppercase cursor-pointer">Зарегистрировать Ст. инструктора</label>
+                    </div>
+                    <div id="admin-pass-container" class="hidden mt-3 p-3 bg-slate-950 rounded-xl border border-park-gold/30">
+                        <label class="block text-[10px] font-bold text-park-gold uppercase mb-1"><i class="fa-solid fa-key mr-1"></i> Секретный ключ</label>
+                        <input type="password" id="reg-admin-pass" placeholder="Введите код доступа..." class="w-full bg-slate-900 border border-park-gold/50 rounded-lg py-1.5 px-3 text-[16px] text-white focus:outline-none focus:border-park-gold">
+                    </div>
+                </div>
+
+                <button onclick="handleRegister()" class="w-full bg-indigo-600 text-white font-brand font-black text-xs py-3 rounded-xl uppercase tracking-wider transition active:scale-95 mt-2">Создать аккаунт</button>
+            </div>
+        </div>
+    </div>
+
+    <header id="app-header" class="p-4 pt-[calc(12px+env(safe-area-inset-top))] border-b border-slate-800/60 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 hidden">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-park-accent text-sm shadow-md">
+                    <i class="fa-solid fa-user-gear"></i>
+                </div>
+                <div class="max-w-[150px]">
+                    <h1 id="username-display" class="font-brand font-bold text-xs text-white truncate">ФИО</h1>
+                    <span id="role-badge" class="text-[8px] px-1.5 py-0.5 rounded-md font-bold uppercase">Загрузка...</span>
+                </div>
+            </div>
+            <button onclick="logOut()" class="w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 flex items-center justify-center transition">
+                <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <main id="app-main" class="flex-grow p-4 overflow-y-auto space-y-4 ios-scroll hidden">
+
+        <div id="view-schedule" class="space-y-4">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-xl p-3 flex justify-between items-center shadow-md">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-calendar-day text-park-accent mr-1"></i> День:</span>
+                <input type="date" id="schedule-date" onchange="renderSchedule(); if(appState.role==='admin') renderStaffManager();" class="bg-slate-950 border border-slate-800 rounded-lg py-1 px-2 text-[16px] font-bold text-white focus:outline-none">
+            </div>
+
+            <div id="notifications-box" class="hidden bg-gradient-to-br from-slate-900 to-slate-950 border-l-4 border-indigo-500 rounded-r-xl p-3.5 shadow-xl space-y-2.5 animate-fade-in">
+                <div class="flex justify-between items-center pb-1">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-5 h-5 rounded-md bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-[10px]">
+                            <i class="fa-solid fa-bell animate-pulse"></i>
+                        </div>
+                        <span class="text-[10px] font-brand font-bold text-slate-200 uppercase tracking-wider">Важные уведомления</span>
+                    </div>
+                    <button onclick="clearAllNotifications()" class="text-[8px] bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 px-2.5 py-1 rounded border border-indigo-500/20 font-bold uppercase tracking-wider transition">Прочитано</button>
+                </div>
+                <div id="notifications-list" class="space-y-1.5 max-h-28 overflow-y-auto pr-1 text-[10px] text-slate-300"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-900 text-center">
+                <button onclick="setScheduleFilter('all')" id="filter-all" class="py-1.5 text-[10px] font-bold rounded-lg bg-slate-900 text-park-accent">Все игры</button>
+                <button onclick="setScheduleFilter('my')" id="filter-my" class="py-1.5 text-[10px] font-bold rounded-lg text-slate-400">Мои игры</button>
+                <button onclick="setScheduleFilter('pending')" id="filter-pending" class="py-1.5 text-[10px] font-bold rounded-lg text-slate-400">Ожидают</button>
+            </div>
+
+            <div class="flex justify-between items-center pt-1">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📋 Таймлайн</h4>
+                <button id="btn-admin-add-game" onclick="openAddShiftModal()" class="hidden text-[10px] bg-park-accent text-slate-950 px-2.5 py-1.5 rounded-lg font-brand font-black uppercase tracking-wider">
+                    + Добавить игры
+                </button>
+            </div>
+
+            <div id="schedule-container" class="space-y-3"></div>
+        </div>
+
+        <div id="view-staff" class="space-y-4 hidden">
+            <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-users text-park-accent mr-1"></i> Управление персоналом парка</h3>
+            <div id="staff-list-container" class="space-y-3"></div>
+        </div>
+
+        <div id="view-settings" class="flex flex-col h-full space-y-4 hidden">
+            
+            <div id="admin-games-box" class="hidden space-y-3 flex-shrink-0">
+                <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-gamepad text-park-gold mr-1"></i> База доступных активностей</h3>
+                <div class="bg-slate-900 border border-park-gold/30 rounded-xl p-3 shadow-md space-y-3">
+                    <div id="games-list-container" class="space-y-1.5 max-h-32 overflow-y-auto pr-1"></div>
+                    <div class="flex space-x-2 pt-2 border-t border-slate-800">
+                        <input type="text" id="new-game-input" placeholder="Пейнтбол🎯" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-3 text-[16px] text-white focus:outline-none">
+                        <button onclick="addNewGameType()" class="bg-park-gold text-slate-950 font-bold px-3 py-1.5 rounded-lg text-[11px] whitespace-nowrap">Добавить</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="admin-cloud-box" class="hidden space-y-3 flex-shrink-0">
+                <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-cloud-arrow-up text-sky-400 mr-1"></i> Интеграция с Google Таблицами</h3>
+                <div class="bg-slate-900 border border-sky-500/30 rounded-xl p-3 shadow-md space-y-3">
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">URL Скрипта синхронизации (Web App)</label>
+                        <input type="url" id="setting-gsheet-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-[16px] text-white font-mono focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="saveGoogleSheetUrl()" class="bg-slate-950 border border-slate-800 hover:border-slate-700 font-bold py-2 rounded-lg text-[11px] uppercase transition">Сохранить ссылку</button>
+                        <button onclick="syncWithGoogleSheet()" class="bg-sky-600 hover:bg-sky-500 text-white font-brand font-black py-2 rounded-lg text-[11px] uppercase tracking-wider transition shadow-md shadow-sky-950">Синхронизировать</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col flex-grow space-y-2 min-h-[250px]">
+                <div class="flex items-center justify-between flex-shrink-0">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-list-check text-indigo-400 mr-1"></i> Журнал действий</h4>
+                    <span id="log-type-badge" class="text-[8px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-bold uppercase"></span>
+                </div>
+                <div id="logs-timeline-container" class="w-full bg-slate-900/40 border border-slate-800/80 rounded-xl p-3 overflow-y-auto max-h-[calc(100vh-210px)] space-y-2 flex-grow pr-1 ios-scroll"></div>
+            </div>
+        </div>
+    </main>
+
+    <nav id="app-nav" class="sticky bottom-0 border-t border-slate-800/60 bg-slate-900/95 backdrop-blur-md pt-2 pb-[calc(6px+env(safe-area-inset-bottom))] flex justify-around items-center z-40 hidden">
+        <button onclick="switchTab('tab-schedule')" id="btn-tab-schedule" class="flex flex-col items-center space-y-1 text-park-accent transition">
+            <i class="fa-solid fa-calendar-lines-pen text-lg"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Игры дня</span>
+        </button>
+        <button onclick="switchTab('tab-staff')" id="btn-tab-staff" class="hidden flex flex-col items-center space-y-1 text-slate-500 transition">
+            <i class="fa-solid fa-users text-lg"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Персонал</span>
+        </button>
+        <button onclick="switchTab('tab-settings')" id="btn-tab-settings" class="flex flex-col items-center space-y-1 text-slate-500 transition">
+            <i class="fa-solid fa-sliders text-lg"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Настройки</span>
+        </button>
+    </nav>
+
+    <div id="modal-add-shift" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl flex flex-col max-h-[85vh]">
+            <h3 class="font-brand font-bold text-white text-xs uppercase flex-shrink-0">
+                <i class="fa-solid fa-square-plus text-park-accent mr-1"></i> Массовое планирование
+            </h3>
+            <div class="flex-shrink-0">
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Выберите Ведущего</label>
+                <select id="new-shift-instructor" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] font-bold text-white focus:border-park-accent"></select>
+            </div>
+            <div id="mass-shifts-container" class="flex-grow overflow-y-auto pr-1 space-y-3 py-1 ios-scroll"></div>
+            <div class="flex-shrink-0 pt-2 space-y-2">
+                <button type="button" onclick="addGameRowToModal()" class="w-full bg-slate-950 border border-dashed border-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs hover:border-park-accent/50 transition">
+                    <i class="fa-solid fa-plus mr-1 text-park-accent"></i> + Добавить еще одну игру
+                </button>
+                <div class="flex space-x-2">
+                    <button onclick="closeAddShiftModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
+                    <button onclick="saveCreatedShiftsMassive()" class="flex-1 bg-park-accent text-slate-950 font-brand font-black py-2.5 rounded-xl text-xs uppercase">Добавить всё</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-edit-game" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
+            <h3 class="font-brand font-bold text-white text-xs uppercase flex items-center text-park-accent">
+                <i class="fa-solid fa-pen-to-square mr-1.5"></i> Корректировка параметров игры
+            </h3>
+            <input type="hidden" id="edit-shift-id">
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Активность</label>
+                <select id="edit-game-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white global-games-select"></select>
+            </div>
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Назначить ведущего</label>
+                <select id="edit-instructor-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white"></select>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Начало</label>
+                    <input type="time" id="edit-start-time" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white font-bold">
+                </div>
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Окончание</label>
+                    <input type="time" id="edit-end-time" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white font-bold">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Гости (чел.)</label>
+                    <input type="number" id="edit-guests" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white font-bold">
+                </div>
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Локация / Беседка</label>
+                    <input type="text" id="edit-gazebo" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white">
+                </div>
+            </div>
+            <div class="flex space-x-2 pt-1">
+                <button onclick="closeEditGameModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
+                <button onclick="saveEditedGame()" class="flex-1 bg-park-accent text-slate-950 font-brand font-black py-2.5 rounded-xl text-xs uppercase">Применить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-emergency" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border-2 border-park-sos rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
+            <div class="flex items-center space-x-3 text-park-sos">
+                <i class="fa-solid fa-triangle-exclamation text-2xl animate-pulse"></i>
+                <h3 class="font-brand font-black text-white text-xs uppercase">🚨 КРИТИЧЕСКАЯ ЗАМЕНА</h3>
+            </div>
+            <div id="emergency-info-text" class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-[10px] text-slate-300 font-mono"></div>
+            <input type="hidden" id="emergency-shift-id">
+            
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Срочно сменить игру на:</label>
+                <select id="emergency-game-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white global-games-select"></select>
+            </div>
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Срочно переназначить на:</label>
+                <select id="emergency-instructor-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white"></select>
+            </div>
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Причина форс-мажора (Обязательно):</label>
+                <input type="text" id="emergency-reason-input" placeholder="Причина..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white">
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeEmergencyModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 px-4 rounded-xl text-xs">Отмена</button>
+                <button onclick="executeEmergencySwap()" class="flex-1 bg-park-sos text-white font-brand font-black py-2.5 px-4 rounded-xl text-xs">ПРИМЕНИТЬ S.O.S</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-ban" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-rose-500 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl animate-fade-in">
+            <h3 class="font-brand font-bold text-white text-xs uppercase text-rose-500 flex items-center">
+                <i class="fa-solid fa-user-slash mr-1.5 text-lg"></i> Блокировка сотрудника
+            </h3>
+            <input type="hidden" id="ban-target-username">
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Укажите причину блокировки</label>
+                <input type="text" id="ban-reason-input" placeholder="Нарушение регламента..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white focus:outline-none focus:border-rose-500/50">
+            </div>
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Период ограничений</label>
+                <select id="ban-duration-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white font-bold focus:outline-none focus:border-rose-500/50">
+                    <option value="1h">1 час</option>
+                    <option value="1d">1 день (24 часа)</option>
+                    <option value="3d">3 дня</option>
+                    <option value="7d">7 дней</option>
+                    <option value="permanent">Навсегда / Бессрочно</option>
+                </select>
+            </div>
+            <div class="flex space-x-2 pt-1">
+                <button onclick="closeBanModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
+                <button onclick="executeBanUser()" class="flex-1 bg-rose-600 text-white font-brand font-black py-2.5 rounded-xl text-xs uppercase tracking-wider">Заблокировать</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-change-status" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-indigo-500 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl animate-fade-in">
+            <h3 class="font-brand font-bold text-white text-xs uppercase text-indigo-400 flex items-center">
+                <i class="fa-solid fa-rotate mr-1.5"></i> Изменение статуса игры
+            </h3>
+            <input type="hidden" id="change-status-shift-id">
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Новый статус</label>
+                <select id="change-status-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white font-bold focus:outline-none focus:border-indigo-500">
+                    <option value="accepted">Принять игру 🟢</option>
+                    <option value="declined">Отказаться от игры 🔴</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Укажите причину изменения (Обязательно)</label>
+                <input type="text" id="change-status-reason" placeholder="Семейные обстоятельства..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div class="flex space-x-2 pt-1">
+                <button onclick="closeChangeStatusModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
+                <button onclick="executeChangeStatusWithReason()" class="flex-1 bg-indigo-600 text-white font-brand font-black py-2.5 rounded-xl text-xs uppercase tracking-wider">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-cancel-game" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-rose-500 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl animate-fade-in">
+            <h3 class="font-brand font-bold text-white text-xs uppercase text-rose-400 flex items-center">
+                <i class="fa-solid fa-ban mr-1.5"></i> Отмена проведения игры
+            </h3>
+            <input type="hidden" id="cancel-game-shift-id">
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Укажите причину отмены (Обязательно)</label>
+                <input type="text" id="cancel-game-reason" placeholder="Клиент отменил бронь..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white focus:outline-none focus:border-rose-500">
+            </div>
+            <div class="flex space-x-2 pt-1">
+                <button onclick="closeCancelGameModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Назад</button>
+                <button onclick="executeCancelGameByAdmin()" class="flex-1 bg-rose-600 text-white font-brand font-black py-2.5 rounded-xl text-xs uppercase tracking-wider">Отменить игру</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let appState = { 
+            user: null, role: null, name: null, 
+            shifts: [], logs: [], users: [], 
+            games: [], notifications: [], googleSheetUrl: "",
+            activeFilter: "all" 
+        };
+
+        let toastTimeout = null;
+        const defaultGames = ["Лазертаг🔫", "Квесты🗝️", "Мафия🕵️‍♂️", "Анимации🤡", "Прятки в темноте👻"];
+
+        window.onload = function() {
+            document.getElementById('schedule-date').value = new Date().toISOString().split('T')[0];
+
+            appState.users = JSON.parse(localStorage.getItem('park_v5_users')) || [];
+            appState.shifts = JSON.parse(localStorage.getItem('park_v5_shifts')) || [];
+            appState.logs = JSON.parse(localStorage.getItem('park_v5_logs')) || [{ timestamp: new Date().toLocaleString(), user: 'Система', text: 'Платформа v5.4 успешно запущена.' }];
+            appState.games = JSON.parse(localStorage.getItem('park_v5_games')) || defaultGames;
+            appState.notifications = JSON.parse(localStorage.getItem('park_v5_notifications')) || [];
+            appState.googleSheetUrl = localStorage.getItem('park_v5_gsheet_url') || "";
+
+            const session = JSON.parse(localStorage.getItem('park_v5_session'));
+            if (session) {
+                const foundUser = appState.users.find(u => u.username === session.username);
+                if (foundUser && checkUserBanStatus(foundUser)) {
+                    localStorage.removeItem('park_v5_session');
+                    showToast("Ваш аккаунт заблокирован!", true);
+                } else {
+                    appState.user = session.username;
+                    appState.role = session.role;
+                    appState.name = session.name;
+                    enterDashboard();
+                }
+            }
+        };
+
+        function saveState() {
+            localStorage.setItem('park_v5_users', JSON.stringify(appState.users));
+            localStorage.setItem('park_v5_shifts', JSON.stringify(appState.shifts));
+            localStorage.setItem('park_v5_logs', JSON.stringify(appState.logs));
+            localStorage.setItem('park_v5_games', JSON.stringify(appState.games));
+            localStorage.setItem('park_v5_notifications', JSON.stringify(appState.notifications));
+        }
+
+        function checkUserBanStatus(userObj) {
+            if (!userObj || !userObj.blocked) return false;
+            if (userObj.banUntil === 'permanent') return true;
+            if (Date.now() < userObj.banUntil) return true;
+            
+            userObj.blocked = false;
+            delete userObj.blockReason;
+            delete userObj.banUntil;
+            saveState();
+            return false;
+        }
+
+        function switchAuthTab(tab) {
+            if (tab === 'login') {
+                document.getElementById('form-login').classList.remove('hidden'); document.getElementById('form-register').classList.add('hidden');
+                document.getElementById('tab-btn-login').className = "py-2 text-xs font-bold text-center rounded-lg bg-slate-900 text-white transition";
+                document.getElementById('tab-btn-register').className = "py-2 text-xs font-bold text-center rounded-lg text-slate-500 transition";
+            } else {
+                document.getElementById('form-login').classList.add('hidden'); document.getElementById('form-register').classList.remove('hidden');
+                document.getElementById('tab-btn-login').className = "py-2 text-xs font-bold text-center rounded-lg text-slate-500 transition";
+                document.getElementById('tab-btn-register').className = "py-2 text-xs font-bold text-center rounded-lg bg-slate-900 text-white transition";
+            }
+        }
+
+        function toggleAdminPass() {
+            document.getElementById('admin-pass-container').classList.toggle('hidden', !document.getElementById('reg-is-admin').checked);
+        }
+
+        function handleRegister() {
+            const name = document.getElementById('reg-name').value.trim(), user = document.getElementById('reg-user').value.trim().toLowerCase();
+            const pass = document.getElementById('reg-pass').value.trim(), isAdmin = document.getElementById('reg-is-admin').checked;
+            
+            if (!name || !user || !pass) return showToast("Заполните все поля!", true);
+            if (appState.users.some(u => u.username === user)) return showToast("Логин занят!", true);
+
+            let role = 'user';
+            if (isAdmin) { if (document.getElementById('reg-admin-pass').value.trim() === 'AdminFP') { role = 'admin'; } else { return showToast("Неверный код доступа!", true); } }
+
+            appState.users.push({ username: user, password: pass, name: name, role: role, blocked: false });
+            saveState();
+            showToast("Регистрация успешна!"); switchAuthTab('login');
+        }
+
+        function handleLogin() {
+            const user = document.getElementById('login-user').value.trim().toLowerCase(), pass = document.getElementById('login-pass').value.trim();
+            const found = appState.users.find(u => u.username === user && u.password === pass);
+            
+            if (!found) return showToast("Неверные данные входа!", true);
+            if (checkUserBanStatus(found)) {
+                let textBan = found.banUntil === 'permanent' ? 'НАВСЕГДА' : `до ${new Date(found.banUntil).toLocaleString()}`;
+                return showToast(`Доступ закрыт (${textBan}). Причина: ${found.blockReason}`, true);
+            }
+
+            appState.user = found.username; appState.role = found.role; appState.name = found.name;
+            localStorage.setItem('park_v5_session', JSON.stringify({ username: found.username, role: found.role, name: found.name }));
+            logAction(found.name, "Авторизация в системе");
+            enterDashboard();
+        }
+
+        function logOut() {
+            logAction(appState.name, "Выход из системы");
+            localStorage.removeItem('park_v5_session');
+            appState.user = null; appState.role = null; appState.name = null;
+            document.getElementById('app-header').classList.add('hidden'); document.getElementById('app-main').classList.add('hidden');
+            document.getElementById('app-nav').classList.add('hidden'); document.getElementById('view-auth').classList.remove('hidden');
+        }
+
+        function enterDashboard() {
+            const currentU = appState.users.find(u => u.username === appState.user);
+            if(currentU && checkUserBanStatus(currentU)) { localStorage.removeItem('park_v5_session'); return logOut(); }
+
+            document.getElementById('view-auth').classList.add('hidden');
+            document.getElementById('app-header').classList.remove('hidden'); document.getElementById('app-main').classList.remove('hidden');
+            document.getElementById('app-nav').classList.remove('hidden');
+            document.getElementById('username-display').innerText = appState.name;
+            
+            const badge = document.getElementById('role-badge');
+
+            if (appState.role === 'admin') {
+                badge.innerText = "Ст. Инструктор"; badge.className = "text-[8px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase";
+                document.getElementById('btn-admin-add-game').classList.remove('hidden');
+                document.getElementById('admin-games-box').classList.remove('hidden');
+                document.getElementById('admin-cloud-box').classList.remove('hidden');
+                document.getElementById('btn-tab-staff').classList.remove('hidden');
+                document.getElementById('setting-gsheet-url').value = appState.googleSheetUrl;
+                renderGameManager();
+                renderStaffManager();
+            } else {
+                badge.innerText = "Инструктор"; badge.className = "text-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase";
+                document.getElementById('btn-admin-add-game').classList.add('hidden');
+                document.getElementById('admin-games-box').classList.add('hidden');
+                document.getElementById('admin-cloud-box').classList.add('hidden');
+                document.getElementById('btn-tab-staff').classList.add('hidden');
+            }
+
+            populateInstructorDropdowns();
+            updateGlobalGameSelects();
+            renderNotifications();
+            renderSchedule(); renderLogs();
+        }
+
+        function renderNotifications() {
+            const box = document.getElementById('notifications-box');
+            const list = document.getElementById('notifications-list');
+            if (!box || !list) return;
+
+            const myNotifs = appState.notifications.filter(n => n.targetUser === appState.name);
+            if (myNotifs.length === 0) { box.classList.add('hidden'); return; }
+
+            box.classList.remove('hidden');
+            list.innerHTML = myNotifs.map(n => `
+                <div class="p-2.5 bg-slate-900/60 border border-slate-800/80 rounded-lg flex items-start space-x-2">
+                    <span class="text-indigo-400 mt-0.5"><i class="fa-solid fa-circle-dot text-[7px]"></i></span>
+                    <span class="leading-relaxed text-slate-300 text-[10px]">${n.text}</span>
+                </div>
+            `).join('');
+        }
+
+        function clearAllNotifications() {
+            appState.notifications = appState.notifications.filter(n => n.targetUser !== appState.name);
+            saveState(); renderNotifications(); showToast("Уведомления очищены");
+        }
+
+        // ================= УПРАВЛЕНИЕ СИНХРОНИЗАЦИЕЙ GOOGLE TABLE =================
+        function saveGoogleSheetUrl() {
+            const urlInput = document.getElementById('setting-gsheet-url').value.trim();
+            appState.googleSheetUrl = urlInput;
+            localStorage.setItem('park_v5_gsheet_url', urlInput);
+            logAction(appState.name, "Обновил глобальный адрес синхронизации Google Таблиц");
+            showToast("Ссылка сохранена!");
+        }
+
+        function syncWithGoogleSheet() {
+            if (!appState.googleSheetUrl) {
+                return showToast("Сначала укажите и сохраните Web App URL!", true);
+            }
+            showToast("Синхронизация с облаком...");
+
+            // Формируем payload для отправки в Таблицу
+            const syncPayload = {
+                action: "sync_data",
+                sender: appState.name,
+                timestamp: new Date().toLocaleString('ru-RU'),
+                shifts: appState.shifts,
+                logs: appState.logs
+            };
+
+            fetch(appState.googleSheetUrl, {
+                method: "POST",
+                mode: "no-cors", // Позволяет беспрепятственно отправлять запросы без строгих ограничений CORS со стороны скрипта
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(syncPayload)
+            })
+            .then(() => {
+                logAction(appState.name, "Успешная выгрузка базы данных в Google Таблицу");
+                showToast("Данные отправлены в Google Таблицу!");
+            })
+            .catch(error => {
+                console.error("Ошибка интеграции:", error);
+                showToast("Ошибка соединения с Google Скриптом", true);
+            });
+        }
+
+        // ================= ЦЕНТР УПРАВЛЕНИЯ ПЕРСОНАЛОМ =================
+        function renderStaffManager() {
+            const container = document.getElementById('staff-list-container');
+            if (!container || appState.role !== 'admin') return;
+
+            if (appState.users.length === 0) {
+                container.innerHTML = `<div class="text-center text-slate-600 text-xs py-4">Нет зарегистрированных сотрудников.</div>`;
+                return;
+            }
+
+            const selectedDate = document.getElementById('schedule-date').value || new Date().toISOString().split('T')[0];
+            const [year, month] = selectedDate.split('-');
+
+            container.innerHTML = appState.users.map(u => {
+                const isBlocked = checkUserBanStatus(u);
+                
+                let dH = 0, mH = 0;
+                appState.shifts.filter(s => s.instructor === u.name && s.status === 'accepted').forEach(s => {
+                    const dur = calculateDurationHours(s.startTime, s.endTime);
+                    if (s.date === selectedDate) dH += dur;
+                    if (s.date.startsWith(`${year}-${month}`)) mH += dur;
+                });
+
+                const statusBadge = isBlocked 
+                    ? `<span class="bg-rose-500/10 text-rose-400 text-[8px] border border-rose-500/20 px-1.5 py-0.5 rounded font-bold uppercase">Бан</span>`
+                    : `<span class="bg-emerald-500/10 text-emerald-400 text-[8px] border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold uppercase">Активен</span>`;
+                
+                const actionButton = isBlocked
+                    ? `<button onclick="unblockUser('${u.username}')" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase transition">Разблок.</button>`
+                    : `<button onclick="openBanModal('${u.username}')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase transition">Заблокать</button>`;
+
+                let timeInfo = isBlocked && u.banUntil ? (u.banUntil === 'permanent' ? 'Бессрочно' : new Date(u.banUntil).toLocaleString()) : '';
+
+                return `
+                    <div class="p-3 bg-slate-900 border ${isBlocked ? 'border-rose-950 bg-rose-950/5' : 'border-slate-800/80'} rounded-xl space-y-2.5 shadow-md">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="font-brand font-bold text-xs text-white">${u.name}</h4>
+                                <p class="text-[9px] text-slate-400">Логин: @${u.username} | Роль: ${u.role === 'admin' ? 'Старший' : 'Инструктор'}</p>
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 bg-slate-950 p-2 rounded-xl border border-slate-900/60 text-[10px] font-mono">
+                            <div><span class="text-slate-500">За сегодня:</span> <b class="text-park-accent">${dH.toFixed(1)} ч</b></div>
+                            <div><span class="text-slate-500">За месяц (${month}/${year}):</span> <b class="text-park-gold">${mH.toFixed(1)} ч</b></div>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-1 border-t border-slate-800/60">
+                            <span class="text-[9px] text-slate-500 italic">${u.username === appState.user ? 'Это ваш аккаунт' : 'Действия:'}</span>
+                            ${u.username === appState.user ? '' : actionButton}
+                        </div>
+                        ${isBlocked ? `
+                            <div class="text-[9px] bg-rose-950/40 border border-rose-900/30 p-2 rounded-lg text-rose-300 space-y-0.5">
+                                <div><b>Причина:</b> ${u.blockReason}</div>
+                                <div><b>Истекает:</b> <span class="font-mono text-white">${timeInfo}</span></div>
+                            </div>` : ''}
+                    </div>`;
+            }).join('');
+        }
+
+        function openBanModal(username) {
+            document.getElementById('ban-target-username').value = username;
+            document.getElementById('ban-reason-input').value = '';
+            document.getElementById('ban-duration-select').value = '1h';
+            document.getElementById('modal-ban').classList.remove('hidden');
+        }
+        function closeBanModal() { document.getElementById('modal-ban').classList.add('hidden'); }
+
+        function executeBanUser() {
+            const username = document.getElementById('ban-target-username').value;
+            const reason = document.getElementById('ban-reason-input').value.trim();
+            const duration = document.getElementById('ban-duration-select').value;
+
+            if (!reason) return showToast("Укажите причину блокировки!", true);
+            const target = appState.users.find(u => u.username === username); if (!target) return;
+
+            let ms = 0;
+            if (duration === '1h') ms = 60 * 60 * 1000;
+            else if (duration === '1d') ms = 24 * 60 * 60 * 1000;
+            else if (duration === '3d') ms = 3 * 24 * 60 * 60 * 1000;
+            else if (duration === '7d') ms = 7 * 24 * 60 * 60 * 1000;
+
+            target.blocked = true; target.blockReason = reason;
+            target.banUntil = (duration === 'permanent') ? 'permanent' : Date.now() + ms;
+
+            logAction(appState.name, `🚫 БЛОКИРОВКА: ${target.name}. Причина: ${reason}`);
+            saveState(); closeBanModal(); renderStaffManager(); showToast("Сотрудник заблокирован", true);
+        }
+
+        function unblockUser(username) {
+            const target = appState.users.find(u => u.username === username); if (!target) return;
+            target.blocked = false; delete target.blockReason; delete target.banUntil;
+            logAction(appState.name, `✅ РАЗБЛОКИРОВАЛ сотрудника ${target.name}`);
+            saveState(); renderStaffManager(); showToast("Сотрудник разблокирован");
+        }
+
+        function updateGlobalGameSelects() {
+            const optionsHtml = appState.games.map(g => `<option value="${g}">${g}</option>`).join('');
+            document.querySelectorAll('.global-games-select, .row-game').forEach(select => {
+                const currentVal = select.value; select.innerHTML = optionsHtml;
+                if (appState.games.includes(currentVal)) select.value = currentVal;
+            });
+        }
+
+        function renderGameManager() {
+            const container = document.getElementById('games-list-container'); container.innerHTML = '';
+            appState.games.forEach((game, index) => {
+                container.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-950 border border-slate-800 rounded p-1.5 pl-3">
+                        <span class="text-[11px] font-bold text-slate-300">${game}</span>
+                        <button onclick="removeGameType(${index})" class="text-rose-500 hover:text-rose-400 p-1"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
+                    </div>`;
+            });
+            updateGlobalGameSelects();
+        }
+
+        function addNewGameType() {
+            const input = document.getElementById('new-game-input'); const newGame = input.value.trim();
+            if(!newGame) return showToast("Введите название активности!", true);
+            if(appState.games.includes(newGame)) return showToast("Уже существует!", true);
+            appState.games.push(newGame); saveState(); input.value = '';
+            logAction(appState.name, `➕ Добавил активность: ${newGame}`); renderGameManager(); showToast("Активность добавлена");
+        }
+
+        function removeGameType(index) {
+            const removed = appState.games.splice(index, 1)[0]; saveState();
+            logAction(appState.name, `🗑️ Удалил активность: ${removed}`); renderGameManager(); showToast("Активность удалена");
+        }
+
+        function populateInstructorDropdowns() {
+            const optionsHtml = appState.users.map(u => `<option value="${u.name}">${u.name}</option>`).join('');
+            document.getElementById('new-shift-instructor').innerHTML = optionsHtml;
+            document.getElementById('edit-instructor-select').innerHTML = optionsHtml;
+            document.getElementById('emergency-instructor-select').innerHTML = optionsHtml;
+        }
+
+        function calculateDurationHours(start, end) {
+            const [sH, sM] = start.split(':').map(Number), [eH, eM] = end.split(':').map(Number);
+            let diffMins = (eH * 60 + eM) - (sH * 60 + sM);
+            if (diffMins < 0) diffMins += 24 * 60; return parseFloat((diffMins / 60).toFixed(1));
+        }
+
+        function setScheduleFilter(filterType) {
+            appState.activeFilter = filterType;
+            ['all', 'my', 'pending'].forEach(b => {
+                document.getElementById(`filter-${b}`).className = (b === filterType) 
+                    ? "py-1.5 text-[10px] font-bold rounded-lg bg-slate-900 text-park-accent" 
+                    : "py-1.5 text-[10px] font-bold rounded-lg text-slate-400";
+            });
+            renderSchedule();
+        }
+
+        function checkForTimeConflicts(shifts) {
+            let conflicts = new Set();
+            for (let i = 0; i < shifts.length; i++) {
+                for (let j = i + 1; j < shifts.length; j++) {
+                    let s1 = shifts[i], s2 = shifts[j];
+                    if (s1.instructor === s2.instructor && s1.status !== 'cancelled' && s2.status !== 'cancelled' && s1.startTime < s2.endTime && s2.startTime < s1.endTime) {
+                        conflicts.add(s1.id); conflicts.add(s2.id);
+                    }
+                }
+            }
+            return conflicts;
+        }
+
+        function renderSchedule() {
+            const container = document.getElementById('schedule-container');
+            const selectedDate = document.getElementById('schedule-date').value;
+            let dailyShifts = appState.shifts.filter(s => s.date === selectedDate);
+
+            if (appState.activeFilter === 'my') dailyShifts = dailyShifts.filter(s => s.instructor === appState.name);
+            else if (appState.activeFilter === 'pending') dailyShifts = dailyShifts.filter(s => s.status === 'pending');
+
+            if (dailyShifts.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-slate-600 text-xs bg-slate-900/20 border border-dashed border-slate-800 rounded-xl">Игр на этот день не найдено.</div>`;
+                return;
+            }
+
+            dailyShifts.sort((a, b) => a.startTime.localeCompare(b.startTime));
+            const activeConflicts = checkForTimeConflicts(appState.shifts.filter(s => s.date === selectedDate));
+
+            container.innerHTML = dailyShifts.map(shift => {
+                let statusHtml = '', borderClass = 'border-slate-800/80', conflictWarning = '';
+                
+                if (shift.status === 'cancelled') {
+                    statusHtml = `<span class="bg-slate-950 text-rose-500 border border-rose-950 text-[8px] font-bold px-1.5 py-0.5 rounded uppercase line-through">Отменена</span>`;
+                    borderClass = 'border-slate-950 opacity-40 bg-slate-950/50';
+                } else if (activeConflicts.has(shift.id)) {
+                    borderClass = 'border-park-sos bg-rose-950/20';
+                    conflictWarning = `<div class="text-[9px] text-park-sos font-bold uppercase pt-1 animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i> Накладка!</div>`;
+                } else if (shift.status === 'accepted') {
+                    statusHtml = `<span class="bg-emerald-500/10 text-emerald-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-emerald-500/20 uppercase">Принята</span>`;
+                    borderClass = 'border-emerald-500/30';
+                } else if (shift.status === 'declined') {
+                    statusHtml = `<span class="bg-rose-500/10 text-rose-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-rose-500/20 uppercase">Отказ</span>`;
+                    borderClass = 'border-rose-500/30';
+                } else {
+                    statusHtml = `<span class="bg-amber-500/10 text-amber-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-amber-500/20 uppercase animate-pulse">Ожидание</span>`;
+                }
+
+                let actionsHtml = '';
+                if (appState.name === shift.instructor && shift.status !== 'cancelled') {
+                    if (shift.status === 'pending') {
+                        actionsHtml = `
+                            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/60">
+                                <button onclick="changeGameStatus('${shift.id}', 'accepted')" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-2 px-2 rounded-lg text-[10px] uppercase tracking-wider transition active:scale-95">Принять</button>
+                                <button onclick="changeGameStatus('${shift.id}', 'declined')" class="bg-slate-950 border border-slate-800 hover:bg-slate-900 text-rose-400 font-bold py-2 px-2 rounded-lg text-[10px] uppercase tracking-wider transition active:scale-95">Отказаться</button>
+                            </div>`;
+                    } else {
+                        actionsHtml = `
+                            <div class="pt-2 border-t border-slate-800/40 flex justify-end">
+                                <button onclick="openChangeStatusModal('${shift.id}')" class="text-[9px] bg-slate-950 border border-slate-800 hover:border-indigo-500/50 text-indigo-400 font-bold px-2.5 py-1.5 rounded-lg transition active:scale-95 flex items-center space-x-1">
+                                    <i class="fa-solid fa-rotate text-[8px]"></i>
+                                    <span>Изменить статус</span>
+                                </button>
+                            </div>`;
+                    }
+                }
+
+                let adminButtons = '';
+                if (appState.role === 'admin' && shift.status !== 'cancelled') {
+                    adminButtons = `
+                        <div class="flex items-center space-x-1 mt-1 justify-end flex-wrap gap-y-1">
+                            <button onclick="openEditGameModal('${shift.id}')" class="text-[8px] bg-slate-950 border border-slate-800 text-park-accent font-bold px-1.5 py-0.5 rounded"><i class="fa-solid fa-pen-to-square"></i> Изм.</button>
+                            <button onclick="openEmergencyModal('${shift.id}')" class="text-[8px] bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold px-1.5 py-0.5 rounded"><i class="fa-solid fa-triangle-exclamation"></i> S.O.S</button>
+                            <button onclick="openCancelGameModal('${shift.id}')" class="text-[8px] bg-rose-600 text-white font-bold px-1.5 py-0.5 rounded hover:bg-rose-500 transition"><i class="fa-solid fa-ban"></i> Отмена</button>
+                        </div>`;
+                }
+
+                return `
+                    <div class="p-3 rounded-xl border ${borderClass} bg-slate-900/60 space-y-2.5 shadow-sm relative animate-fade-in">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-brand font-bold text-xs text-white ${shift.status === 'cancelled' ? 'line-through text-slate-600':''}">${shift.game}</h4>
+                                <p class="text-[10px] text-slate-400 font-mono font-bold"><i class="fa-regular fa-clock text-park-accent mr-1"></i>${shift.startTime} - ${shift.endTime}</p>
+                            </div>
+                            <div class="flex flex-col items-end space-y-0">${statusHtml}${adminButtons}</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5 bg-slate-950/80 p-2 rounded-lg text-[10px] border border-slate-900">
+                            <div><span class="text-slate-500">🛖 Локация:</span> <b class="text-amber-400">${shift.gazebo || '-'}</b></div>
+                            <div><span class="text-slate-500">👥 Гости:</span> <b class="text-slate-200">${shift.guestsCount} чел.</b></div>
+                        </div>
+                        <div class="text-[10px] text-slate-400 flex items-center justify-between">
+                            <span>🧔 Ведущий: <b class="text-slate-200">${shift.instructor}</b></span>
+                            ${conflictWarning}
+                        </div>
+                        ${actionsHtml}
+                    </div>`;
+            }).join('');
+        }
+
+        function changeGameStatus(id, newStatus) {
+            const shift = appState.shifts.find(s => s.id === id); if (!shift) return;
+            shift.status = newStatus; saveState();
+            logAction(appState.name, `${newStatus === 'accepted' ? '🟢 ПРИНЯЛ' : '🔴 ОТКЛОНИЛ'} игру "${shift.game}"`);
+            showToast("Статус игры сохранен!"); renderSchedule();
+        }
+
+        function openChangeStatusModal(id) {
+            const shift = appState.shifts.find(s => s.id === id); if (!shift) return;
+            document.getElementById('change-status-shift-id').value = id;
+            document.getElementById('change-status-select').value = shift.status;
+            document.getElementById('change-status-reason').value = '';
+            document.getElementById('modal-change-status').classList.remove('hidden');
+        }
+        function closeChangeStatusModal() { document.getElementById('modal-change-status').classList.add('hidden'); }
+
+        function executeChangeStatusWithReason() {
+            const id = document.getElementById('change-status-shift-id').value;
+            const newStatus = document.getElementById('change-status-select').value;
+            const reason = document.getElementById('change-status-reason').value.trim();
+
+            if (!reason) return showToast("Укажите причину изменения!", true);
+            const shift = appState.shifts.find(s => s.id === id); if (!shift) return;
+
+            const oldStatusText = shift.status === 'accepted' ? 'Принята' : 'Отказ';
+            const newStatusText = newStatus === 'accepted' ? 'Принята 🟢' : 'Отказ 🔴';
+            shift.status = newStatus;
+
+            appState.users.filter(u => u.role === 'admin').forEach(admin => {
+                appState.notifications.push({
+                    id: "nt_" + Math.random().toString(36).substr(2, 9), targetUser: admin.name,
+                    text: `🔄 <b>${appState.name}</b> изменил статус игры "${shift.game}" (${shift.startTime}) на [<b>${newStatusText}</b>].<br>💬 <b>Причина:</b> ${reason}`
+                });
+            });
+
+            logAction(appState.name, `Перевыбор статуса игры "${shift.game}": ${oldStatusText} ➔ ${newStatus === 'accepted' ? 'ПРИНЯТО' : 'ОТКАЗ'}. Причина: ${reason}`);
+            saveState(); closeChangeStatusModal(); renderSchedule(); showToast("Статус изменен, Старший уведомлен!");
+        }
+
+        function openCancelGameModal(id) {
+            document.getElementById('cancel-game-shift-id').value = id;
+            document.getElementById('cancel-game-reason').value = '';
+            document.getElementById('modal-cancel-game').classList.remove('hidden');
+        }
+        function closeCancelGameModal() { document.getElementById('modal-cancel-game').classList.add('hidden'); }
+
+        function executeCancelGameByAdmin() {
+            const id = document.getElementById('cancel-game-shift-id').value;
+            const reason = document.getElementById('cancel-game-reason').value.trim();
+            if (!reason) return showToast("Причина отмены обязательна!", true);
+
+            const shift = appState.shifts.find(s => s.id === id); if (!shift) return;
+            shift.status = 'cancelled';
+
+            appState.notifications.push({
+                id: "nt_" + Math.random().toString(36).substr(2, 9),
+                targetUser: shift.instructor,
+                text: `❌ Внимание! Игра <b>"${shift.game}"</b> на дату ${shift.date} (${shift.startTime}) была <b>ОТМЕНЕНА</b> старшим инструктором.<br>💬 <b>Причина отмены:</b> ${reason}`
+            });
+
+            logAction(appState.name, `❌ ОТМЕНИЛ проведение игры "${shift.game}" (Ведущий: ${shift.instructor}). Причина: ${reason}`);
+            saveState(); closeCancelGameModal(); renderSchedule(); showToast("Игра отменена, ведущий уведомлен!", true);
+        }
+
+        function openEditGameModal(id) {
+            const shift = appState.shifts.find(s => s.id === id); if (!shift) return;
+            document.getElementById('edit-shift-id').value = id;
+            document.getElementById('edit-game-select').value = shift.game;
+            document.getElementById('edit-instructor-select').value = shift.instructor;
+            document.getElementById('edit-start-time').value = shift.startTime;
+            document.getElementById('edit-end-time').value = shift.endTime;
+            document.getElementById('edit-guests').value = shift.guestsCount;
+            document.getElementById('edit-gazebo').value = shift.gazebo;
+            document.getElementById('modal-edit-game').classList.remove('hidden');
+        }
+        function closeEditGameModal() { document.getElementById('modal-edit-game').classList.add('hidden'); }
+
+        function saveEditedGame() {
+            const id = document.getElementById('edit-shift-id').value;
+            const shift = appState.shifts.find(s => s.id === id); if (!shift) return;
+
+            const oldInstructor = shift.instructor;
+            shift.game = document.getElementById('edit-game-select').value;
+            shift.instructor = document.getElementById('edit-instructor-select').value;
+            shift.startTime = document.getElementById('edit-start-time').value;
+            shift.endTime = document.getElementById('edit-end-time').value;
+            shift.guestsCount = document.getElementById('edit-guests').value;
+            shift.gazebo = document.getElementById('edit-gazebo').value.trim() || 'Основная зона';
+            shift.status = "pending"; 
+
+            appState.notifications.push({
+                id: "nt_" + Math.random().toString(36).substr(2, 9), targetUser: shift.instructor,
+                text: `⚠️ Изменены параметры игры "${shift.game}" на ${shift.date} (${shift.startTime}-${shift.endTime}).`
+            });
+
+            saveState(); logAction(appState.name, `✏️ Модификация игры: ${shift.game}, вед. ${shift.instructor}`);
+            if (oldInstructor !== shift.instructor) logAction("Система", `🔔 Смена ведущего: от ${oldInstructor} к ${shift.instructor}`);
+            showToast("Параметры сохранены!"); closeEditGameModal(); renderSchedule(); renderNotifications();
+        }
+
+        let gameRowCounter = 0;
+        function openAddShiftModal() {
+            document.getElementById('mass-shifts-container').innerHTML = ''; gameRowCounter = 0;
+            addGameRowToModal(); document.getElementById('modal-add-shift').classList.remove('hidden');
+        }
+        function closeAddShiftModal() { document.getElementById('modal-add-shift').classList.add('hidden'); }
+
+        function addGameRowToModal() {
+            gameRowCounter++; const container = document.getElementById('mass-shifts-container');
+            const optionsHtml = appState.games.map(g => `<option value="${g}">${g}</option>`).join('');
+            const row = document.createElement('div');
+            row.id = `game-row-${gameRowCounter}`; row.className = "p-3 bg-slate-950 rounded-xl border border-slate-800 relative space-y-2 pt-6 transition";
+            row.innerHTML = `
+                <button type="button" onclick="removeGameRow(${gameRowCounter})" class="absolute top-1.5 right-2 text-rose-400 hover:text-rose-500 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                <div>
+                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Активность</label>
+                    <select class="row-game w-full bg-slate-900 border border-slate-800 rounded-lg py-1.5 px-2 text-[16px] text-white">${optionsHtml}</select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Старт</label><input type="time" value="12:00" class="row-start w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] font-bold text-white"></div>
+                    <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Конец</label><input type="time" value="13:30" class="row-end w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] font-bold text-white"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Гости</label><input type="number" value="10" min="1" class="row-guests w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] font-bold text-white"></div>
+                    <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Беседка</label><input type="text" placeholder="№1" class="row-gazebo w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] text-white"></div>
+                </div>`;
+            container.appendChild(row); container.scrollTop = container.scrollHeight;
+        }
+
+        function removeGameRow(id) {
+            if(document.querySelectorAll('#mass-shifts-container > div').length > 1) { document.getElementById(`game-row-${id}`).remove(); } 
+            else { showToast("Должна быть минимум одна игра!", true); }
+        }
+
+        function saveCreatedShiftsMassive() {
+            const date = document.getElementById('schedule-date').value, instructor = document.getElementById('new-shift-instructor').value;
+            if (!instructor) return showToast("Нет персонала в системе!", true);
+
+            let addedCount = 0;
+            document.querySelectorAll('#mass-shifts-container > div').forEach(row => {
+                appState.shifts.push({
+                    id: "id_" + Math.random().toString(36).substr(2, 9), date: date,
+                    startTime: row.querySelector('.row-start').value, endTime: row.querySelector('.row-end').value,
+                    game: row.querySelector('.row-game').value, instructor: instructor,
+                    guestsCount: row.querySelector('.row-guests').value, gazebo: row.querySelector('.row-gazebo').value.trim() || 'База', status: "pending"
+                }); addedCount++;
+            });
+
+            saveState(); logAction(appState.name, `Назначил ${addedCount} игр на ведущего ${instructor} на дату ${date}`);
+            showToast(`Успешно добавлено игр: ${addedCount}`); closeAddShiftModal(); renderSchedule();
+        }
+
+        function openEmergencyModal(id) {
+            const shift = appState.shifts.find(s => s.id === id); if (!shift) return;
+            document.getElementById('emergency-shift-id').value = id;
+            document.getElementById('emergency-info-text').innerHTML = `⏰ <b>${shift.startTime} - ${shift.endTime}</b><br>🎯 <b>${shift.game}</b> | 🛖 ${shift.gazebo}<br>👤 Текущий: <b>${shift.instructor}</b>`;
+            document.getElementById('emergency-reason-input').value = '';
+            document.getElementById('modal-emergency').classList.remove('hidden');
+        }
+        function closeEmergencyModal() { document.getElementById('modal-emergency').classList.add('hidden'); }
+
+        function executeEmergencySwap() {
+            const id = document.getElementById('emergency-shift-id').value, reason = document.getElementById('emergency-reason-input').value.trim();
+            if (!reason) return showToast("Причина форс-мажора обязательна!", true);
+            const shift = appState.shifts.find(s => s.id === id); if (!shift) return;
+
+            const oldInst = shift.instructor;
+            shift.game = document.getElementById('emergency-game-select').value;
+            shift.instructor = document.getElementById('emergency-instructor-select').value;
+            shift.status = "pending"; 
+
+            appState.notifications.push({
+                id: "nt_" + Math.random().toString(36).substr(2, 9), targetUser: shift.instructor,
+                text: `🚨 КРИТИЧЕСКАЯ ЗАМЕНА (S.O.S): Назначены на "${shift.game}" (${shift.startTime}-${shift.endTime}). Причина: ${reason}`
+            });
+
+            if (oldInst !== shift.instructor) {
+                appState.notifications.push({
+                    id: "nt_" + Math.random().toString(36).substr(2, 9), targetUser: oldInst,
+                    text: `📴 Вы сняты с проведения игры "${shift.game}" в ${shift.startTime}. Причина: ${reason}`
+                });
+            }
+
+            saveState(); logAction(appState.name, `🚨 Аварийный протокол S.O.S: [${oldInst}]➔[${shift.instructor}]. Причина: ${reason}`);
+            showToast("Экстренная замена проведена!", true); closeEmergencyModal(); renderSchedule(); renderNotifications();
+        }
+
+        function logAction(user, text) {
+            appState.logs.unshift({ timestamp: new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }), user: user, text: text });
+            saveState(); if(!document.getElementById('view-settings').classList.contains('hidden')) renderLogs();
+        }
+
+        function renderLogs() {
+            const container = document.getElementById('logs-timeline-container'); if(!container) return;
+            let logsToShow = appState.role !== 'admin' ? appState.logs.filter(l => l.user === appState.name || l.user === 'Система') : appState.logs;
+            document.getElementById('log-type-badge').innerText = appState.role !== 'admin' ? "Ваши действия" : "Все действия";
+
+            if (logsToShow.length === 0) { container.innerHTML = '<div class="text-[10px] text-slate-500 text-center py-4">Журнал действий пуст.</div>'; return; }
+            container.innerHTML = logsToShow.map(l => `
+                <div class="bg-slate-950 p-2 rounded-lg border border-slate-900 text-[10px] space-y-0.5 shadow-sm">
+                    <div class="flex justify-between text-slate-500">
+                        <span class="${l.user === appState.name ? 'text-park-accent' : (l.user === 'Система' ? 'text-amber-400' : 'text-indigo-400')} font-bold">${l.user}</span>
+                        <span>${l.timestamp}</span>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed">${l.text}</p>
+                </div>`).join('');
+        }
+
+        function switchTab(tabId) {
+            document.getElementById('view-schedule').classList.add('hidden'); 
+            document.getElementById('view-staff').classList.add('hidden'); 
+            document.getElementById('view-settings').classList.add('hidden');
+            
+            document.getElementById('btn-tab-schedule').className = "flex flex-col items-center space-y-1 text-slate-500 transition";
+            document.getElementById('btn-tab-staff').className = "flex flex-col items-center space-y-1 text-slate-500 transition";
+            document.getElementById('btn-tab-settings').className = "flex flex-col items-center space-y-1 text-slate-500 transition";
+
+            if (tabId === 'tab-schedule') {
+                document.getElementById('view-schedule').classList.remove('hidden'); 
+                document.getElementById('btn-tab-schedule').className = "flex flex-col items-center space-y-1 text-park-accent transition";
+                renderNotifications(); renderSchedule();
+            } else if (tabId === 'tab-staff') {
+                if (appState.role !== 'admin') return; 
+                document.getElementById('view-staff').classList.remove('hidden'); 
+                document.getElementById('btn-tab-staff').className = "flex flex-col items-center space-y-1 text-park-accent transition";
+                renderStaffManager();
+            } else {
+                document.getElementById('view-settings').classList.remove('hidden'); 
+                document.getElementById('btn-tab-settings').className = "flex flex-col items-center space-y-1 text-park-accent transition";
+                renderLogs();
+            }
+        }
+
+        function showToast(text, isError = false) {
+            const t = document.getElementById('toast'), tIcon = document.getElementById('toast-icon');
+            document.getElementById('toast-text').innerText = text;
+            
+            if (isError) { 
+                t.className = "fixed top-6 left-1/2 transform -translate-x-1/2 bg-park-sos text-white px-5 py-3 rounded-xl shadow-xl font-bold flex items-center space-x-2 transition-all duration-300 z-50 text-xs w-[90%] justify-center"; 
+                tIcon.className = "fa-solid fa-triangle-exclamation"; 
+            } else { 
+                t.className = "fixed top-6 left-1/2 transform -translate-x-1/2 bg-park-accent text-slate-950 px-5 py-3 rounded-xl shadow-xl font-bold flex items-center space-x-2 transition-all duration-300 z-50 text-xs w-[90%] justify-center"; 
+                tIcon.className = "fa-solid fa-circle-check"; 
+            }
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { t.classList.add('opacity-0', 'pointer-events-none'); }, 3000);
+        }
+    </script>
+</body>
+</html>
