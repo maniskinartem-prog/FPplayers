@@ -442,7 +442,7 @@
             }
 
             // Фоновая подгрузка свежих данных из Google Sheets
-            const backendUrl = localStorage.getItem('park_v5_gsheet');
+            const backendUrl = localStorage.getItem('https://script.google.com/macros/s/AKfycbxKQ4cdIoNM_npBXvUDT2xeaU-FQ6WDbclq2oKPEoehXtCZeyf7zuNrFctrJ_UQo7G0/exec');
             if (backendUrl) {
                 try {
                     const response = await fetch(backendUrl);
