@@ -18,6 +18,7 @@
             }
         }
     </script>
+    const HARDCODED_GSHEET_URL = "https://script.google.com/macros/s/AKfycbxKQ4cdIoNM_npBXvUDT2xeaU-FQ6WDbclq2oKPEoehXtCZeyf7zuNrFctrJ_UQo7G0/exec"
     <style>
         body { 
             -webkit-tap-highlight-color: transparent; 
@@ -442,7 +443,7 @@
             }
 
             // Фоновая подгрузка свежих данных из Google Sheets
-            const backendUrl = localStorage.getItem('https://script.google.com/macros/s/AKfycbxKQ4cdIoNM_npBXvUDT2xeaU-FQ6WDbclq2oKPEoehXtCZeyf7zuNrFctrJ_UQo7G0/exec');
+            const backendUrl = localStorage.getItem('park_v5_gsheet') || HARDCODED_GSHEET_URL;
             if (backendUrl) {
                 try {
                     const response = await fetch(backendUrl);
