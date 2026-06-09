@@ -442,10 +442,8 @@
                 }
             }
 
-const backendUrl = localStorage.getItem('park_v5_gsheet') || DEFAULT_GSHEET_URL;
-if (backendUrl) {
-    // ваш существующий fetch запрос останется прежним
-}
+            const backendUrl = localStorage.getItem('park_v5_gsheet') || DEFAULT_GSHEET_URL;
+            if (backendUrl) 
                 try {
                     const response = await fetch(backendUrl);
                     const cloudData = await response.json();
