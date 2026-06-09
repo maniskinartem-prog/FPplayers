@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Парк-Координатор PRO v5.8</title>
+    <title>Парк-Координатор PRO </title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -206,10 +206,10 @@
                 <div class="bg-slate-900 border border-emerald-500/30 rounded-xl p-3 shadow-md space-y-3">
                     <div>
                         <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">URL Webhook</label>
-                        <input type="text" id="gsheet-url-input" placeholder="https://script.google.com/macros/s/..." class="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-3 text-[12px] text-white focus:outline-none focus:border-emerald-500/50">
+                        <input type="text" id="gsheet-url-input" readonly placeholder="Вшит в код" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-3 text-[12px] text-slate-500 cursor-not-allowed focus:outline-none focus:border-emerald-500/50">
                     </div>
                     <div class="flex space-x-2 border-t border-slate-800 pt-2">
-                        <button onclick="saveGSheetUrl()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-lg text-[10px] uppercase transition">Сохранить URL</button>
+                        <button onclick="saveGSheetUrl()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-lg text-[10px] uppercase transition">Статус</button>
                         <button onclick="syncWithGSheet()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-2 rounded-lg text-[10px] uppercase transition"><i class="fa-solid fa-rotate mr-1"></i> Синхронизировать</button>
                     </div>
                 </div>
@@ -390,7 +390,11 @@
     </div>
 
     <script>
-        const HARDCODED_GSHEET_URL = "https://script.google.com/macros/s/AKfycbxKQ4cdIoNM_npBXvUDT2xeaU-FQ6WDbclq2oKPEoehXtCZeyf7zuNrFctrJ_UQo7G0/exec"
+        // ======================================================================================
+        // ВАЖНО: ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxKQ4cdIoNM_npBXvUDT2xeaU-FQ6WDbclq2oKPEoehXtCZeyf7zuNrFctrJ_UQo7G0/exec";
+        // ======================================================================================
+
         let appState = { 
             user: null, role: null, name: null, 
             shifts: [], logs: [], users: [], games: [], 
@@ -415,38 +419,24 @@
             appState.users = JSON.parse(localStorage.getItem('park_v5_users')) || [];
             appState.shifts = JSON.parse(localStorage.getItem('park_v5_shifts')) || [];
             
-            // МИГРАЦИЯ ДАННЫХ ДЛЯ ПОДДЕРЖКИ МНОЖЕСТВА ИНСТРУКТОРОВ
             appState.shifts.forEach(s => {
                 if (!s.instructors) {
                     s.instructors = [s.instructor];
                     s.responses = {};
                     s.responses[s.instructor] = s.status === 'pending' ? 'pending' : (s.status === 'accepted' ? 'accepted' : 'declined');
-                    delete s.instructor; // Убираем старое поле, чтобы не мешалось
+                    delete s.instructor; 
                 }
             });
 
-            appState.logs = JSON.parse(localStorage.getItem('park_v5_logs')) || [{ timestamp: new Date().toLocaleString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }), user: 'Система', text: 'Платформа v5.8 с поддержкой мульти-инструкторов успешно запущена.' }];
+            appState.logs = JSON.parse(localStorage.getItem('park_v5_logs')) || [{ timestamp: new Date().toLocaleString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }), user: 'Система', text: 'Платформа успешно запущена (Авто-Бэкенд).' }];
             appState.games = JSON.parse(localStorage.getItem('park_v5_games')) || defaultGames;
             appState.notifications = JSON.parse(localStorage.getItem('park_v5_notifications')) || [];
             appState.availability = JSON.parse(localStorage.getItem('park_v5_availability')) || {};
 
-            const session = JSON.parse(localStorage.getItem('park_v5_session'));
-            if (session) {
-                const foundUser = appState.users.find(u => u.username === session.username);
-                if (foundUser && checkUserBanStatus(foundUser)) {
-                    localStorage.removeItem('park_v5_session');
-                    showToast("Ваш аккаунт заблокирован!", true);
-                } else {
-                    appState.user = session.username; appState.role = session.role; appState.name = session.name;
-                    enterDashboard();
-                }
-            }
-
-                const backendUrl = localStorage.getItem('park_v5_gsheet') || DEFAULT_GSHEET_URL;
-            if (backendUrl) {
-            }
+            // 1. Автоматическая фоновая подгрузка данных с сервера СРАЗУ при открытии
+            if (BACKEND_URL && !BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
                 try {
-                    const response = await fetch(backendUrl);
+                    const response = await fetch(BACKEND_URL);
                     const cloudData = await response.json();
                     if (cloudData && !cloudData.status) {
                         appState.users = cloudData.users || appState.users;
@@ -460,11 +450,22 @@
                         localStorage.setItem('park_v5_games', JSON.stringify(appState.games));
                         localStorage.setItem('park_v5_logs', JSON.stringify(appState.logs));
                         localStorage.setItem('park_v5_availability', JSON.stringify(appState.availability));
-                        
-                        if (appState.user) enterDashboard();
                     }
                 } catch (err) {
                     console.log("Автономный режим работы: нет связи с таблицей", err);
+                }
+            }
+
+            // 2. После синхронизации проверяем сессию
+            const session = JSON.parse(localStorage.getItem('park_v5_session'));
+            if (session) {
+                const foundUser = appState.users.find(u => u.username === session.username);
+                if (foundUser && checkUserBanStatus(foundUser)) {
+                    localStorage.removeItem('park_v5_session');
+                    showToast("Ваш аккаунт заблокирован!", true);
+                } else if (foundUser) {
+                    appState.user = session.username; appState.role = session.role; appState.name = session.name;
+                    enterDashboard();
                 }
             }
         };
@@ -477,9 +478,9 @@
             localStorage.setItem('park_v5_notifications', JSON.stringify(appState.notifications));
             localStorage.setItem('park_v5_availability', JSON.stringify(appState.availability));
 
-            const backendUrl = localStorage.getItem('park_v5_gsheet');
-            if (backendUrl) {
-                fetch(backendUrl, {
+            // Автоматически отправляем данные в Гугл Таблицу (Жесткая привязка)
+            if (BACKEND_URL && !BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
+                fetch(BACKEND_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
@@ -489,12 +490,13 @@
         }
 
         async function syncWithGSheet() {
-            const url = localStorage.getItem('park_v5_gsheet');
-            if (!url) return showToast("Сначала введите и сохраните URL Webhook!", true);
+            if (!BACKEND_URL || BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
+                return showToast("ОШИБКА: Сначала вставьте ссылку в код файла!", true);
+            }
             
-            showToast("Синхронизация данных...");
+            showToast("Принудительная синхронизация...");
             try {
-                const response = await fetch(url);
+                const response = await fetch(BACKEND_URL);
                 const cloudData = await response.json();
                 if (cloudData && !cloudData.status) {
                     appState.users = cloudData.users || appState.users;
@@ -513,6 +515,10 @@
             } catch (err) {
                 showToast("Ошибка соединения с таблицей", true);
             }
+        }
+
+        function saveGSheetUrl() {
+            showToast("URL теперь надежно вшит в код файла, ничего сохранять не нужно!");
         }
 
         function recalculateShiftStatus(shift) {
@@ -594,8 +600,9 @@
                 document.getElementById('btn-tab-staff').classList.add('flex');
                 document.getElementById('avail-admin-summary').classList.remove('hidden');
 
-                const savedUrl = localStorage.getItem('park_v5_gsheet');
-                if (savedUrl) document.getElementById('gsheet-url-input').value = savedUrl;
+                if (BACKEND_URL && !BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
+                    document.getElementById('gsheet-url-input').value = BACKEND_URL;
+                }
 
                 renderGameManager(); renderStaffManager();
             } else {
@@ -611,13 +618,6 @@
 
             populateInstructorDropdowns(); updateGlobalGameSelects();
             renderNotifications(); renderSchedule(); renderLogs(); renderAvailability();
-        }
-
-        function saveGSheetUrl() {
-            const url = document.getElementById('gsheet-url-input').value.trim();
-            localStorage.setItem('park_v5_gsheet', url);
-            showToast("Webhook URL успешно сохранен!");
-            logAction(appState.name, "Обновил ссылку синхронизации Google Sheets");
         }
 
         function switchTab(tabId) {
