@@ -41,7 +41,7 @@
             <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-park-accent to-emerald-400 flex items-center justify-center text-white text-2xl shadow-xl mx-auto shadow-emerald-950/30">
                 <i class="fa-solid fa-users-gear"></i>
             </div>
-            <h1 class="font-brand font-black text-xl tracking-tight text-white uppercase">Family-Park-Координатор<span class="text-park-accent">PRO</span></h1>
+            <h1 class="font-brand font-black text-xl tracking-tight text-white uppercase">Family-Park-Координатор <span class="text-park-accent">PRO</span></h1>
             <p class="text-[11px] text-slate-400">Система диспетчеризации и контроля</p>
         </div>
 
@@ -137,9 +137,14 @@
 
             <div class="flex justify-between items-center pt-1">
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📋 Таймлайн</h4>
-                <button id="btn-admin-add-game" onclick="openAddShiftModal()" class="hidden text-[10px] bg-park-accent text-slate-950 px-2.5 py-1.5 rounded-lg font-brand font-black uppercase tracking-wider">
-                    + Добавить игры
-                </button>
+                <div class="flex space-x-2">
+                    <button id="btn-inst-accept-all" onclick="acceptAllPendingGames()" class="hidden text-[10px] bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-lg font-brand font-black uppercase tracking-wider transition shadow-md shadow-emerald-900/20">
+                        <i class="fa-solid fa-check-double mr-1"></i> Принять все
+                    </button>
+                    <button id="btn-admin-add-game" onclick="openAddShiftModal()" class="hidden text-[10px] bg-park-accent text-slate-950 px-2.5 py-1.5 rounded-lg font-brand font-black uppercase tracking-wider">
+                        + Добавить игры
+                    </button>
+                </div>
             </div>
             <div id="schedule-container" class="space-y-3"></div>
         </div>
@@ -386,8 +391,8 @@
 
     <script>
         // ======================================================================================
-        // ВАЖНО: ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxIU9xhGGY_aa8ARdytnjf_9X9uQiHMxe_Y_8Cg2WEATCFAwtaf1SPeXYIKjhDgWRA/exec";
+        // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxKQ4cdIoNM_npBXvUDT2xeaU-FQ6WDbclq2oKPEoehXtCZeyf7zuNrFctrJ_UQo7G0/exec";
         // ======================================================================================
 
         let appState = { 
@@ -801,6 +806,20 @@
             const selectedDate = document.getElementById('schedule-date').value;
             let dailyShifts = appState.shifts.filter(s => s.date === selectedDate);
 
+            const btnAcceptAll = document.getElementById('btn-inst-accept-all');
+            if (btnAcceptAll) {
+                const pendingForMe = dailyShifts.filter(s => 
+                    s.instructors.includes(appState.name) && 
+                    s.status !== 'cancelled' && 
+                    (s.responses[appState.name] === 'pending' || !s.responses[appState.name])
+                );
+                if (pendingForMe.length > 1) {
+                    btnAcceptAll.classList.remove('hidden');
+                } else {
+                    btnAcceptAll.classList.add('hidden');
+                }
+            }
+
             if (appState.activeFilter === 'my') dailyShifts = dailyShifts.filter(s => s.instructors.includes(appState.name));
             else if (appState.activeFilter === 'pending') dailyShifts = dailyShifts.filter(s => s.status === 'pending');
 
@@ -883,8 +902,8 @@
                             <div class="flex flex-col items-end space-y-0">${statusHtml}${adminButtons}</div>
                         </div>
                         <div class="grid grid-cols-2 gap-1.5 bg-slate-950/80 p-2 rounded-lg text-[10px] border border-slate-900">
-                            <div><span class="text-slate-500">🛖 Локация:</span> <b class="text-amber-400">${shift.gazebo || '-'}</b></div>
-                            <div><span class="text-slate-500">👥 Гости:</span> <b class="text-slate-200">${shift.guestsCount} чел.</b></div>
+                            <div><span class="text-slate-500">🛖 Бесдка:</span> <b class="text-amber-400">${shift.gazebo || '-'}</b></div>
+                            <div><span class="text-slate-500">👥 Кол-во гостей:</span> <b class="text-slate-200">${shift.guestsCount} чел.</b></div>
                         </div>
                         
                         <div class="pt-1">
@@ -906,6 +925,32 @@
             saveState();
             logAction(appState.name, `${newStatus === 'accepted' ? '🟢 ПРИНЯЛ' : '🔴 ОТКЛОНИЛ'} игру "${shift.game}"`);
             showToast("Ваш ответ принят!"); renderSchedule();
+        }
+
+        function acceptAllPendingGames() {
+            const selectedDate = document.getElementById('schedule-date').value;
+            let pendingShifts = appState.shifts.filter(s => 
+                s.date === selectedDate && 
+                s.instructors.includes(appState.name) && 
+                s.status !== 'cancelled' && 
+                (s.responses[appState.name] === 'pending' || !s.responses[appState.name])
+            );
+
+            if (pendingShifts.length === 0) {
+                return showToast("Нет ожидающих игр для принятия!", true);
+            }
+
+            let acceptedCount = 0;
+            pendingShifts.forEach(shift => {
+                shift.responses[appState.name] = 'accepted';
+                recalculateShiftStatus(shift);
+                acceptedCount++;
+            });
+
+            saveState();
+            logAction(appState.name, `🟢 Массово ПРИНЯЛ свои игры (${acceptedCount} шт.) на ${formatDateRus(selectedDate)}`);
+            showToast(`Успешно принято игр: ${acceptedCount}!`);
+            renderSchedule();
         }
 
         function openInstructorStatusModal(id) {
