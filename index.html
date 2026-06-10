@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Парк-Координатор PRO </title>
+    <title>Family-Park-Координатор PRO </title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -41,7 +41,7 @@
             <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-park-accent to-emerald-400 flex items-center justify-center text-white text-2xl shadow-xl mx-auto shadow-emerald-950/30">
                 <i class="fa-solid fa-users-gear"></i>
             </div>
-            <h1 class="font-brand font-black text-xl tracking-tight text-white uppercase">Парк-Координатор <span class="text-park-accent">PRO</span></h1>
+            <h1 class="font-brand font-black text-xl tracking-tight text-white uppercase">Family-Park-Координатор<span class="text-park-accent">PRO</span></h1>
             <p class="text-[11px] text-slate-400">Система диспетчеризации и контроля</p>
         </div>
 
@@ -80,7 +80,7 @@
                 <div class="pt-2 border-t border-slate-800">
                     <div class="flex items-center space-x-2">
                         <input type="checkbox" id="reg-is-admin" onchange="toggleAdminPass()" class="rounded bg-slate-900 border-slate-800 accent-park-gold w-4 h-4">
-                        <label for="reg-is-admin" class="text-[10px] font-bold text-slate-400 uppercase cursor-pointer">Зарегистрировать Ст. инструктора</label>
+                        <label for="reg-is-admin" class="text-[10px] font-bold text-slate-400 uppercase cursor-pointer">Зарегистрировать Администратора</label>
                     </div>
                     <div id="admin-pass-container" class="hidden mt-3 p-3 bg-slate-950 rounded-xl border border-park-gold/30">
                         <label class="block text-[10px] font-bold text-park-gold uppercase mb-1"><i class="fa-solid fa-key mr-1"></i> Секретный ключ</label>
@@ -95,7 +95,7 @@
 
     <header id="app-header" class="p-4 pt-[calc(12px+env(safe-area-inset-top))] border-b border-slate-800/60 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 hidden">
         <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2.5">
+            <div class="flex items-center space-x-2.5 cursor-pointer active:opacity-70 select-none" onclick="syncHeaderClick()">
                 <div class="w-8 h-8 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-park-accent text-sm shadow-md">
                     <i class="fa-solid fa-user-gear"></i>
                 </div>
@@ -259,11 +259,6 @@
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl flex flex-col max-h-[85vh]">
             <h3 class="font-brand font-bold text-white text-xs uppercase flex-shrink-0"><i class="fa-solid fa-square-plus text-park-accent mr-1"></i> Массовое планирование</h3>
             
-            <div class="flex-shrink-0">
-                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Выберите Ведущих (Можно несколько)</label>
-                <div id="new-shift-instructors-list" class="grid grid-cols-2 gap-1.5 max-h-[85px] overflow-y-auto ios-scroll p-1.5 bg-slate-950 rounded-xl border border-slate-800"></div>
-            </div>
-
             <div id="mass-shifts-container" class="flex-grow overflow-y-auto pr-1 space-y-3 py-1 ios-scroll"></div>
             
             <div class="flex-shrink-0 pt-2 space-y-2 border-t border-slate-800/80">
@@ -289,7 +284,7 @@
                 <select id="edit-game-select" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white global-games-select"></select>
             </div>
             <div>
-                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Ведущие (Можно несколько)</label>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Инструктор (Можно несколько)</label>
                 <div id="edit-instructor-select-list" class="grid grid-cols-2 gap-1.5 max-h-[100px] overflow-y-auto ios-scroll p-1.5 bg-slate-950 rounded-xl border border-slate-800"></div>
             </div>
             <div class="grid grid-cols-2 gap-2">
@@ -308,7 +303,7 @@
                     <input type="number" id="edit-guests" min="1" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white">
                 </div>
                 <div>
-                    <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Локация</label>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Беседка: </label>
                     <input type="text" id="edit-gazebo" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white">
                 </div>
             </div>
@@ -406,6 +401,62 @@
         let gameRowCounter = 0;
         const defaultGames = ["Лазертаг🔫", "Квесты🗝️", "Мафия🕵️‍♂️", "Анимации🤡", "Прятки в темноте👻"];
 
+        function cleanTime(t) {
+            if(!t) return '';
+            if(t.includes('T')) {
+                const d = new Date(t);
+                if(!isNaN(d)) return d.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
+            }
+            const m = String(t).match(/(\d{2}:\d{2})/);
+            return m ? m[1] : t;
+        }
+
+        function formatDateRus(dStr) {
+            if(!dStr) return '';
+            if(dStr.includes('T')) dStr = dStr.split('T')[0];
+            const p = dStr.split('-');
+            if(p.length === 3) return `${p[2]}.${p[1]}.${p[0]}`; 
+            return dStr;
+        }
+
+        async function syncHeaderClick() {
+            if (!BACKEND_URL || BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
+                return showToast("Ссылка синхронизации не задана в коде!", true);
+            }
+            showToast("Обновление данных...");
+            try {
+                const response = await fetch(BACKEND_URL);
+                const cloudData = await response.json();
+                if (cloudData && !cloudData.status) {
+                    appState.users = cloudData.users || appState.users;
+                    appState.shifts = cloudData.shifts || appState.shifts;
+                    appState.games = cloudData.games && cloudData.games.length ? cloudData.games : appState.games;
+                    appState.logs = cloudData.logs || appState.logs;
+                    appState.availability = cloudData.availability || appState.availability;
+                    
+                    localStorage.setItem('park_v5_users', JSON.stringify(appState.users));
+                    localStorage.setItem('park_v5_shifts', JSON.stringify(appState.shifts));
+                    localStorage.setItem('park_v5_games', JSON.stringify(appState.games));
+                    localStorage.setItem('park_v5_logs', JSON.stringify(appState.logs));
+                    localStorage.setItem('park_v5_availability', JSON.stringify(appState.availability));
+                    
+                    renderSchedule();
+                    renderNotifications();
+                    renderAvailability();
+                    if (appState.role === 'admin') {
+                        renderGameManager();
+                        renderStaffManager();
+                    }
+                    renderLogs();
+                    showToast("Данные успешно синхронизированы!");
+                } else {
+                    showToast("Ошибка ответа таблицы", true);
+                }
+            } catch (err) {
+                showToast("Ошибка сетевого соединения", true);
+            }
+        }
+
         window.onload = async function() {
             const todayStr = new Date().toISOString().split('T')[0];
             document.getElementById('schedule-date').value = todayStr;
@@ -433,7 +484,6 @@
             appState.notifications = JSON.parse(localStorage.getItem('park_v5_notifications')) || [];
             appState.availability = JSON.parse(localStorage.getItem('park_v5_availability')) || {};
 
-            // 1. Автоматическая фоновая подгрузка данных с сервера СРАЗУ при открытии
             if (BACKEND_URL && !BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
                 try {
                     const response = await fetch(BACKEND_URL);
@@ -456,7 +506,6 @@
                 }
             }
 
-            // 2. После синхронизации проверяем сессию
             const session = JSON.parse(localStorage.getItem('park_v5_session'));
             if (session) {
                 const foundUser = appState.users.find(u => u.username === session.username);
@@ -478,7 +527,6 @@
             localStorage.setItem('park_v5_notifications', JSON.stringify(appState.notifications));
             localStorage.setItem('park_v5_availability', JSON.stringify(appState.availability));
 
-            // Автоматически отправляем данные в Гугл Таблицу (Жесткая привязка)
             if (BACKEND_URL && !BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
                 fetch(BACKEND_URL, {
                     method: 'POST',
@@ -591,7 +639,7 @@
             
             const badge = document.getElementById('role-badge');
             if (appState.role === 'admin') {
-                badge.innerText = "Ст. Инструктор"; badge.className = "text-[8px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase";
+                badge.innerText = "Администратор"; badge.className = "text-[8px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase";
                 
                 document.getElementById('btn-admin-add-game').classList.remove('hidden');
                 document.getElementById('admin-games-box').classList.remove('hidden');
@@ -730,7 +778,7 @@
                 for (let j = i + 1; j < shifts.length; j++) {
                     let s1 = shifts[i], s2 = shifts[j];
                     let common = s1.instructors.filter(inst => s2.instructors.includes(inst));
-                    if (common.length > 0 && s1.status !== 'cancelled' && s2.status !== 'cancelled' && s1.startTime < s2.endTime && s2.startTime < s1.endTime) {
+                    if (common.length > 0 && s1.status !== 'cancelled' && s2.status !== 'cancelled' && cleanTime(s1.startTime) < cleanTime(s2.endTime) && cleanTime(s2.startTime) < cleanTime(s1.endTime)) {
                         conflicts.add(s1.id); conflicts.add(s2.id);
                     }
                 }
@@ -761,11 +809,15 @@
                 return;
             }
 
-            dailyShifts.sort((a, b) => a.startTime.localeCompare(b.startTime));
+            dailyShifts.sort((a, b) => cleanTime(a.startTime).localeCompare(cleanTime(b.startTime)));
             const activeConflicts = checkForTimeConflicts(appState.shifts.filter(s => s.date === selectedDate));
 
             container.innerHTML = dailyShifts.map(shift => {
                 let statusHtml = '', borderClass = 'border-slate-800/80', conflictWarning = '';
+                
+                let st = cleanTime(shift.startTime);
+                let et = cleanTime(shift.endTime);
+                let formattedDate = formatDateRus(shift.date);
                 
                 if (shift.status === 'cancelled') {
                     statusHtml = `<span class="bg-slate-950 text-rose-500 border border-rose-950 text-[8px] font-bold px-1.5 py-0.5 rounded uppercase line-through">Отменена</span>`;
@@ -826,7 +878,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <h4 class="font-brand font-bold text-xs text-white ${shift.status === 'cancelled' ? 'line-through text-slate-600':''}">${shift.game}</h4>
-                                <p class="text-[10px] text-slate-400 font-mono font-bold"><i class="fa-regular fa-clock text-park-accent mr-1"></i>${shift.startTime} - ${shift.endTime}</p>
+                                <p class="text-[10px] text-slate-400 font-mono font-bold"><i class="fa-regular fa-calendar text-park-accent mr-1"></i> ${formattedDate} <span class="mx-1 text-slate-600">|</span> <i class="fa-regular fa-clock text-park-gold mr-1"></i>${st} - ${et}</p>
                             </div>
                             <div class="flex flex-col items-end space-y-0">${statusHtml}${adminButtons}</div>
                         </div>
@@ -881,9 +933,9 @@
             recalculateShiftStatus(shift);
             
             const actionText = newStatus === 'accepted' ? '🟢 ПРИНЯЛ' : '🔴 ОТКЛОНИЛ';
-            logAction(appState.name, `${actionText} свою часть игры "${shift.game}" (${shift.startTime}). Причина: ${reason || 'Без причины'}`);
+            logAction(appState.name, `${actionText} свою часть игры "${shift.game}" (${cleanTime(shift.startTime)}). Причина: ${reason || 'Без причины'}`);
             
-            notifyAllAdmins(`Инструктор ${appState.name} изменил статус в игре ${shift.game} (${shift.startTime}) на "${newStatus === 'accepted' ? 'ПРИНЯТА' : 'ОТКАЗ'}". Причина: ${reason || 'Не указана'}`);
+            notifyAllAdmins(`Инструктор ${appState.name} изменил статус в игре ${shift.game} (${cleanTime(shift.startTime)}) на "${newStatus === 'accepted' ? 'ПРИНЯТА' : 'ОТКАЗ'}". Причина: ${reason || 'Не указана'}`);
             
             saveState();
             showToast("Ваш ответ сохранен и отправлен админу!");
@@ -915,10 +967,10 @@
             shift.cancelReason = reason;
             
             saveState();
-            logAction(appState.name, `🚫 Отменил игру "${shift.game}" (${shift.startTime}). Причина: ${reason}`);
+            logAction(appState.name, `🚫 Отменил игру "${shift.game}" (${cleanTime(shift.startTime)}). Причина: ${reason}`);
             
             shift.instructors.forEach(inst => {
-                pushNotification(inst, `ВНИМАНИЕ: Админ отменил вашу игру "${shift.game}" на ${shift.date} в ${shift.startTime}. Причина: ${reason}`);
+                pushNotification(inst, `ВНИМАНИЕ: Админ отменил вашу игру "${shift.game}" на ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}. Причина: ${reason}`);
             });
             
             showToast("Игра отменена, инструкторы уведомлены!");
@@ -935,10 +987,21 @@
         function addGameRowToModal() {
             gameRowCounter++; const container = document.getElementById('mass-shifts-container');
             const optionsHtml = appState.games.map(g => `<option value="${g}">${g}</option>`).join('');
+            
+            const instructorsHtml = appState.users.map(u => `
+                <label class="flex items-center space-x-2 text-[11px] text-slate-300 bg-slate-900 p-1.5 rounded-lg border border-slate-800 cursor-pointer hover:border-park-accent/50 transition">
+                    <input type="checkbox" value="${u.name}" class="row-instructor-cb rounded bg-slate-950 border-slate-800 accent-park-accent w-3.5 h-3.5 flex-shrink-0">
+                    <span class="truncate font-bold">${u.name}</span>
+                </label>
+            `).join('');
+
             const row = document.createElement('div');
-            row.id = `game-row-${gameRowCounter}`; row.className = "p-3 bg-slate-950 rounded-xl border border-slate-800 relative space-y-2 pt-6 transition";
+            row.id = `game-row-${gameRowCounter}`; row.className = "p-3 bg-slate-950 rounded-xl border border-slate-800 relative space-y-2 transition";
             row.innerHTML = `
-                <button type="button" onclick="removeGameRow(${gameRowCounter})" class="absolute top-1.5 right-2 text-rose-400 hover:text-rose-500 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[10px] font-bold text-park-accent uppercase">Игра #${gameRowCounter}</span>
+                    <button type="button" onclick="removeGameRow(${gameRowCounter})" class="text-rose-400 hover:text-rose-500 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
                 <div>
                     <label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Активность</label>
                     <select class="row-game w-full bg-slate-900 border border-slate-800 rounded-lg py-1.5 px-2 text-[16px] text-white">${optionsHtml}</select>
@@ -949,7 +1012,13 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Гости</label><input type="number" value="10" min="1" class="row-guests w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] font-bold text-white"></div>
-                    <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Беседка</label><input type="text" placeholder="№1" class="row-gazebo w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] text-white"></div>
+                    <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Локация</label><input type="text" placeholder="№1" class="row-gazebo w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] text-white"></div>
+                </div>
+                <div class="pt-1">
+                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Ведущие на эту игру</label>
+                    <div class="grid grid-cols-2 gap-1.5 max-h-[85px] overflow-y-auto ios-scroll p-1.5 bg-slate-900 rounded-xl border border-slate-800">
+                        ${instructorsHtml}
+                    </div>
                 </div>`;
             container.appendChild(row); container.scrollTop = container.scrollHeight;
         }
@@ -961,15 +1030,18 @@
 
         function saveCreatedShiftsMassive() {
             const date = document.getElementById('schedule-date').value;
-            
-            const checkboxes = Array.from(document.querySelectorAll('#new-shift-instructors-list input:checked'));
-            const selectedInstructors = checkboxes.map(cb => cb.value);
-            
-            if (selectedInstructors.length === 0) return showToast("Выберите хотя бы одного ведущего!", true);
-
             let addedCount = 0;
+            let errorOccurred = false;
+
             document.querySelectorAll('#mass-shifts-container > div').forEach(row => {
+                const checkboxes = Array.from(row.querySelectorAll('.row-instructor-cb:checked'));
+                const selectedInstructors = checkboxes.map(cb => cb.value);
                 
+                if (selectedInstructors.length === 0) {
+                    errorOccurred = true;
+                    return; 
+                }
+
                 let responsesObj = {};
                 selectedInstructors.forEach(i => responsesObj[i] = 'pending');
 
@@ -985,25 +1057,32 @@
                     gazebo: row.querySelector('.row-gazebo').value.trim() || 'База', 
                     status: "pending"
                 }); 
+                
+                selectedInstructors.forEach(inst => {
+                    pushNotification(inst, `Вам назначена игра ${row.querySelector('.row-game').value} на ${formatDateRus(date)}.`);
+                });
+
                 addedCount++;
             });
 
+            if (errorOccurred && addedCount === 0) {
+                return showToast("В каждой игре должен быть выбран хотя бы один ведущий!", true);
+            }
+
             saveState(); 
-            logAction(appState.name, `Назначил ${addedCount} игр на команду (${selectedInstructors.join(', ')}) на дату ${date}`);
+            logAction(appState.name, `Назначил ${addedCount} игр на дату ${formatDateRus(date)}`);
             
-            selectedInstructors.forEach(inst => {
-                pushNotification(inst, `Вам назначено ${addedCount} нов. игр на ${date} (в команде). Проверьте график!`);
-            });
-            
-            showToast(`Успешно добавлено игр: ${addedCount}`); closeAddShiftModal(); renderSchedule();
+            showToast(`Успешно добавлено игр: ${addedCount}`); 
+            closeAddShiftModal(); 
+            renderSchedule();
         }
 
         function openEditGameModal(id) {
             const shift = appState.shifts.find(s => s.id === id); if (!shift) return;
             document.getElementById('edit-shift-id').value = id;
             document.getElementById('edit-game-select').value = shift.game;
-            document.getElementById('edit-start-time').value = shift.startTime;
-            document.getElementById('edit-end-time').value = shift.endTime;
+            document.getElementById('edit-start-time').value = cleanTime(shift.startTime);
+            document.getElementById('edit-end-time').value = cleanTime(shift.endTime);
             document.getElementById('edit-guests').value = shift.guestsCount;
             document.getElementById('edit-gazebo').value = shift.gazebo;
             
@@ -1041,11 +1120,11 @@
             recalculateShiftStatus(shift); 
             
             oldInstructors.forEach(inst => {
-                if (!newInstructors.includes(inst)) pushNotification(inst, `Админ снял вас с игры ${shift.game} (${shift.startTime})`);
+                if (!newInstructors.includes(inst)) pushNotification(inst, `Админ снял вас с игры ${shift.game} (${cleanTime(shift.startTime)})`);
             });
             newInstructors.forEach(inst => {
-                if (!oldInstructors.includes(inst)) pushNotification(inst, `Админ добавил вас в игру: ${shift.game} на ${shift.startTime}`);
-                else pushNotification(inst, `ВНИМАНИЕ: Админ изменил параметры вашей игры ${shift.game} в ${shift.startTime}.`);
+                if (!oldInstructors.includes(inst)) pushNotification(inst, `Админ добавил вас в игру: ${shift.game} на ${cleanTime(shift.startTime)}`);
+                else pushNotification(inst, `ВНИМАНИЕ: Админ изменил параметры вашей игры ${shift.game} в ${cleanTime(shift.startTime)}.`);
             });
 
             saveState(); 
@@ -1056,6 +1135,9 @@
         }
 
         function calculateDurationHours(start, end) {
+            start = cleanTime(start);
+            end = cleanTime(end);
+            if (!start || !end) return 0;
             const [sH, sM] = start.split(':').map(Number), [eH, eM] = end.split(':').map(Number);
             let diffMins = (eH * 60 + eM) - (sH * 60 + sM);
             if (diffMins < 0) diffMins += 24 * 60; return parseFloat((diffMins / 60).toFixed(1));
@@ -1213,9 +1295,6 @@
                 </label>
             `).join('');
             
-            const addList = document.getElementById('new-shift-instructors-list');
-            if(addList) addList.innerHTML = listHtml;
-            
             const editList = document.getElementById('edit-instructor-select-list');
             if(editList) editList.innerHTML = listHtml;
         }
@@ -1229,6 +1308,7 @@
         }
         
         function clearAllNotifications() { appState.notifications = appState.notifications.filter(n => n.targetUser !== appState.name); saveState(); renderNotifications(); }
+        
         function renderNotifications() {
             const box = document.getElementById('notifications-box'); const list = document.getElementById('notifications-list');
             if (!box || !list) return;
@@ -1249,7 +1329,7 @@
                 tIcon.className = "fa-solid fa-circle-check"; 
             }
             if (toastTimeout) clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => { t.classList.add('opacity-0', 'pointer-events-none'); }, 3000);
+            toastTimeout = setTimeout(() => { t.className = "fixed top-6 left-1/2 transform -translate-x-1/2 bg-park-accent text-slate-950 px-5 py-3 rounded-xl shadow-xl font-bold flex items-center space-x-2 opacity-0 pointer-events-none transition-all duration-300 z-50 text-xs w-[90%] justify-center"; }, 3000);
         }
     </script>
 </body>
