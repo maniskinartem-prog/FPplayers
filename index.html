@@ -207,7 +207,7 @@
         <div id="view-settings" class="flex flex-col h-full space-y-4 hidden">
             
             <div id="admin-gsheet-box" class="hidden space-y-3 flex-shrink-0">
-                <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-table-cells text-emerald-400 mr-1"></i> Синхронизация таблиц</h3>
+                <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-table-cells text-emerald-400 mr-1"></i> Синхронизация с базой данных</h3>
                 <div class="bg-slate-900 border border-emerald-500/30 rounded-xl p-3 shadow-md space-y-3">
                     <div>
                         <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">URL Webhook</label>
@@ -455,7 +455,7 @@
                     renderLogs();
                     showToast("Данные успешно синхронизированы!");
                 } else {
-                    showToast("Ошибка ответа таблицы", true);
+                    showToast("Ошибка ответа базы данных", true);
                 }
             } catch (err) {
                 showToast("Ошибка сетевого соединения", true);
@@ -507,7 +507,7 @@
                         localStorage.setItem('park_v5_availability', JSON.stringify(appState.availability));
                     }
                 } catch (err) {
-                    console.log("Автономный режим работы: нет связи с таблицей", err);
+                    console.log("Автономный режим работы: нет связи с базой данных", err);
                 }
             }
 
@@ -561,12 +561,12 @@
                     saveState();
                     if (appState.user) enterDashboard();
                     showToast("Успешно синхронизировано с Google Sheets!");
-                    logAction(appState.name, "Выполнил принудительную синхронизацию базы с Google Таблицей");
+                    logAction(appState.name, "Выполнил принудительную синхронизацию базы данных");
                 } else {
-                    showToast("Ошибка данных в таблице", true);
+                    showToast("Ошибка данных в базе", true);
                 }
             } catch (err) {
-                showToast("Ошибка соединения с таблицей", true);
+                showToast("Ошибка соединения с базой данных", true);
             }
         }
 
