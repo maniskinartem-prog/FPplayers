@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Family-Park-Координатор PRO </title>
+    <title>Family-Park-Координатор-PRO </title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -219,7 +219,7 @@
         <div id="view-settings" class="flex flex-col h-full space-y-4 hidden">
             
             <div id="admin-gsheet-box" class="hidden space-y-3 flex-shrink-0">
-                <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-table-cells text-emerald-400 mr-1"></i> Синхронизация таблиц</h3>
+                <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-table-cells text-emerald-400 mr-1"></i> Синхронизация базы данных</h3>
                 <div class="bg-slate-900 border border-emerald-500/30 rounded-xl p-3 shadow-md space-y-3">
                     <div>
                         <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">URL Webhook</label>
@@ -1179,7 +1179,7 @@
                 const gStart = row.querySelector('.row-start').value;
                 const gEnd = row.querySelector('.row-end').value;
                 const gGuests = row.querySelector('.row-guests').value;
-                const gGazebo = row.querySelector('.row-gazebo').value.trim() || 'База';
+                const gGazebo = row.querySelector('.row-gazebo').value.trim() || 'Без беседки';
 
                 appState.shifts.push({
                     id: "id_" + Math.random().toString(36).substr(2, 9), 
@@ -1197,7 +1197,7 @@
                 selectedInstructors.forEach(inst => {
                     pushNotification(inst, `Вам назначена игра ${gName} на ${formatDateRus(date)}.`);
                     // Отправляем ТГ уведомление
-                    sendTelegramNotify(inst, `🔔 Вам назначена новая игра!\n\n🎮 ${gName}\n🗓 ${formatDateRus(date)}\n⏰ ${gStart} - ${gEnd}\n📍 Локация: ${gGazebo}\n👥 Гостей: ${gGuests}`);
+                    sendTelegramNotify(inst, `🔔 Вам назначена новая игра!\n\n🎮 ${gName}\n🗓 ${formatDateRus(date)}\n⏰ ${gStart} - ${gEnd}\n📍 Беседка: ${gGazebo}\n👥 Гостей: ${gGuests}`);
                 });
 
                 addedCount++;
@@ -1504,7 +1504,7 @@
                             instructors: [],
                             responses: {},
                             guestsCount: gameData.guestsCount || 10,
-                            gazebo: gameData.gazebo || "База",
+                            gazebo: gameData.gazebo || "Без беседки",
                             status: "pending"
                         });
                         added++;
