@@ -141,6 +141,9 @@
                     <button id="btn-inst-accept-all" onclick="acceptAllPendingGames()" class="hidden text-[10px] bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-lg font-brand font-black uppercase tracking-wider transition shadow-md shadow-emerald-900/20">
                         <i class="fa-solid fa-check-double mr-1"></i> Принять все
                     </button>
+                    <button id="btn-admin-publish" onclick="publishScheduleToChat()" class="hidden text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded-lg font-brand font-black uppercase tracking-wider transition shadow-md shadow-blue-900/20">
+                        <i class="fa-solid fa-paper-plane mr-1"></i> В чат
+                    </button>
                     <button id="btn-admin-add-game" onclick="openAddShiftModal()" class="hidden text-[10px] bg-park-accent text-slate-950 px-2.5 py-1.5 rounded-lg font-brand font-black uppercase tracking-wider">
                         + Добавить игры
                     </button>
@@ -401,7 +404,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw1JAX_8VA_aw6ylX_SsAp9yJS4hPKZixXQLJyYvkdjIeYlg2ribs-00jy0M9OgID0/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyXDF3uS7i0uBTbyBPiQGuQk5SZLNwKFrq9yDjVdar0CuYyu_ZlUqdwUMACEsYqNZA/exec";
         // ======================================================================================
 
         let appState = { 
@@ -414,6 +417,67 @@
         let toastTimeout = null;
         let gameRowCounter = 0;
         const defaultGames = ["Лазертаг🔫", "Квесты🗝️", "Мафия🕵️‍♂️", "Анимации🤡", "Прятки в темноте👻"];
+
+        // НОВЫЕ ФУНКЦИИ ТЕЛЕГРАМ-УВЕДОМЛЕНИЙ И ЧАТА
+        // =====================================================================
+        async function sendTelegramNotify(targetName, text) {
+            // Ищем пользователя по имени или логину
+            const user = appState.users.find(u => u.name === targetName || u.username === targetName);
+            if (!user || !user.telegram_id) {
+                console.warn(`У пользователя ${targetName} не найден telegram_id для отправки в ТГ`);
+                return;
+            }
+            try {
+                // Отправляем специальный экшен на бэкенд (backend должен его поддержать)
+                fetch(BACKEND_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'notify_user', telegram_id: user.telegram_id, text: text })
+                }).catch(err => console.log("Фоновая ошибка отправки в ТГ:", err));
+            } catch (err) {}
+        }
+
+        async function publishScheduleToChat() {
+            const selectedDate = document.getElementById('schedule-date').value;
+            const shiftsToday = appState.shifts.filter(s => s.date === selectedDate && s.status !== 'cancelled');
+
+            if (shiftsToday.length === 0) {
+                return showToast("На этот день нет активных игр для публикации.", true);
+            }
+
+            // Сортируем игры по времени
+            shiftsToday.sort((a, b) => cleanTime(a.startTime).localeCompare(cleanTime(b.startTime)));
+
+            let messageText = `🗓 <b>Расписание на ${formatDateRus(selectedDate)}</b>\n\n`;
+
+            shiftsToday.forEach(shift => {
+                const instList = shift.instructors && shift.instructors.length > 0 
+                    ? shift.instructors.join(', ') 
+                    : "Не назначены";
+                    
+                messageText += `🔹 <b>${cleanTime(shift.startTime)} - ${cleanTime(shift.endTime)}</b> | ${shift.game}\n`;
+                messageText += `👥 Гостей: ${shift.guestsCount} | 📍 ${shift.gazebo}\n`;
+                messageText += `🎭 Ведущие: ${instList}\n\n`;
+            });
+
+            showToast("Отправка расписания в чат...");
+
+            try {
+                fetch(BACKEND_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'publish_chat', text: messageText })
+                }).catch(err => console.log("Фоновая ошибка отправки расписания:", err));
+                
+                // Используем оптимистичный UI (так как no-cors скрывает ответ)
+                setTimeout(() => showToast("Расписание отправлено в чат!"), 1500);
+            } catch (err) {
+                showToast("Ошибка сети при отправке в ТГ", true);
+            }
+        }
+        // =====================================================================
 
         function cleanTime(t) {
             if(!t) return '';
@@ -546,7 +610,13 @@
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(appState)
+                    body: JSON.stringify({
+                        users: appState.users,
+                        shifts: appState.shifts,
+                        games: appState.games,
+                        logs: appState.logs,
+                        availability: appState.availability
+                    })
                 }).catch(err => console.log("Ошибка фоновой отправки данных:", err));
             }
         }
@@ -624,7 +694,7 @@
             if (!name || !user || !pass) return showToast("Заполните все поля!", true);
             if (appState.users.some(u => u.username === user)) return showToast("Логин занят!", true);
             let role = 'user'; if (isAdmin) { if (document.getElementById('reg-admin-pass').value.trim() === 'AdminFP') { role = 'admin'; } else { return showToast("Неверный код доступа!", true); } }
-            appState.users.push({ username: user, password: pass, name: name, role: role, blocked: false });
+            appState.users.push({ username: user, password: pass, name: name, role: role, blocked: false }); // telegram_id will be handled externally or via backend updates
             saveState(); showToast("Регистрация успешна!"); switchAuthTab('login');
         }
 
@@ -656,6 +726,7 @@
                 badge.innerText = "Администратор"; badge.className = "text-[8px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase";
                 
                 document.getElementById('btn-admin-add-game').classList.remove('hidden');
+                document.getElementById('btn-admin-publish').classList.remove('hidden'); // Кнопка чата для админа
                 document.getElementById('admin-games-box').classList.remove('hidden');
                 document.getElementById('admin-gsheet-box').classList.remove('hidden');
                 document.getElementById('btn-tab-staff').classList.remove('hidden'); 
@@ -672,6 +743,7 @@
                 badge.innerText = "Инструктор"; badge.className = "text-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase";
                 
                 document.getElementById('btn-admin-add-game').classList.add('hidden');
+                document.getElementById('btn-admin-publish').classList.add('hidden'); // Скрыта для инструктора
                 document.getElementById('admin-games-box').classList.add('hidden');
                 document.getElementById('admin-gsheet-box').classList.add('hidden');
                 document.getElementById('btn-tab-staff').classList.add('hidden'); 
@@ -1027,6 +1099,8 @@
             
             shift.instructors.forEach(inst => {
                 pushNotification(inst, `ВНИМАНИЕ: Админ отменил вашу игру "${shift.game}" на ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}. Причина: ${reason}`);
+                // Отправляем ТГ уведомление
+                sendTelegramNotify(inst, `🚫 ВНИМАНИЕ! Ваша игра отменена!\n\n🎮 ${shift.game}\n🗓 ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}\n⚠️ Причина: ${reason}`);
             });
             
             showToast("Игра отменена, инструкторы уведомлены!");
@@ -1101,21 +1175,29 @@
                 let responsesObj = {};
                 selectedInstructors.forEach(i => responsesObj[i] = 'pending');
 
+                const gName = row.querySelector('.row-game').value;
+                const gStart = row.querySelector('.row-start').value;
+                const gEnd = row.querySelector('.row-end').value;
+                const gGuests = row.querySelector('.row-guests').value;
+                const gGazebo = row.querySelector('.row-gazebo').value.trim() || 'База';
+
                 appState.shifts.push({
                     id: "id_" + Math.random().toString(36).substr(2, 9), 
                     date: date,
-                    startTime: row.querySelector('.row-start').value, 
-                    endTime: row.querySelector('.row-end').value,
-                    game: row.querySelector('.row-game').value, 
+                    startTime: gStart, 
+                    endTime: gEnd,
+                    game: gName, 
                     instructors: [...selectedInstructors], 
                     responses: {...responsesObj},
-                    guestsCount: row.querySelector('.row-guests').value, 
-                    gazebo: row.querySelector('.row-gazebo').value.trim() || 'База', 
+                    guestsCount: gGuests, 
+                    gazebo: gGazebo, 
                     status: "pending"
                 }); 
                 
                 selectedInstructors.forEach(inst => {
-                    pushNotification(inst, `Вам назначена игра ${row.querySelector('.row-game').value} на ${formatDateRus(date)}.`);
+                    pushNotification(inst, `Вам назначена игра ${gName} на ${formatDateRus(date)}.`);
+                    // Отправляем ТГ уведомление
+                    sendTelegramNotify(inst, `🔔 Вам назначена новая игра!\n\n🎮 ${gName}\n🗓 ${formatDateRus(date)}\n⏰ ${gStart} - ${gEnd}\n📍 Локация: ${gGazebo}\n👥 Гостей: ${gGuests}`);
                 });
 
                 addedCount++;
@@ -1176,11 +1258,20 @@
             recalculateShiftStatus(shift); 
             
             oldInstructors.forEach(inst => {
-                if (!newInstructors.includes(inst)) pushNotification(inst, `Админ снял вас с игры ${shift.game} (${cleanTime(shift.startTime)})`);
+                if (!newInstructors.includes(inst)) {
+                    pushNotification(inst, `Админ снял вас с игры ${shift.game} (${cleanTime(shift.startTime)})`);
+                    sendTelegramNotify(inst, `❌ Вас сняли с игры!\n\n🎮 ${shift.game}\n🗓 ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}`);
+                }
             });
             newInstructors.forEach(inst => {
-                if (!oldInstructors.includes(inst)) pushNotification(inst, `Админ добавил вас в игру: ${shift.game} на ${cleanTime(shift.startTime)}`);
-                else pushNotification(inst, `ВНИМАНИЕ: Админ изменил параметры вашей игры ${shift.game} в ${cleanTime(shift.startTime)}.`);
+                if (!oldInstructors.includes(inst)) {
+                    pushNotification(inst, `Админ добавил вас в игру: ${shift.game} на ${cleanTime(shift.startTime)}`);
+                    sendTelegramNotify(inst, `🔔 Вас добавили в игру!\n\n🎮 ${shift.game}\n🗓 ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}\n📍 Локация: ${shift.gazebo}`);
+                }
+                else {
+                    pushNotification(inst, `ВНИМАНИЕ: Админ изменил параметры вашей игры ${shift.game} в ${cleanTime(shift.startTime)}.`);
+                    sendTelegramNotify(inst, `⚠️ Параметры игры изменены админом!\n\n🎮 ${shift.game}\n🗓 ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}`);
+                }
             });
 
             saveState(); 
