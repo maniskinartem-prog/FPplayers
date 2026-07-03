@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Family-Park-Координатор-PRO </title>
+    <title>Family-Park-Координатор PRO</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -177,6 +177,12 @@
                     </div>
                 </div>
                 
+                <div class="pt-2 border-t border-slate-800">
+                    <label class="block text-[8px] font-bold text-park-accent uppercase mb-0.5"><i class="fa-regular fa-clock mr-1"></i> Могу работать ДО (необязательно)</label>
+                    <input type="time" id="avail-time-until" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-2 text-[14px] font-bold text-white focus:outline-none focus:border-emerald-500/50 transition">
+                    <p class="text-[8px] text-slate-500 mt-1">Оставьте пустым, если можете работать полный день.</p>
+                </div>
+
                 <div id="avail-user-actions" class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">
                     <button onclick="setMyAvailabilityRange('yes')" class="bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 font-bold py-2.5 rounded-lg text-[11px] hover:bg-emerald-600/30 transition">Готов работать 🟢</button>
                     <button onclick="setMyAvailabilityRange('no')" class="bg-rose-600/20 border border-rose-500/30 text-rose-400 font-bold py-2.5 rounded-lg text-[11px] hover:bg-rose-600/30 transition">Выходной 🔴</button>
@@ -219,7 +225,7 @@
         <div id="view-settings" class="flex flex-col h-full space-y-4 hidden">
             
             <div id="admin-gsheet-box" class="hidden space-y-3 flex-shrink-0">
-                <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-table-cells text-emerald-400 mr-1"></i> Синхронизация базы данных</h3>
+                <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-table-cells text-emerald-400 mr-1"></i> Синхронизация таблиц</h3>
                 <div class="bg-slate-900 border border-emerald-500/30 rounded-xl p-3 shadow-md space-y-3">
                     <div>
                         <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">URL Webhook</label>
@@ -404,7 +410,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyiGtOG51xSJdsvd9ArAOYQNpRDiTS5VMCS-h3oW3UaiDQIMr1QViYkh8cq-VnZ_vzK/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwQoMEXci6Y7HGz5PbrZ194g7z0hF8On95ZPBofL7WiGthy95kQGAAonGDsDJEEq-TP/exec";
         // ======================================================================================
 
         let appState = { 
@@ -418,17 +424,13 @@
         let gameRowCounter = 0;
         const defaultGames = ["Лазертаг🔫", "Квесты🗝️", "Мафия🕵️‍♂️", "Анимации🤡", "Прятки в темноте👻"];
 
-        // НОВЫЕ ФУНКЦИИ ТЕЛЕГРАМ-УВЕДОМЛЕНИЙ И ЧАТА
-        // =====================================================================
         async function sendTelegramNotify(targetName, text) {
-            // Ищем пользователя по имени или логину
             const user = appState.users.find(u => u.name === targetName || u.username === targetName);
             if (!user || !user.telegram_id) {
                 console.warn(`У пользователя ${targetName} не найден telegram_id для отправки в ТГ`);
                 return;
             }
             try {
-                // Отправляем специальный экшен на бэкенд (backend должен его поддержать)
                 fetch(BACKEND_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -446,7 +448,6 @@
                 return showToast("На этот день нет активных игр для публикации.", true);
             }
 
-            // Сортируем игры по времени
             shiftsToday.sort((a, b) => cleanTime(a.startTime).localeCompare(cleanTime(b.startTime)));
 
             let messageText = `🗓 <b>Расписание на ${formatDateRus(selectedDate)}</b>\n\n`;
@@ -471,13 +472,11 @@
                     body: JSON.stringify({ action: 'publish_chat', text: messageText })
                 }).catch(err => console.log("Фоновая ошибка отправки расписания:", err));
                 
-                // Используем оптимистичный UI (так как no-cors скрывает ответ)
                 setTimeout(() => showToast("Расписание отправлено в чат!"), 1500);
             } catch (err) {
                 showToast("Ошибка сети при отправке в ТГ", true);
             }
         }
-        // =====================================================================
 
         function cleanTime(t) {
             if(!t) return '';
@@ -562,7 +561,7 @@
             appState.notifications = JSON.parse(localStorage.getItem('park_v5_notifications')) || [];
             appState.availability = JSON.parse(localStorage.getItem('park_v5_availability')) || {};
 
-            if (BACKEND_URL && !BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
+            if (BACKEND_URL && !BACKEND_URL.includes("https://script.google.com/macros/s/AKfycbx5xcnCy4VAQGNMY-QM7_WEhgKJJ6YEIjYMe_dF_KRt8auLniuTn0MA4PwzmmFp7Rwp_w/exec")) {
                 try {
                     const response = await fetch(BACKEND_URL);
                     const cloudData = await response.json();
@@ -694,7 +693,7 @@
             if (!name || !user || !pass) return showToast("Заполните все поля!", true);
             if (appState.users.some(u => u.username === user)) return showToast("Логин занят!", true);
             let role = 'user'; if (isAdmin) { if (document.getElementById('reg-admin-pass').value.trim() === 'AdminFP') { role = 'admin'; } else { return showToast("Неверный код доступа!", true); } }
-            appState.users.push({ username: user, password: pass, name: name, role: role, blocked: false }); // telegram_id will be handled externally or via backend updates
+            appState.users.push({ username: user, password: pass, name: name, role: role, blocked: false });
             saveState(); showToast("Регистрация успешна!"); switchAuthTab('login');
         }
 
@@ -726,7 +725,7 @@
                 badge.innerText = "Администратор"; badge.className = "text-[8px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase";
                 
                 document.getElementById('btn-admin-add-game').classList.remove('hidden');
-                document.getElementById('btn-admin-publish').classList.remove('hidden'); // Кнопка чата для админа
+                document.getElementById('btn-admin-publish').classList.remove('hidden');
                 document.getElementById('admin-games-box').classList.remove('hidden');
                 document.getElementById('admin-gsheet-box').classList.remove('hidden');
                 document.getElementById('btn-tab-staff').classList.remove('hidden'); 
@@ -743,7 +742,7 @@
                 badge.innerText = "Инструктор"; badge.className = "text-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase";
                 
                 document.getElementById('btn-admin-add-game').classList.add('hidden');
-                document.getElementById('btn-admin-publish').classList.add('hidden'); // Скрыта для инструктора
+                document.getElementById('btn-admin-publish').classList.add('hidden');
                 document.getElementById('admin-games-box').classList.add('hidden');
                 document.getElementById('admin-gsheet-box').classList.add('hidden');
                 document.getElementById('btn-tab-staff').classList.add('hidden'); 
@@ -792,9 +791,17 @@
                 
                 sortedDates.forEach(d => {
                     if (d >= today && appState.availability[d] && appState.availability[d][appState.name]) {
-                        const status = appState.availability[d][appState.name];
-                        const icon = status === 'yes' ? '<i class="fa-solid fa-check text-emerald-500 mr-1.5 w-4"></i>' : '<i class="fa-solid fa-xmark text-rose-500 mr-1.5 w-4"></i>';
-                        const text = status === 'yes' ? '<span class="text-emerald-400">Могу работать</span>' : '<span class="text-rose-400">Выходной</span>';
+                        const statusRaw = appState.availability[d][appState.name];
+                        
+                        const isYes = typeof statusRaw === 'string' && statusRaw.startsWith('yes');
+                        const timeUntil = isYes && statusRaw.includes('_') ? statusRaw.split('_')[1] : null;
+                        
+                        const icon = isYes ? '<i class="fa-solid fa-check text-emerald-500 mr-1.5 w-4"></i>' : '<i class="fa-solid fa-xmark text-rose-500 mr-1.5 w-4"></i>';
+                        
+                        let textStr = isYes ? 'Могу работать' : 'Выходной';
+                        if (timeUntil) textStr += ` <span class="text-[9px] text-emerald-200 bg-emerald-900/60 px-1.5 py-0.5 rounded ml-1">до ${timeUntil}</span>`;
+                        
+                        const text = isYes ? `<span class="text-emerald-400 flex items-center">${textStr}</span>` : `<span class="text-rose-400">${textStr}</span>`;
                         
                         myDatesHtml += `
                             <div class="flex justify-between items-center text-[11px] bg-slate-950 p-2 rounded-lg border border-slate-800 shadow-sm mb-1.5">
@@ -820,8 +827,13 @@
                 let htmlYes = '', htmlNo = '', htmlUnknown = '';
                 appState.users.forEach(u => {
                     const st = appState.availability[targetDateStr]?.[u.name];
-                    if (st === 'yes') htmlYes += `<div><i class="fa-solid fa-check text-emerald-500 mr-1"></i> ${u.name}</div>`;
-                    else if (st === 'no') htmlNo += `<div><i class="fa-solid fa-xmark text-rose-500 mr-1"></i> ${u.name}</div>`;
+                    
+                    if (st && typeof st === 'string' && st.startsWith('yes')) {
+                        const timeUntil = st.includes('_') ? st.split('_')[1] : null;
+                        const timeBadge = timeUntil ? `<span class="text-[8px] bg-emerald-950 text-emerald-300 border border-emerald-800/50 px-1 py-0.5 rounded ml-1 font-mono">до ${timeUntil}</span>` : '';
+                        htmlYes += `<div class="flex items-center justify-between mb-1"><div class="truncate"><i class="fa-solid fa-check text-emerald-500 mr-1"></i> ${u.name}</div> ${timeBadge}</div>`;
+                    }
+                    else if (st === 'no') htmlNo += `<div class="mb-1"><i class="fa-solid fa-xmark text-rose-500 mr-1"></i> ${u.name}</div>`;
                     else htmlUnknown += `<span class="bg-slate-800 px-1.5 py-0.5 rounded">${u.name}</span>`;
                 });
 
@@ -831,9 +843,11 @@
             }
         }
 
-        function setMyAvailabilityRange(status) {
+        function setMyAvailabilityRange(baseStatus) {
             const startStr = document.getElementById('avail-date-start').value;
             const endStr = document.getElementById('avail-date-end').value;
+            const timeUntilEl = document.getElementById('avail-time-until');
+            const timeUntil = timeUntilEl ? timeUntilEl.value : '';
             
             if (!startStr || !endStr) return showToast("Укажите даты начала и конца!", true);
             
@@ -841,6 +855,11 @@
             let end = new Date(endStr);
             
             if (start > end) return showToast("Дата начала больше конечной!", true);
+
+            let status = baseStatus;
+            if (baseStatus === 'yes' && timeUntil) {
+                status = 'yes_' + timeUntil;
+            }
 
             let addedCount = 0;
             let current = new Date(start);
@@ -854,8 +873,13 @@
                 addedCount++;
             }
             
+            if (timeUntilEl) timeUntilEl.value = '';
+            
             saveState();
-            logAction(appState.name, `Изменил статус с ${startStr} по ${endStr}: ${status === 'yes' ? 'Готов работать' : 'Выходной'}`);
+            
+            let logMsgStatus = baseStatus === 'yes' ? (timeUntil ? `Готов работать до ${timeUntil}` : 'Готов работать весь день') : 'Выходной';
+            logAction(appState.name, `Изменил статус с ${startStr} по ${endStr}: ${logMsgStatus}`);
+            
             showToast(`График успешно обновлен на ${addedCount} дн.!`);
             renderAvailability();
         }
@@ -1099,7 +1123,6 @@
             
             shift.instructors.forEach(inst => {
                 pushNotification(inst, `ВНИМАНИЕ: Админ отменил вашу игру "${shift.game}" на ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}. Причина: ${reason}`);
-                // Отправляем ТГ уведомление
                 sendTelegramNotify(inst, `🚫 ВНИМАНИЕ! Ваша игра отменена!\n\n🎮 ${shift.game}\n🗓 ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}\n⚠️ Причина: ${reason}`);
             });
             
@@ -1179,7 +1202,7 @@
                 const gStart = row.querySelector('.row-start').value;
                 const gEnd = row.querySelector('.row-end').value;
                 const gGuests = row.querySelector('.row-guests').value;
-                const gGazebo = row.querySelector('.row-gazebo').value.trim() || 'Без беседки';
+                const gGazebo = row.querySelector('.row-gazebo').value.trim() || 'База';
 
                 appState.shifts.push({
                     id: "id_" + Math.random().toString(36).substr(2, 9), 
@@ -1196,8 +1219,7 @@
                 
                 selectedInstructors.forEach(inst => {
                     pushNotification(inst, `Вам назначена игра ${gName} на ${formatDateRus(date)}.`);
-                    // Отправляем ТГ уведомление
-                    sendTelegramNotify(inst, `🔔 Вам назначена новая игра!\n\n🎮 ${gName}\n🗓 ${formatDateRus(date)}\n⏰ ${gStart} - ${gEnd}\n📍 Беседка: ${gGazebo}\n👥 Гостей: ${gGuests}`);
+                    sendTelegramNotify(inst, `🔔 Вам назначена новая игра!\n\n🎮 ${gName}\n🗓 ${formatDateRus(date)}\n⏰ ${gStart} - ${gEnd}\n📍 Локация: ${gGazebo}\n👥 Гостей: ${gGuests}`);
                 });
 
                 addedCount++;
@@ -1504,7 +1526,7 @@
                             instructors: [],
                             responses: {},
                             guestsCount: gameData.guestsCount || 10,
-                            gazebo: gameData.gazebo || "Без беседки",
+                            gazebo: gameData.gazebo || "База",
                             status: "pending"
                         });
                         added++;
