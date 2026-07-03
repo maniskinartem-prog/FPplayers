@@ -459,7 +459,7 @@
                     
                 messageText += `🔹 <b>${cleanTime(shift.startTime)} - ${cleanTime(shift.endTime)}</b> | ${shift.game}\n`;
                 messageText += `👥 Гостей: ${shift.guestsCount} | 📍 ${shift.gazebo}\n`;
-                messageText += `🎭 Ведущие: ${instList}\n\n`;
+                messageText += `🎭 Интруктор(а): ${instList}\n\n`;
             });
 
             showToast("Отправка расписания в чат...");
@@ -1009,7 +1009,7 @@
                             <div class="flex flex-col items-end space-y-0">${statusHtml}${adminButtons}</div>
                         </div>
                         <div class="grid grid-cols-2 gap-1.5 bg-slate-950/80 p-2 rounded-lg text-[10px] border border-slate-900">
-                            <div><span class="text-slate-500">🛖 Локация:</span> <b class="text-amber-400">${shift.gazebo || '-'}</b></div>
+                            <div><span class="text-slate-500">🛖 Беседка:</span> <b class="text-amber-400">${shift.gazebo || '-'}</b></div>
                             <div><span class="text-slate-500">👥 Гости:</span> <b class="text-slate-200">${shift.guestsCount} чел.</b></div>
                         </div>
                         
@@ -1165,10 +1165,10 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Гости</label><input type="number" value="10" min="1" class="row-guests w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] font-bold text-white"></div>
-                    <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Локация</label><input type="text" placeholder="№1" class="row-gazebo w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] text-white"></div>
+                    <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Беседка</label><input type="text" placeholder="№1" class="row-gazebo w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] text-white"></div>
                 </div>
                 <div class="pt-1">
-                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Ведущие на эту игру</label>
+                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Инструктора на эту игру</label>
                     <div class="grid grid-cols-2 gap-1.5 max-h-[85px] overflow-y-auto ios-scroll p-1.5 bg-slate-900 rounded-xl border border-slate-800">
                         ${instructorsHtml}
                     </div>
@@ -1202,7 +1202,7 @@
                 const gStart = row.querySelector('.row-start').value;
                 const gEnd = row.querySelector('.row-end').value;
                 const gGuests = row.querySelector('.row-guests').value;
-                const gGazebo = row.querySelector('.row-gazebo').value.trim() || 'База';
+                const gGazebo = row.querySelector('.row-gazebo').value.trim() || 'Без беседки';
 
                 appState.shifts.push({
                     id: "id_" + Math.random().toString(36).substr(2, 9), 
@@ -1219,7 +1219,7 @@
                 
                 selectedInstructors.forEach(inst => {
                     pushNotification(inst, `Вам назначена игра ${gName} на ${formatDateRus(date)}.`);
-                    sendTelegramNotify(inst, `🔔 Вам назначена новая игра!\n\n🎮 ${gName}\n🗓 ${formatDateRus(date)}\n⏰ ${gStart} - ${gEnd}\n📍 Локация: ${gGazebo}\n👥 Гостей: ${gGuests}`);
+                    sendTelegramNotify(inst, `🔔 Вам назначена новая игра!\n\n🎮 ${gName}\n🗓 ${formatDateRus(date)}\n⏰ ${gStart} - ${gEnd}\n📍 Беседка: ${gGazebo}\n👥 Гостей: ${gGuests}`);
                 });
 
                 addedCount++;
@@ -1288,7 +1288,7 @@
             newInstructors.forEach(inst => {
                 if (!oldInstructors.includes(inst)) {
                     pushNotification(inst, `Админ добавил вас в игру: ${shift.game} на ${cleanTime(shift.startTime)}`);
-                    sendTelegramNotify(inst, `🔔 Вас добавили в игру!\n\n🎮 ${shift.game}\n🗓 ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}\n📍 Локация: ${shift.gazebo}`);
+                    sendTelegramNotify(inst, `🔔 Вас добавили в игру!\n\n🎮 ${shift.game}\n🗓 ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}\n📍 Беседка: ${shift.gazebo}`);
                 }
                 else {
                     pushNotification(inst, `ВНИМАНИЕ: Админ изменил параметры вашей игры ${shift.game} в ${cleanTime(shift.startTime)}.`);
@@ -1526,7 +1526,7 @@
                             instructors: [],
                             responses: {},
                             guestsCount: gameData.guestsCount || 10,
-                            gazebo: gameData.gazebo || "База",
+                            gazebo: gameData.gazebo || "Без беседки",
                             status: "pending"
                         });
                         added++;
