@@ -118,6 +118,19 @@
                 <input type="date" id="schedule-date" onchange="renderSchedule();" class="bg-slate-950 border border-slate-800 rounded-lg py-1 px-2 text-[16px] font-bold text-white focus:outline-none">
             </div>
 
+            <div id="duty-banner-box" class="hidden bg-gradient-to-r from-amber-500/10 to-transparent border border-park-gold/30 rounded-xl p-2.5 flex items-center justify-between shadow-md">
+                <div class="flex items-center space-x-2 min-w-0">
+                    <div class="w-7 h-7 rounded-lg bg-park-gold/10 flex items-center justify-center text-park-gold text-xs flex-shrink-0"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="min-w-0">
+                        <div class="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Дежурный инструктор</div>
+                        <div id="duty-banner-names" class="flex flex-wrap gap-1 mt-0.5"></div>
+                    </div>
+                </div>
+                <button id="btn-admin-edit-duty" onclick="openAssignDutyModal(document.getElementById('schedule-date').value)" class="hidden flex-shrink-0 text-[9px] bg-slate-950 border border-park-gold/40 text-park-gold px-2.5 py-1.5 rounded-lg font-bold uppercase tracking-wider">
+                    <i class="fa-solid fa-pen mr-1"></i> Изм.
+                </button>
+            </div>
+
             <div id="notifications-box" class="hidden bg-gradient-to-br from-slate-900 to-slate-950 border-l-4 border-indigo-500 rounded-r-xl p-3.5 shadow-xl space-y-2.5 animate-fade-in">
                 <div class="flex justify-between items-center pb-1">
                     <div class="flex items-center space-x-2">
@@ -153,7 +166,7 @@
             <div id="ai-parser-box" class="hidden bg-slate-900 border border-park-accent/50 rounded-xl p-3 shadow-md mb-2">
                 <label class="block text-[9px] font-bold text-park-accent uppercase mb-1"><i class="fa-solid fa-wand-magic-sparkles"></i> Импорт расписания (ИИ)</label>
                 <div class="flex space-x-2">
-                    <input type="text" id="daily-sheet-url" placeholder="Ссылка на гостевую таблицу..." class="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-2 text-[12px] text-white focus:outline-none">
+                    <input type="text" id="daily-sheet-url" placeholder="Ссылка на гостевую таблицу..." class="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-2 text-[16px] text-white focus:outline-none">
                     <button onclick="importFromAI()" class="bg-park-accent text-slate-950 font-bold px-3 py-1.5 rounded-lg text-[10px] whitespace-nowrap active:scale-95 transition">Спарсить</button>
                 </div>
             </div>
@@ -179,7 +192,7 @@
                 
                 <div class="pt-2 border-t border-slate-800">
                     <label class="block text-[8px] font-bold text-park-accent uppercase mb-0.5"><i class="fa-regular fa-clock mr-1"></i> Могу работать ДО (необязательно)</label>
-                    <input type="time" id="avail-time-until" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-2 text-[14px] font-bold text-white focus:outline-none focus:border-emerald-500/50 transition">
+                    <input type="time" id="avail-time-until" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-2 text-[16px] font-bold text-white focus:outline-none focus:border-emerald-500/50 transition">
                     <p class="text-[8px] text-slate-500 mt-1">Оставьте пустым, если можете работать полный день.</p>
                 </div>
 
@@ -194,10 +207,28 @@
                 <div id="my-avail-list" class="space-y-1.5 max-h-32 overflow-y-auto pr-1 ios-scroll"></div>
             </div>
 
+            <div id="duty-roster-box" class="bg-slate-900 border border-slate-800/80 rounded-xl p-3 shadow-md">
+                <div class="flex justify-between items-center mb-2 border-b border-slate-800 pb-1">
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-shield-halved text-park-gold mr-1"></i> Общий график дежурств</h4>
+                    <span class="text-[8px] text-slate-500 uppercase">14 дней</span>
+                </div>
+                <div id="duty-roster-list" class="space-y-1.5 max-h-52 overflow-y-auto pr-1 ios-scroll"></div>
+            </div>
+
             <div id="avail-admin-summary" class="hidden space-y-3 pt-3 border-t border-slate-800">
                 <div class="flex justify-between items-center bg-slate-900 border border-slate-800 rounded-xl p-2.5 shadow-md">
                     <h4 class="text-[10px] font-bold text-park-gold uppercase tracking-wider">Сводка по персоналу</h4>
-                    <input type="date" id="admin-summary-date" onchange="renderAvailability()" class="bg-slate-950 border border-park-gold/50 rounded-lg py-1 px-2 text-[12px] font-bold text-white focus:outline-none">
+                    <input type="date" id="admin-summary-date" onchange="renderAvailability()" class="bg-slate-950 border border-park-gold/50 rounded-lg py-1 px-2 text-[16px] font-bold text-white focus:outline-none">
+                </div>
+
+                <div class="bg-slate-900 border border-park-gold/30 rounded-xl p-2.5 shadow-md space-y-2">
+                    <div class="flex justify-between items-center">
+                        <div class="text-[9px] font-bold text-park-gold uppercase tracking-wider"><i class="fa-solid fa-shield-halved mr-1"></i> Дежурный на этот день</div>
+                        <button onclick="openAssignDutyModal(document.getElementById('admin-summary-date').value)" class="text-[9px] bg-park-gold text-slate-950 px-2.5 py-1 rounded-lg font-bold uppercase">
+                            <i class="fa-solid fa-pen mr-1"></i> Назначить
+                        </button>
+                    </div>
+                    <div id="duty-today-display" class="flex flex-wrap gap-1.5"></div>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-2">
@@ -254,7 +285,7 @@
                     <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-list-check text-indigo-400 mr-1"></i> Журнал действий</h4>
                     <span id="log-type-badge" class="text-[8px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-bold uppercase"></span>
                 </div>
-                <div id="logs-timeline-container" class="w-full bg-slate-900/40 border border-slate-800/80 rounded-xl p-3 overflow-y-auto max-h-[calc(100vh-210px)] space-y-2 flex-grow pr-1 ios-scroll"></div>
+                <div id="logs-timeline-container" class="w-full bg-slate-900/40 border border-slate-800/80 rounded-xl p-3 overflow-y-auto max-h-[calc(100dvh-210px)] space-y-2 flex-grow pr-1 ios-scroll"></div>
             </div>
         </div>
     </main>
@@ -279,7 +310,7 @@
     </nav>
 
     <div id="modal-add-shift" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl flex flex-col max-h-[85vh]">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl flex flex-col max-h-[85dvh]">
             <h3 class="font-brand font-bold text-white text-xs uppercase flex-shrink-0"><i class="fa-solid fa-square-plus text-park-accent mr-1"></i> Массовое планирование</h3>
             
             <div id="mass-shifts-container" class="flex-grow overflow-y-auto pr-1 space-y-3 py-1 ios-scroll"></div>
@@ -296,8 +327,27 @@
         </div>
     </div>
 
+    <div id="modal-assign-duty" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl flex flex-col max-h-[85dvh]">
+            <h3 class="font-brand font-bold text-white text-xs uppercase flex-shrink-0"><i class="fa-solid fa-shield-halved text-park-gold mr-1"></i> Дежурный инструктор</h3>
+            <div class="text-[10px] text-slate-400 flex-shrink-0">Дата: <span id="duty-modal-date-label" class="font-bold text-white"></span></div>
+
+            <div id="mass-duty-container" class="flex-grow overflow-y-auto pr-1 space-y-3 py-1 ios-scroll"></div>
+
+            <div class="flex-shrink-0 pt-2 space-y-2 border-t border-slate-800">
+                <button type="button" onclick="addDutyRowToModal()" class="w-full bg-slate-950 border border-dashed border-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs hover:border-park-gold/50 transition">
+                    <i class="fa-solid fa-plus mr-1 text-park-gold"></i> + Добавить еще одного дежурного
+                </button>
+                <div class="flex space-x-2">
+                    <button onclick="closeAssignDutyModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
+                    <button onclick="saveDutyForDate()" class="flex-1 bg-park-gold text-slate-950 font-brand font-black py-2.5 rounded-xl text-xs uppercase">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-edit-game" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto ios-scroll">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl max-h-[90dvh] overflow-y-auto ios-scroll">
             <h3 class="font-brand font-bold text-white text-xs uppercase flex items-center text-park-accent">
                 <i class="fa-solid fa-pen-to-square mr-1.5"></i> Изменение игры
             </h3>
@@ -410,18 +460,20 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxNh-vZwSXQEryr2JCuy54-nwbg1c5UQZuzxblSykqs2h4UyTORvpl1g-TtEgoEW3wL/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzVVj4nQk4sQ7cM5lq6RJVRzREll7OxC0RqS3xgmcZ8ZqEJel4oUeQ6XfCdAR4y2vpx/exec";
         // ======================================================================================
 
         let appState = { 
             user: null, role: null, name: null, 
             shifts: [], logs: [], users: [], games: [], 
-            notifications: [], availability: {},
+            notifications: [], availability: {}, duty: {},
             activeFilter: "all" 
         };
 
         let toastTimeout = null;
         let gameRowCounter = 0;
+        let dutyRowCounter = 0;
+        let currentDutyModalDate = null;
         const defaultGames = ["Лазертаг🔫", "Квесты🗝️", "Мафия🕵️‍♂️", "Анимации🤡", "Прятки в темноте👻"];
 
         async function sendTelegramNotify(targetName, text) {
@@ -450,7 +502,13 @@
 
             shiftsToday.sort((a, b) => cleanTime(a.startTime).localeCompare(cleanTime(b.startTime)));
 
-            let messageText = `🗓 <b>Расписание на ${formatDateRus(selectedDate)}</b>\n\n`;
+            const dutyNames = appState.duty[selectedDate] || [];
+
+            let messageText = `🗓 <b>Расписание на ${formatDateRus(selectedDate)}</b>\n`;
+            if (dutyNames.length > 0) {
+                messageText += `🛡 <b>Дежурный:</b> ${dutyNames.join(', ')}\n`;
+            }
+            messageText += `\n`;
 
             shiftsToday.forEach(shift => {
                 const instList = shift.instructors && shift.instructors.length > 0 
@@ -459,7 +517,7 @@
                     
                 messageText += `🔹 <b>${cleanTime(shift.startTime)} - ${cleanTime(shift.endTime)}</b> | ${shift.game}\n`;
                 messageText += `👥 Гостей: ${shift.guestsCount} | 📍 ${shift.gazebo}\n`;
-                messageText += `🎭 Интруктор(а): ${instList}\n\n`;
+                messageText += `🎭 Инструктор(а): ${instList}\n\n`;
             });
 
             showToast("Отправка расписания в чат...");
@@ -472,10 +530,28 @@
                     body: JSON.stringify({ action: 'publish_chat', text: messageText })
                 }).catch(err => console.log("Фоновая ошибка отправки расписания:", err));
                 
+                logAction(appState.name, `Опубликовал расписание на ${formatDateRus(selectedDate)} в общий чат`);
                 setTimeout(() => showToast("Расписание отправлено в чат!"), 1500);
             } catch (err) {
                 showToast("Ошибка сети при отправке в ТГ", true);
             }
+        }
+
+        // ВАЖНО: date.toISOString() всегда переводит дату в UTC, из-за чего в часовых
+        // поясах восточнее UTC (например, Хельсинки) локальная полночь может "съезжать"
+        // на предыдущий календарный день. Эта функция берёт год/месяц/день из ЛОКАЛЬНОГО времени.
+        function toLocalDateStr(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        // Парсит строку "ГГГГ-ММ-ДД" из <input type="date"> как ЛОКАЛЬНУЮ дату
+        // (new Date("2026-07-26") интерпретируется как UTC-полночь, что даёт ту же ошибку).
+        function parseLocalDate(dateStr) {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            return new Date(y, m - 1, d);
         }
 
         function cleanTime(t) {
@@ -510,12 +586,14 @@
                     appState.games = cloudData.games && cloudData.games.length ? cloudData.games : appState.games;
                     appState.logs = cloudData.logs || appState.logs;
                     appState.availability = cloudData.availability || appState.availability;
+                    appState.duty = cloudData.duty || appState.duty;
                     
                     localStorage.setItem('park_v5_users', JSON.stringify(appState.users));
                     localStorage.setItem('park_v5_shifts', JSON.stringify(appState.shifts));
                     localStorage.setItem('park_v5_games', JSON.stringify(appState.games));
                     localStorage.setItem('park_v5_logs', JSON.stringify(appState.logs));
                     localStorage.setItem('park_v5_availability', JSON.stringify(appState.availability));
+                    localStorage.setItem('park_v5_duty', JSON.stringify(appState.duty));
                     
                     renderSchedule();
                     renderNotifications();
@@ -535,7 +613,7 @@
         }
 
         window.onload = async function() {
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = toLocalDateStr(new Date());
             document.getElementById('schedule-date').value = todayStr;
             document.getElementById('avail-date-start').value = todayStr;
             document.getElementById('avail-date-end').value = todayStr;
@@ -560,6 +638,7 @@
             appState.games = JSON.parse(localStorage.getItem('park_v5_games')) || defaultGames;
             appState.notifications = JSON.parse(localStorage.getItem('park_v5_notifications')) || [];
             appState.availability = JSON.parse(localStorage.getItem('park_v5_availability')) || {};
+            appState.duty = JSON.parse(localStorage.getItem('park_v5_duty')) || {};
 
             if (BACKEND_URL && !BACKEND_URL.includes("https://script.google.com/macros/s/AKfycbx5xcnCy4VAQGNMY-QM7_WEhgKJJ6YEIjYMe_dF_KRt8auLniuTn0MA4PwzmmFp7Rwp_w/exec")) {
                 try {
@@ -571,12 +650,14 @@
                         appState.games = cloudData.games && cloudData.games.length ? cloudData.games : appState.games;
                         appState.logs = cloudData.logs || appState.logs;
                         appState.availability = cloudData.availability || appState.availability;
+                        appState.duty = cloudData.duty || appState.duty;
                         
                         localStorage.setItem('park_v5_users', JSON.stringify(appState.users));
                         localStorage.setItem('park_v5_shifts', JSON.stringify(appState.shifts));
                         localStorage.setItem('park_v5_games', JSON.stringify(appState.games));
                         localStorage.setItem('park_v5_logs', JSON.stringify(appState.logs));
                         localStorage.setItem('park_v5_availability', JSON.stringify(appState.availability));
+                        localStorage.setItem('park_v5_duty', JSON.stringify(appState.duty));
                     }
                 } catch (err) {
                     console.log("Автономный режим работы: нет связи с таблицей", err);
@@ -603,6 +684,7 @@
             localStorage.setItem('park_v5_games', JSON.stringify(appState.games));
             localStorage.setItem('park_v5_notifications', JSON.stringify(appState.notifications));
             localStorage.setItem('park_v5_availability', JSON.stringify(appState.availability));
+            localStorage.setItem('park_v5_duty', JSON.stringify(appState.duty));
 
             if (BACKEND_URL && !BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
                 fetch(BACKEND_URL, {
@@ -614,7 +696,8 @@
                         shifts: appState.shifts,
                         games: appState.games,
                         logs: appState.logs,
-                        availability: appState.availability
+                        availability: appState.availability,
+                        duty: appState.duty
                     })
                 }).catch(err => console.log("Ошибка фоновой отправки данных:", err));
             }
@@ -635,6 +718,7 @@
                     appState.games = cloudData.games && cloudData.games.length ? cloudData.games : appState.games;
                     appState.logs = cloudData.logs || appState.logs;
                     appState.availability = cloudData.availability || appState.availability;
+                    appState.duty = cloudData.duty || appState.duty;
                     
                     saveState();
                     if (appState.user) enterDashboard();
@@ -665,6 +749,7 @@
             if (userObj.banUntil === 'permanent') return true;
             if (Date.now() < userObj.banUntil) return true;
             userObj.blocked = false; delete userObj.blockReason; delete userObj.banUntil; saveState();
+            logAction('Система', `⏱ Срок блокировки истёк — доступ автоматически восстановлен: ${userObj.name}`);
             return false;
         }
 
@@ -695,6 +780,7 @@
             let role = 'user'; if (isAdmin) { if (document.getElementById('reg-admin-pass').value.trim() === 'AdminFP') { role = 'admin'; } else { return showToast("Неверный код доступа!", true); } }
             appState.users.push({ username: user, password: pass, name: name, role: role, blocked: false });
             saveState(); showToast("Регистрация успешна!"); switchAuthTab('login');
+            logAction(name, role === 'admin' ? "Зарегистрировался в системе (Администратор)" : "Зарегистрировался в системе (Инструктор)");
         }
 
         function handleLogin() {
@@ -782,9 +868,10 @@
         }
 
         function renderAvailability() {
+            renderDutyRoster();
             const myAvailList = document.getElementById('my-avail-list');
             if (myAvailList) {
-                const today = new Date().toISOString().split('T')[0];
+                const today = toLocalDateStr(new Date());
                 let myDatesHtml = '';
                 
                 const sortedDates = Object.keys(appState.availability).sort();
@@ -820,6 +907,18 @@
                 
                 const targetDateStr = adminDateInput.value;
 
+                const dutyDisplay = document.getElementById('duty-today-display');
+                if (dutyDisplay) {
+                    const dutyNames = appState.duty[targetDateStr] || [];
+                    dutyDisplay.innerHTML = dutyNames.length > 0
+                        ? dutyNames.map(n => `
+                            <span class="inline-flex items-center bg-slate-950 border border-park-gold/40 text-park-gold font-bold text-[10px] px-2 py-1 rounded-lg">
+                                <i class="fa-solid fa-shield-halved mr-1"></i>${n}
+                                <button onclick="removeDutyPerson('${targetDateStr}', '${n.replace(/'/g, "\\'")}')" class="ml-1.5 text-rose-400 hover:text-rose-300"><i class="fa-solid fa-xmark"></i></button>
+                            </span>`).join('')
+                        : '<span class="text-[10px] text-slate-500 italic">Дежурный не назначен</span>';
+                }
+
                 const listYes = document.getElementById('avail-list-yes');
                 const listNo = document.getElementById('avail-list-no');
                 const listUnknown = document.getElementById('avail-list-unknown');
@@ -851,8 +950,8 @@
             
             if (!startStr || !endStr) return showToast("Укажите даты начала и конца!", true);
             
-            let start = new Date(startStr);
-            let end = new Date(endStr);
+            let start = parseLocalDate(startStr);
+            let end = parseLocalDate(endStr);
             
             if (start > end) return showToast("Дата начала больше конечной!", true);
 
@@ -865,7 +964,7 @@
             let current = new Date(start);
             
             while (current <= end) {
-                let d = current.toISOString().split('T')[0];
+                let d = toLocalDateStr(current);
                 if (!appState.availability[d]) appState.availability[d] = {};
                 appState.availability[d][appState.name] = status;
                 
@@ -911,6 +1010,7 @@
         function renderSchedule() {
             const container = document.getElementById('schedule-container');
             const selectedDate = document.getElementById('schedule-date').value;
+            renderDutyBanner(selectedDate);
             let dailyShifts = appState.shifts.filter(s => s.date === selectedDate);
 
             const btnAcceptAll = document.getElementById('btn-inst-accept-all');
@@ -1168,7 +1268,7 @@
                     <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Беседка</label><input type="text" placeholder="№1" class="row-gazebo w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] text-white"></div>
                 </div>
                 <div class="pt-1">
-                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Инструктора на эту игру</label>
+                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Инструктор(а) на эту игру</label>
                     <div class="grid grid-cols-2 gap-1.5 max-h-[85px] overflow-y-auto ios-scroll p-1.5 bg-slate-900 rounded-xl border border-slate-800">
                         ${instructorsHtml}
                     </div>
@@ -1202,7 +1302,7 @@
                 const gStart = row.querySelector('.row-start').value;
                 const gEnd = row.querySelector('.row-end').value;
                 const gGuests = row.querySelector('.row-guests').value;
-                const gGazebo = row.querySelector('.row-gazebo').value.trim() || 'Без беседки';
+                const gGazebo = row.querySelector('.row-gazebo').value.trim() || 'База';
 
                 appState.shifts.push({
                     id: "id_" + Math.random().toString(36).substr(2, 9), 
@@ -1235,6 +1335,150 @@
             showToast(`Успешно добавлено игр: ${addedCount}`); 
             closeAddShiftModal(); 
             renderSchedule();
+        }
+
+        // ========================================================
+        // ДЕЖУРНЫЙ ИНСТРУКТОР (ручное назначение админом на день)
+        // ========================================================
+        function openAssignDutyModal(dateOverride) {
+            currentDutyModalDate = dateOverride || document.getElementById('schedule-date').value;
+            document.getElementById('duty-modal-date-label').textContent = formatDateRus(currentDutyModalDate);
+            document.getElementById('mass-duty-container').innerHTML = ''; dutyRowCounter = 0;
+
+            const existing = appState.duty[currentDutyModalDate] || [];
+            if (existing.length > 0) { existing.forEach(name => addDutyRowToModal(name)); }
+            else { addDutyRowToModal(''); }
+
+            document.getElementById('modal-assign-duty').classList.remove('hidden');
+        }
+        function closeAssignDutyModal() { document.getElementById('modal-assign-duty').classList.add('hidden'); }
+
+        function addDutyRowToModal(prefillName) {
+            dutyRowCounter++;
+            const container = document.getElementById('mass-duty-container');
+            const optionsHtml = appState.users.map(u => `<option value="${u.name}" ${u.name === prefillName ? 'selected' : ''}>${u.name}</option>`).join('');
+
+            const row = document.createElement('div');
+            row.id = `duty-row-${dutyRowCounter}`;
+            row.className = "p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-end space-x-2";
+            row.innerHTML = `
+                <div class="flex-grow">
+                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Дежурный #${dutyRowCounter}</label>
+                    <select class="row-duty-instructor w-full bg-slate-900 border border-slate-800 rounded-lg py-1.5 px-2 text-[16px] text-white">
+                        <option value="">— Не назначен —</option>
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <button type="button" onclick="removeDutyRow(${dutyRowCounter})" class="text-rose-400 hover:text-rose-500 text-xs pb-2.5 flex-shrink-0"><i class="fa-solid fa-trash-can"></i></button>`;
+            container.appendChild(row); container.scrollTop = container.scrollHeight;
+        }
+
+        function removeDutyRow(id) {
+            const rows = document.querySelectorAll('#mass-duty-container > div');
+            const row = document.getElementById(`duty-row-${id}`);
+            if (!row) return;
+            if (rows.length > 1) { row.remove(); }
+            else { row.querySelector('select').value = ''; }
+        }
+
+        function saveDutyForDate() {
+            const date = currentDutyModalDate;
+            const selects = Array.from(document.querySelectorAll('.row-duty-instructor'));
+            const names = [...new Set(selects.map(s => s.value).filter(v => v))];
+            const oldNames = appState.duty[date] || [];
+
+            if (names.length > 0) appState.duty[date] = names;
+            else delete appState.duty[date];
+
+            names.filter(n => !oldNames.includes(n)).forEach(n => {
+                pushNotification(n, `Вы назначены ДЕЖУРНЫМ инструктором на ${formatDateRus(date)}.`);
+                sendTelegramNotify(n, `🛡 Вы назначены ДЕЖУРНЫМ инструктором на ${formatDateRus(date)}!`);
+            });
+            oldNames.filter(n => !names.includes(n)).forEach(n => {
+                pushNotification(n, `🛡 Вы сняты с дежурства на ${formatDateRus(date)}.`);
+                sendTelegramNotify(n, `🛡 Вы больше не дежурный инструктор на ${formatDateRus(date)}.`);
+            });
+
+            saveState();
+            logAction(appState.name, `Назначил дежурство на ${formatDateRus(date)}: ${names.join(', ') || 'никого'}`);
+            showToast('Дежурство обновлено!');
+            closeAssignDutyModal();
+            renderSchedule();
+            renderAvailability();
+        }
+
+        function renderDutyBanner(selectedDate) {
+            const box = document.getElementById('duty-banner-box');
+            if (!box) return;
+            const namesEl = document.getElementById('duty-banner-names');
+            const editBtn = document.getElementById('btn-admin-edit-duty');
+            const dutyNames = appState.duty[selectedDate] || [];
+            const isAdmin = appState.role === 'admin';
+
+            if (isAdmin) editBtn.classList.remove('hidden'); else editBtn.classList.add('hidden');
+
+            if (dutyNames.length > 0) {
+                box.classList.remove('hidden');
+                namesEl.innerHTML = dutyNames.map(n => `
+                    <span class="inline-flex items-center bg-slate-950/70 border border-park-gold/30 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                        ${n}
+                    </span>`).join('');
+            } else if (isAdmin) {
+                box.classList.remove('hidden');
+                namesEl.innerHTML = '<span class="text-[11px] text-slate-500 italic">Не назначен</span>';
+            } else {
+                box.classList.add('hidden');
+            }
+        }
+
+        function removeDutyPerson(date, name) {
+            const current = appState.duty[date] || [];
+            const updated = current.filter(n => n !== name);
+            if (updated.length > 0) appState.duty[date] = updated;
+            else delete appState.duty[date];
+
+            pushNotification(name, `🛡 Вы сняты с дежурства на ${formatDateRus(date)}.`);
+            sendTelegramNotify(name, `🛡 Вы больше не дежурный инструктор на ${formatDateRus(date)}.`);
+
+            saveState();
+            logAction(appState.name, `Снял дежурство (${name}) на ${formatDateRus(date)}`);
+            showToast(`${name} снят(а) с дежурства`);
+            renderSchedule();
+            renderAvailability();
+        }
+
+        function renderDutyRoster() {
+            const list = document.getElementById('duty-roster-list');
+            if (!list) return;
+            const isAdmin = appState.role === 'admin';
+            const totalDays = 14;
+            let html = '';
+            let cursor = new Date();
+            cursor.setHours(0, 0, 0, 0);
+
+            for (let i = 0; i < totalDays; i++) {
+                const dStr = toLocalDateStr(cursor);
+                const dutyNames = appState.duty[dStr] || [];
+                const isToday = i === 0;
+
+                const namesHtml = dutyNames.length > 0
+                    ? dutyNames.map(n => `<span class="bg-park-gold/15 border border-park-gold/50 text-park-gold font-bold px-1.5 py-0.5 rounded-md">${n}</span>`).join(' ')
+                    : '<span class="text-slate-600 italic">Не назначен</span>';
+
+                const editBtnHtml = isAdmin
+                    ? `<button onclick="openAssignDutyModal('${dStr}')" class="ml-1.5 text-slate-500 hover:text-park-gold flex-shrink-0"><i class="fa-solid fa-pen text-[10px]"></i></button>`
+                    : '';
+
+                html += `
+                    <div class="flex justify-between items-center text-[11px] p-2 rounded-lg border ${isToday ? 'border-park-accent/50 bg-slate-950' : 'border-slate-800/60 bg-slate-950/40'}">
+                        <span class="text-slate-300 font-mono font-bold flex-shrink-0 mr-2">${formatDateRus(dStr)}${isToday ? ' <span class="text-park-accent text-[8px] font-sans">(сегодня)</span>' : ''}</span>
+                        <div class="flex items-center flex-wrap justify-end gap-1">${namesHtml}${editBtnHtml}</div>
+                    </div>`;
+
+                cursor.setDate(cursor.getDate() + 1);
+            }
+
+            list.innerHTML = html;
         }
 
         function openEditGameModal(id) {
@@ -1317,7 +1561,7 @@
             if (!container || appState.role !== 'admin') return;
             if (appState.users.length === 0) { container.innerHTML = `<div class="text-center text-slate-600 text-xs py-4">Нет сотрудников.</div>`; return; }
 
-            const selectedDate = document.getElementById('schedule-date').value || new Date().toISOString().split('T')[0];
+            const selectedDate = document.getElementById('schedule-date').value || toLocalDateStr(new Date());
             const [year, month] = selectedDate.split('-');
 
             container.innerHTML = appState.users.map(u => {
@@ -1423,15 +1667,43 @@
             saveState(); if(!document.getElementById('view-settings').classList.contains('hidden')) renderLogs();
         }
 
+        function getLogIconMeta(text) {
+            const t = (text || '').toLowerCase();
+            if (t.includes('дежур')) return { icon: 'fa-shield-halved', color: 'text-park-gold', bg: 'bg-park-gold/10' };
+            if (t.includes('заблокир') || t.includes('бан')) return { icon: 'fa-user-lock', color: 'text-rose-400', bg: 'bg-rose-500/10' };
+            if (t.includes('восстанов') || t.includes('снял бан') || t.includes('снята блокировка')) return { icon: 'fa-user-check', color: 'text-emerald-400', bg: 'bg-emerald-500/10' };
+            if (t.includes('отменил') || t.includes('удалил') || t.includes('отклонил')) return { icon: 'fa-trash-can', color: 'text-rose-400', bg: 'bg-rose-500/10' };
+            if (t.includes('синхрониз')) return { icon: 'fa-arrows-rotate', color: 'text-indigo-400', bg: 'bg-indigo-500/10' };
+            if (t.includes('опубликовал')) return { icon: 'fa-paper-plane', color: 'text-indigo-400', bg: 'bg-indigo-500/10' };
+            if (t.includes('импорт')) return { icon: 'fa-wand-magic-sparkles', color: 'text-indigo-400', bg: 'bg-indigo-500/10' };
+            if (t.includes('статус с') || t.includes('выходной') || t.includes('работать')) return { icon: 'fa-calendar-check', color: 'text-park-accent', bg: 'bg-park-accent/10' };
+            if (t.includes('принял') || t.includes('назначил') || t.includes('игр')) return { icon: 'fa-gamepad', color: 'text-park-accent', bg: 'bg-park-accent/10' };
+            if (t.includes('изменил') || t.includes('добавил активность')) return { icon: 'fa-pen', color: 'text-amber-400', bg: 'bg-amber-500/10' };
+            if (t.includes('авторизац') || t.includes('вход') || t.includes('выход из')) return { icon: 'fa-right-to-bracket', color: 'text-slate-400', bg: 'bg-slate-800' };
+            if (t.includes('зарегистрир')) return { icon: 'fa-user-plus', color: 'text-slate-400', bg: 'bg-slate-800' };
+            return { icon: 'fa-circle-info', color: 'text-slate-400', bg: 'bg-slate-800' };
+        }
+
         function renderLogs() {
             const container = document.getElementById('logs-timeline-container'); if(!container) return;
             let logsToShow = appState.role !== 'admin' ? appState.logs.filter(l => l.user === appState.name || l.user === 'Система') : appState.logs;
             if (logsToShow.length === 0) { container.innerHTML = '<div class="text-[10px] text-slate-500 text-center py-4">Журнал пуст.</div>'; return; }
-            container.innerHTML = logsToShow.map(l => `
-                <div class="bg-slate-950 p-2 rounded-lg border border-slate-900 text-[10px] space-y-0.5 shadow-sm">
-                    <div class="flex justify-between text-slate-500"><span class="font-bold text-park-accent">${l.user}</span><span>${l.timestamp}</span></div>
-                    <p class="text-slate-300">${l.text}</p>
-                </div>`).join('');
+            container.innerHTML = logsToShow.map(l => {
+                const meta = getLogIconMeta(l.text);
+                return `
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-900 shadow-sm flex items-start space-x-2.5">
+                    <div class="w-6 h-6 rounded-md ${meta.bg} ${meta.color} flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fa-solid ${meta.icon} text-[10px]"></i>
+                    </div>
+                    <div class="min-w-0 flex-grow space-y-0.5">
+                        <div class="flex justify-between items-center gap-2 text-[9px] text-slate-500">
+                            <span class="font-bold text-park-accent truncate">${l.user}</span>
+                            <span class="flex-shrink-0 font-mono">${l.timestamp}</span>
+                        </div>
+                        <p class="text-[10.5px] text-slate-300 leading-snug break-words">${l.text}</p>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         function renderGameManager() {
@@ -1454,7 +1726,14 @@
             logAction(appState.name, `➕ Добавил активность: ${newGame}`); renderGameManager(); showToast("Активность добавлена");
         }
 
-        function removeGameType(index) { appState.games.splice(index, 1); saveState(); renderGameManager(); showToast("Удалено"); }
+        function removeGameType(index) {
+            const removedGame = appState.games[index];
+            appState.games.splice(index, 1);
+            saveState();
+            logAction(appState.name, `🗑 Удалил активность: ${removedGame}`);
+            renderGameManager();
+            showToast("Удалено");
+        }
         
         function populateInstructorDropdowns() {
             const listHtml = appState.users.map(u => `
@@ -1526,7 +1805,7 @@
                             instructors: [],
                             responses: {},
                             guestsCount: gameData.guestsCount || 10,
-                            gazebo: gameData.gazebo || "Без беседки",
+                            gazebo: gameData.gazebo || "База",
                             status: "pending"
                         });
                         added++;
