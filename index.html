@@ -114,7 +114,7 @@
 
         <div id="view-schedule" class="space-y-4">
             <div class="bg-slate-900 border border-slate-800/80 rounded-xl p-3 flex justify-between items-center shadow-md">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-calendar-day text-park-accent mr-1"></i> День:</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-calendar-day text-park-accent mr-1"></i> День: <span id="schedule-date-weekday" class="ml-1 normal-case"></span></span>
                 <input type="date" id="schedule-date" onchange="renderSchedule();" class="bg-slate-950 border border-slate-800 rounded-lg py-1 px-2 text-[16px] font-bold text-white focus:outline-none">
             </div>
 
@@ -200,6 +200,7 @@
                     <button onclick="setMyAvailabilityRange('yes')" class="bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 font-bold py-2.5 rounded-lg text-[11px] hover:bg-emerald-600/30 transition">Готов работать 🟢</button>
                     <button onclick="setMyAvailabilityRange('no')" class="bg-rose-600/20 border border-rose-500/30 text-rose-400 font-bold py-2.5 rounded-lg text-[11px] hover:bg-rose-600/30 transition">Выходной 🔴</button>
                 </div>
+                <p class="text-[8px] text-slate-500 flex items-start"><i class="fa-solid fa-lock text-slate-600 mr-1 mt-0.5"></i> После сохранения дни блокируются — изменить их сможет только администратор.</p>
             </div>
 
             <div id="my-avail-summary" class="bg-slate-900 border border-slate-800/80 rounded-xl p-3 shadow-md">
@@ -217,7 +218,7 @@
 
             <div id="avail-admin-summary" class="hidden space-y-3 pt-3 border-t border-slate-800">
                 <div class="flex justify-between items-center bg-slate-900 border border-slate-800 rounded-xl p-2.5 shadow-md">
-                    <h4 class="text-[10px] font-bold text-park-gold uppercase tracking-wider">Сводка по персоналу</h4>
+                    <h4 class="text-[10px] font-bold text-park-gold uppercase tracking-wider">Сводка по персоналу <span id="admin-summary-weekday" class="normal-case ml-1"></span></h4>
                     <input type="date" id="admin-summary-date" onchange="renderAvailability()" class="bg-slate-950 border border-park-gold/50 rounded-lg py-1 px-2 text-[16px] font-bold text-white focus:outline-none">
                 </div>
 
@@ -312,6 +313,11 @@
     <div id="modal-add-shift" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl flex flex-col max-h-[85dvh]">
             <h3 class="font-brand font-bold text-white text-xs uppercase flex-shrink-0"><i class="fa-solid fa-square-plus text-park-accent mr-1"></i> Массовое планирование</h3>
+            <div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-[9px] text-slate-400 flex-shrink-0 -mt-2">
+                <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1 flex-shrink-0"></span>Работает</span>
+                <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-rose-500 mr-1 flex-shrink-0"></span>Точно выходной</span>
+                <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-park-gold mr-1 flex-shrink-0"></span>Дежурный</span>
+            </div>
             
             <div id="mass-shifts-container" class="flex-grow overflow-y-auto pr-1 space-y-3 py-1 ios-scroll"></div>
             
@@ -323,6 +329,61 @@
                     <button onclick="closeAddShiftModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
                     <button onclick="saveCreatedShiftsMassive()" class="flex-1 bg-park-accent text-slate-950 font-brand font-black py-2.5 rounded-xl text-xs uppercase">Добавить всё</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-confirm-availability" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
+            <h3 class="font-brand font-bold text-white text-xs uppercase flex items-center"><i class="fa-solid fa-lock text-park-accent mr-1.5"></i> Подтвердите график</h3>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-1.5 text-[11px] text-slate-300">
+                <div class="flex justify-between"><span class="text-slate-500">Период:</span> <span id="confirm-avail-range" class="font-bold text-white"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Статус:</span> <span id="confirm-avail-status" class="font-bold text-white"></span></div>
+            </div>
+            <p class="text-[10px] text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2.5 leading-snug">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> После сохранения изменить эти дни самостоятельно будет нельзя — только через администратора.
+            </p>
+            <p id="confirm-avail-weekend-warning" class="hidden text-[10px] text-purple-300 bg-purple-500/10 border border-purple-500/30 rounded-lg p-2.5 leading-snug">
+                <i class="fa-solid fa-circle-exclamation mr-1"></i> В выбранном периоде есть суббота и/или воскресенье — это основные рабочие дни парка. Пожалуйста, старайтесь не брать выходной именно в эти дни.
+            </p>
+            <div class="flex space-x-2">
+                <button onclick="closeConfirmAvailabilityModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
+                <button onclick="confirmSaveMyAvailability()" class="flex-1 bg-park-accent text-slate-950 font-brand font-black py-2.5 rounded-xl text-xs uppercase">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-edit-availability" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
+            <h3 class="font-brand font-bold text-white text-xs uppercase flex items-center"><i class="fa-solid fa-user-pen text-indigo-400 mr-1.5"></i> График сотрудника</h3>
+            <div class="text-[10px] text-slate-400">
+                <span id="edit-avail-name-label" class="font-bold text-white"></span> — <span id="edit-avail-date-label" class="font-bold text-white"></span>
+            </div>
+            <input type="hidden" id="edit-avail-date">
+            <input type="hidden" id="edit-avail-user">
+
+            <div>
+                <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Статус</label>
+                <select id="edit-avail-status" onchange="toggleEditAvailTimeField()" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white font-bold focus:outline-none">
+                    <option value="yes">🟢 Готов работать</option>
+                    <option value="no">🔴 Выходной</option>
+                    <option value="">⚪ Сбросить (не отмечался)</option>
+                </select>
+            </div>
+
+            <div id="edit-avail-time-wrap">
+                <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Работает до (необязательно)</label>
+                <input type="time" id="edit-avail-time" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white focus:outline-none">
+            </div>
+
+            <label class="flex items-center space-x-2.5 bg-slate-950 border border-slate-800 rounded-xl p-3 cursor-pointer">
+                <input type="checkbox" id="edit-avail-lock" class="rounded bg-slate-900 border-slate-700 accent-park-gold w-4 h-4 flex-shrink-0">
+                <span class="text-[10.5px] font-bold text-slate-300 leading-snug"><i class="fa-solid fa-lock text-park-gold mr-1"></i> Заблокировать (сотрудник не сможет изменить сам)</span>
+            </label>
+
+            <div class="flex space-x-2 pt-1">
+                <button onclick="closeEditAvailabilityModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
+                <button onclick="saveEditedAvailability()" class="flex-1 bg-indigo-500 text-white font-brand font-black py-2.5 rounded-xl text-xs uppercase">Сохранить</button>
             </div>
         </div>
     </div>
@@ -358,6 +419,11 @@
             </div>
             <div>
                 <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Инструктор (Можно несколько)</label>
+                <div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-[9px] text-slate-400 mb-1.5">
+                    <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1 flex-shrink-0"></span>Работает</span>
+                    <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-rose-500 mr-1 flex-shrink-0"></span>Точно выходной</span>
+                    <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-park-gold mr-1 flex-shrink-0"></span>Дежурный</span>
+                </div>
                 <div id="edit-instructor-select-list" class="grid grid-cols-2 gap-1.5 max-h-[100px] overflow-y-auto ios-scroll p-1.5 bg-slate-950 rounded-xl border border-slate-800"></div>
             </div>
             <div class="grid grid-cols-2 gap-2">
@@ -460,7 +526,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzk482fS-MuV-FpkakFDHGtfmdpMlca6CuVeJCYXSYeg8PdTKDm-OIDO_eqikkLz_5c/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzXec5QGq1mAj5FfeQEeIjn3jXphW1LksWQ5oWgws4zxSP7o_44wAZc7tzVEVCwQ3og/exec";
         // ======================================================================================
 
         let appState = { 
@@ -474,6 +540,7 @@
         let gameRowCounter = 0;
         let dutyRowCounter = 0;
         let currentDutyModalDate = null;
+        let pendingAvailabilityChange = null;
         const defaultGames = ["Лазертаг🔫", "Квесты🗝️", "Мафия🕵️‍♂️", "Анимации🤡", "Прятки в темноте👻"];
 
         async function sendTelegramNotify(targetName, text) {
@@ -552,6 +619,60 @@
         function parseLocalDate(dateStr) {
             const [y, m, d] = dateStr.split('-').map(Number);
             return new Date(y, m - 1, d);
+        }
+
+        // Суббота/воскресенье — основные рабочие дни парка, поэтому их нужно
+        // визуально выделять фиолетовым везде, где показываются даты.
+        const WEEKDAY_SHORT_RU = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+        const WEEKDAY_FULL_RU = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+
+        function isWeekendDate(dateStr) {
+            const day = parseLocalDate(dateStr).getDay();
+            return day === 0 || day === 6;
+        }
+
+        function getWeekdayShort(dateStr) { return WEEKDAY_SHORT_RU[parseLocalDate(dateStr).getDay()]; }
+        function getWeekdayFull(dateStr) { return WEEKDAY_FULL_RU[parseLocalDate(dateStr).getDay()]; }
+
+        // Цвет подсказки для инструктора в списке выбора на конкретную дату:
+        // жёлтый — дежурный (приоритет), зелёный — отметился как работающий,
+        // красный — точно выходной, серый — статус не отмечен.
+        function getInstructorStatusMeta(name, dateStr) {
+            if (!dateStr) return { wrap: 'border-slate-800 hover:border-park-accent/50', text: 'text-slate-300', icon: '' };
+
+            const isDuty = (appState.duty[dateStr] || []).includes(name);
+            if (isDuty) {
+                return { wrap: 'border-park-gold/50 bg-park-gold/10', text: 'text-park-gold', icon: '<i class="fa-solid fa-shield-halved mr-1"></i>' };
+            }
+
+            const entry = parseAvailEntry(appState.availability[dateStr]?.[name]);
+            if (entry.status === 'yes') {
+                return { wrap: 'border-emerald-600/40 bg-emerald-950/20', text: 'text-emerald-400', icon: '' };
+            }
+            if (entry.status === 'no') {
+                return { wrap: 'border-rose-600/40 bg-rose-950/20', text: 'text-rose-400', icon: '' };
+            }
+            return { wrap: 'border-slate-800 hover:border-park-accent/50', text: 'text-slate-300', icon: '' };
+        }
+
+        // Статус доступности хранится строкой вида "yes", "yes_18:00", "no",
+        // с необязательным суффиксом "|locked", если день подтверждён и закрыт для самостоятельного изменения.
+        function parseAvailEntry(raw) {
+            if (!raw || typeof raw !== 'string') return { status: null, until: null, locked: false };
+            let locked = false;
+            let core = raw;
+            if (core.endsWith('|locked')) { locked = true; core = core.slice(0, -('|locked'.length)); }
+            const isYes = core.startsWith('yes');
+            const until = isYes && core.includes('_') ? core.split('_')[1] : null;
+            const status = isYes ? 'yes' : (core === 'no' ? 'no' : null);
+            return { status, until, locked };
+        }
+
+        function buildAvailEntry(status, until, locked) {
+            let s = status;
+            if (status === 'yes' && until) s += '_' + until;
+            if (locked) s += '|locked';
+            return s;
         }
 
         function cleanTime(t) {
@@ -878,22 +999,24 @@
                 
                 sortedDates.forEach(d => {
                     if (d >= today && appState.availability[d] && appState.availability[d][appState.name]) {
-                        const statusRaw = appState.availability[d][appState.name];
-                        
-                        const isYes = typeof statusRaw === 'string' && statusRaw.startsWith('yes');
-                        const timeUntil = isYes && statusRaw.includes('_') ? statusRaw.split('_')[1] : null;
+                        const entry = parseAvailEntry(appState.availability[d][appState.name]);
+                        const isYes = entry.status === 'yes';
+                        const isWeekend = isWeekendDate(d);
                         
                         const icon = isYes ? '<i class="fa-solid fa-check text-emerald-500 mr-1.5 w-4"></i>' : '<i class="fa-solid fa-xmark text-rose-500 mr-1.5 w-4"></i>';
                         
                         let textStr = isYes ? 'Могу работать' : 'Выходной';
-                        if (timeUntil) textStr += ` <span class="text-[9px] text-emerald-200 bg-emerald-900/60 px-1.5 py-0.5 rounded ml-1">до ${timeUntil}</span>`;
+                        if (entry.until) textStr += ` <span class="text-[9px] text-emerald-200 bg-emerald-900/60 px-1.5 py-0.5 rounded ml-1">до ${entry.until}</span>`;
                         
                         const text = isYes ? `<span class="text-emerald-400 flex items-center">${textStr}</span>` : `<span class="text-rose-400">${textStr}</span>`;
+                        const lockIcon = entry.locked ? '<i class="fa-solid fa-lock text-slate-500 ml-1.5 text-[9px]" title="Заблокировано администратором"></i>' : '';
+                        const weekendTag = isWeekend ? `<span class="text-[8px] font-bold text-purple-300 bg-purple-500/20 border border-purple-500/40 px-1 py-0.5 rounded ml-1.5">${getWeekdayShort(d)}</span>` : '';
+                        const dateColorClass = isWeekend ? 'text-purple-300' : 'text-slate-300';
                         
                         myDatesHtml += `
-                            <div class="flex justify-between items-center text-[11px] bg-slate-950 p-2 rounded-lg border border-slate-800 shadow-sm mb-1.5">
-                                <span class="text-slate-300 font-mono font-bold">${d}</span>
-                                <div class="flex items-center font-bold">${icon} ${text}</div>
+                            <div class="flex justify-between items-center text-[11px] bg-slate-950 p-2 rounded-lg border ${isWeekend ? 'border-purple-500/30' : 'border-slate-800'} shadow-sm mb-1.5">
+                                <span class="${dateColorClass} font-mono font-bold flex items-center">${d}${weekendTag}</span>
+                                <div class="flex items-center font-bold">${icon} ${text}${lockIcon}</div>
                             </div>`;
                     }
                 });
@@ -906,6 +1029,14 @@
                 if(!adminDateInput) return;
                 
                 const targetDateStr = adminDateInput.value;
+
+                const weekdayBadge = document.getElementById('admin-summary-weekday');
+                if (weekdayBadge && targetDateStr) {
+                    const weekend = isWeekendDate(targetDateStr);
+                    weekdayBadge.innerHTML = weekend
+                        ? `<span class="text-purple-300 bg-purple-500/20 border border-purple-500/40 px-1.5 py-0.5 rounded font-bold text-[9px]">${getWeekdayFull(targetDateStr)}</span>`
+                        : `<span class="text-slate-500 text-[9px] font-normal">${getWeekdayFull(targetDateStr)}</span>`;
+                }
 
                 const dutyDisplay = document.getElementById('duty-today-display');
                 if (dutyDisplay) {
@@ -925,15 +1056,20 @@
                 
                 let htmlYes = '', htmlNo = '', htmlUnknown = '';
                 appState.users.forEach(u => {
-                    const st = appState.availability[targetDateStr]?.[u.name];
-                    
-                    if (st && typeof st === 'string' && st.startsWith('yes')) {
-                        const timeUntil = st.includes('_') ? st.split('_')[1] : null;
-                        const timeBadge = timeUntil ? `<span class="text-[8px] bg-emerald-950 text-emerald-300 border border-emerald-800/50 px-1 py-0.5 rounded ml-1 font-mono">до ${timeUntil}</span>` : '';
-                        htmlYes += `<div class="flex items-center justify-between mb-1"><div class="truncate"><i class="fa-solid fa-check text-emerald-500 mr-1"></i> ${u.name}</div> ${timeBadge}</div>`;
+                    const entry = parseAvailEntry(appState.availability[targetDateStr]?.[u.name]);
+                    const lockIcon = entry.locked ? '<i class="fa-solid fa-lock text-slate-500 ml-1 text-[9px]"></i>' : '<i class="fa-solid fa-pen text-slate-600 ml-1 text-[9px]"></i>';
+                    const nameSafe = u.name.replace(/'/g, "\\'");
+
+                    if (entry.status === 'yes') {
+                        const timeBadge = entry.until ? `<span class="text-[8px] bg-emerald-950 text-emerald-300 border border-emerald-800/50 px-1 py-0.5 rounded ml-1 font-mono">до ${entry.until}</span>` : '';
+                        htmlYes += `<div onclick="openEditAvailabilityModal('${targetDateStr}', '${nameSafe}')" class="flex items-center justify-between mb-1 cursor-pointer hover:bg-emerald-900/20 rounded px-1 -mx-1 py-0.5"><div class="truncate"><i class="fa-solid fa-check text-emerald-500 mr-1"></i> ${u.name}${lockIcon}</div> ${timeBadge}</div>`;
                     }
-                    else if (st === 'no') htmlNo += `<div class="mb-1"><i class="fa-solid fa-xmark text-rose-500 mr-1"></i> ${u.name}</div>`;
-                    else htmlUnknown += `<span class="bg-slate-800 px-1.5 py-0.5 rounded">${u.name}</span>`;
+                    else if (entry.status === 'no') {
+                        htmlNo += `<div onclick="openEditAvailabilityModal('${targetDateStr}', '${nameSafe}')" class="mb-1 cursor-pointer hover:bg-rose-900/20 rounded px-1 -mx-1 py-0.5"><i class="fa-solid fa-xmark text-rose-500 mr-1"></i> ${u.name}${lockIcon}</div>`;
+                    }
+                    else {
+                        htmlUnknown += `<span onclick="openEditAvailabilityModal('${targetDateStr}', '${nameSafe}')" class="bg-slate-800 px-1.5 py-0.5 rounded cursor-pointer hover:bg-slate-700">${u.name} <i class="fa-solid fa-pen text-slate-500 ml-1 text-[8px]"></i></span>`;
+                    }
                 });
 
                 if(listYes) listYes.innerHTML = htmlYes || '<div class="text-slate-500 italic text-center">Пусто</div>';
@@ -955,31 +1091,123 @@
             
             if (start > end) return showToast("Дата начала больше конечной!", true);
 
-            let status = baseStatus;
-            if (baseStatus === 'yes' && timeUntil) {
-                status = 'yes_' + timeUntil;
+            const statusLabel = baseStatus === 'yes' ? (timeUntil ? `Готов работать до ${timeUntil}` : 'Готов работать весь день') : 'Выходной';
+
+            let hasWeekend = false;
+            let checkCursor = new Date(start);
+            while (checkCursor <= end) {
+                if (isWeekendDate(toLocalDateStr(checkCursor))) { hasWeekend = true; break; }
+                checkCursor.setDate(checkCursor.getDate() + 1);
             }
 
-            let addedCount = 0;
+            pendingAvailabilityChange = { startStr, endStr, baseStatus, timeUntil, statusLabel };
+
+            document.getElementById('confirm-avail-range').textContent = `${formatDateRus(startStr)} — ${formatDateRus(endStr)}`;
+            document.getElementById('confirm-avail-status').textContent = statusLabel;
+
+            const weekendWarning = document.getElementById('confirm-avail-weekend-warning');
+            if (weekendWarning) weekendWarning.classList.toggle('hidden', !(hasWeekend && baseStatus === 'no'));
+
+            document.getElementById('modal-confirm-availability').classList.remove('hidden');
+        }
+
+        function closeConfirmAvailabilityModal() {
+            document.getElementById('modal-confirm-availability').classList.add('hidden');
+            pendingAvailabilityChange = null;
+        }
+
+        function confirmSaveMyAvailability() {
+            if (!pendingAvailabilityChange) return;
+            const { startStr, endStr, baseStatus, timeUntil, statusLabel } = pendingAvailabilityChange;
+
+            let start = parseLocalDate(startStr);
+            let end = parseLocalDate(endStr);
+
+            let addedCount = 0, skippedCount = 0;
             let current = new Date(start);
             
             while (current <= end) {
                 let d = toLocalDateStr(current);
                 if (!appState.availability[d]) appState.availability[d] = {};
-                appState.availability[d][appState.name] = status;
+
+                const existing = parseAvailEntry(appState.availability[d][appState.name]);
+                if (existing.locked) {
+                    skippedCount++;
+                } else {
+                    appState.availability[d][appState.name] = buildAvailEntry(baseStatus, baseStatus === 'yes' ? timeUntil : null, true);
+                    addedCount++;
+                }
                 
                 current.setDate(current.getDate() + 1);
-                addedCount++;
             }
             
+            const timeUntilEl = document.getElementById('avail-time-until');
             if (timeUntilEl) timeUntilEl.value = '';
             
             saveState();
             
-            let logMsgStatus = baseStatus === 'yes' ? (timeUntil ? `Готов работать до ${timeUntil}` : 'Готов работать весь день') : 'Выходной';
-            logAction(appState.name, `Изменил статус с ${startStr} по ${endStr}: ${logMsgStatus}`);
+            logAction(appState.name, `Сохранил и подтвердил график с ${formatDateRus(startStr)} по ${formatDateRus(endStr)}: ${statusLabel}${skippedCount > 0 ? ` (пропущено заблокированных дней: ${skippedCount})` : ''}`);
             
-            showToast(`График успешно обновлен на ${addedCount} дн.!`);
+            document.getElementById('modal-confirm-availability').classList.add('hidden');
+            pendingAvailabilityChange = null;
+
+            if (skippedCount > 0) {
+                showToast(`Сохранено дней: ${addedCount}. Заблокировано администратором и пропущено: ${skippedCount}.`, addedCount === 0);
+            } else {
+                showToast(`График сохранён и подтверждён на ${addedCount} дн.!`);
+            }
+            renderAvailability();
+        }
+
+        // ========================================================
+        // РЕДАКТИРОВАНИЕ ГРАФИКА СОТРУДНИКА АДМИНОМ
+        // (может менять статус и снимать/ставить блокировку в обход инструктора)
+        // ========================================================
+        function openEditAvailabilityModal(dateStr, name) {
+            document.getElementById('edit-avail-date').value = dateStr;
+            document.getElementById('edit-avail-user').value = name;
+            document.getElementById('edit-avail-name-label').textContent = name;
+            document.getElementById('edit-avail-date-label').textContent = formatDateRus(dateStr);
+
+            const entry = parseAvailEntry(appState.availability[dateStr]?.[name]);
+
+            document.getElementById('edit-avail-status').value = entry.status || '';
+            document.getElementById('edit-avail-time').value = entry.until || '';
+            document.getElementById('edit-avail-lock').checked = !!entry.locked;
+            toggleEditAvailTimeField();
+
+            document.getElementById('modal-edit-availability').classList.remove('hidden');
+        }
+
+        function closeEditAvailabilityModal() {
+            document.getElementById('modal-edit-availability').classList.add('hidden');
+        }
+
+        function toggleEditAvailTimeField() {
+            const status = document.getElementById('edit-avail-status').value;
+            document.getElementById('edit-avail-time-wrap').classList.toggle('hidden', status !== 'yes');
+        }
+
+        function saveEditedAvailability() {
+            const dateStr = document.getElementById('edit-avail-date').value;
+            const name = document.getElementById('edit-avail-user').value;
+            const statusBase = document.getElementById('edit-avail-status').value;
+            const timeUntil = document.getElementById('edit-avail-time').value;
+            const shouldLock = document.getElementById('edit-avail-lock').checked;
+
+            if (!appState.availability[dateStr]) appState.availability[dateStr] = {};
+
+            if (statusBase === '') {
+                delete appState.availability[dateStr][name];
+            } else {
+                appState.availability[dateStr][name] = buildAvailEntry(statusBase, statusBase === 'yes' ? timeUntil : null, shouldLock);
+            }
+
+            saveState();
+            logAction(appState.name, `Изменил график сотрудника ${name} на ${formatDateRus(dateStr)}${shouldLock ? ' (заблокировано)' : ' (разблокировано)'}`);
+            pushNotification(name, `Администратор изменил ваш график на ${formatDateRus(dateStr)}.`);
+            showToast('График сотрудника обновлён!');
+            closeEditAvailabilityModal();
             renderAvailability();
         }
 
@@ -1011,6 +1239,15 @@
             const container = document.getElementById('schedule-container');
             const selectedDate = document.getElementById('schedule-date').value;
             renderDutyBanner(selectedDate);
+
+            const weekdayEl = document.getElementById('schedule-date-weekday');
+            if (weekdayEl && selectedDate) {
+                const weekend = isWeekendDate(selectedDate);
+                weekdayEl.innerHTML = weekend
+                    ? `<span class="text-purple-300 bg-purple-500/20 border border-purple-500/40 px-1.5 py-0.5 rounded font-bold">${getWeekdayFull(selectedDate)}</span>`
+                    : `<span class="text-slate-500">${getWeekdayFull(selectedDate)}</span>`;
+            }
+
             let dailyShifts = appState.shifts.filter(s => s.date === selectedDate);
 
             const btnAcceptAll = document.getElementById('btn-inst-accept-all');
@@ -1240,13 +1477,17 @@
         function addGameRowToModal() {
             gameRowCounter++; const container = document.getElementById('mass-shifts-container');
             const optionsHtml = appState.games.map(g => `<option value="${g}">${g}</option>`).join('');
+            const rowDate = document.getElementById('schedule-date').value;
             
-            const instructorsHtml = appState.users.map(u => `
-                <label class="flex items-center space-x-2 text-[11px] text-slate-300 bg-slate-900 p-1.5 rounded-lg border border-slate-800 cursor-pointer hover:border-park-accent/50 transition">
+            const instructorsHtml = appState.users.map(u => {
+                const meta = getInstructorStatusMeta(u.name, rowDate);
+                return `
+                <label class="flex items-center space-x-2 text-[11px] ${meta.text} bg-slate-900 p-1.5 rounded-lg border ${meta.wrap} cursor-pointer transition">
                     <input type="checkbox" value="${u.name}" class="row-instructor-cb rounded bg-slate-950 border-slate-800 accent-park-accent w-3.5 h-3.5 flex-shrink-0">
-                    <span class="truncate font-bold">${u.name}</span>
+                    <span class="truncate font-bold">${meta.icon}${u.name}</span>
                 </label>
-            `).join('');
+            `;
+            }).join('');
 
             const row = document.createElement('div');
             row.id = `game-row-${gameRowCounter}`; row.className = "p-3 bg-slate-950 rounded-xl border border-slate-800 relative space-y-2 transition";
@@ -1268,7 +1509,7 @@
                     <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Беседка</label><input type="text" placeholder="№1" class="row-gazebo w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] text-white"></div>
                 </div>
                 <div class="pt-1">
-                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Инструктор(а) на эту игру</label>
+                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Инструктора на эту игру</label>
                     <div class="grid grid-cols-2 gap-1.5 max-h-[85px] overflow-y-auto ios-scroll p-1.5 bg-slate-900 rounded-xl border border-slate-800">
                         ${instructorsHtml}
                     </div>
@@ -1395,8 +1636,8 @@
                 sendTelegramNotify(n, `🛡 Вы назначены ДЕЖУРНЫМ инструктором на ${formatDateRus(date)}!`);
             });
             oldNames.filter(n => !names.includes(n)).forEach(n => {
-                pushNotification(n, `🛡 Вы сняты с дежурства на ${formatDateRus(date)}.`);
-                sendTelegramNotify(n, `🛡 Вы больше не дежурный инструктор на ${formatDateRus(date)}.`);
+                pushNotification(n, `Вы сняты с дежурства на ${formatDateRus(date)}.`);
+                sendTelegramNotify(n, `Вы больше не дежурный инструктор на ${formatDateRus(date)}.`);
             });
 
             saveState();
@@ -1437,8 +1678,8 @@
             if (updated.length > 0) appState.duty[date] = updated;
             else delete appState.duty[date];
 
-            pushNotification(name, `🛡 Вы сняты с дежурства на ${formatDateRus(date)}.`);
-            sendTelegramNotify(name, `🛡 Вы больше не дежурный инструктор на ${formatDateRus(date)}.`);
+            pushNotification(name, `Вы сняты с дежурства на ${formatDateRus(date)}.`);
+            sendTelegramNotify(name, `Вы больше не дежурный инструктор на ${formatDateRus(date)}.`);
 
             saveState();
             logAction(appState.name, `Снял дежурство (${name}) на ${formatDateRus(date)}`);
@@ -1460,6 +1701,7 @@
                 const dStr = toLocalDateStr(cursor);
                 const dutyNames = appState.duty[dStr] || [];
                 const isToday = i === 0;
+                const isWeekend = isWeekendDate(dStr);
 
                 const namesHtml = dutyNames.length > 0
                     ? dutyNames.map(n => `<span class="bg-park-gold/15 border border-park-gold/50 text-park-gold font-bold px-1.5 py-0.5 rounded-md">${n}</span>`).join(' ')
@@ -1469,9 +1711,13 @@
                     ? `<button onclick="openAssignDutyModal('${dStr}')" class="ml-1.5 text-slate-500 hover:text-park-gold flex-shrink-0"><i class="fa-solid fa-pen text-[10px]"></i></button>`
                     : '';
 
+                const weekendTag = isWeekend ? `<span class="text-[8px] font-bold text-purple-300 bg-purple-500/20 border border-purple-500/40 px-1 py-0.5 rounded ml-1.5">${getWeekdayShort(dStr)}</span>` : '';
+                const borderClass = isToday ? 'border-park-accent/50 bg-slate-950' : (isWeekend ? 'border-purple-500/40 bg-purple-500/5' : 'border-slate-800/60 bg-slate-950/40');
+                const dateColorClass = isWeekend ? 'text-purple-300' : 'text-slate-300';
+
                 html += `
-                    <div class="flex justify-between items-center text-[11px] p-2 rounded-lg border ${isToday ? 'border-park-accent/50 bg-slate-950' : 'border-slate-800/60 bg-slate-950/40'}">
-                        <span class="text-slate-300 font-mono font-bold flex-shrink-0 mr-2">${formatDateRus(dStr)}${isToday ? ' <span class="text-park-accent text-[8px] font-sans">(сегодня)</span>' : ''}</span>
+                    <div class="flex justify-between items-center text-[11px] p-2 rounded-lg border ${borderClass}">
+                        <span class="${dateColorClass} font-mono font-bold flex-shrink-0 mr-2 flex items-center">${formatDateRus(dStr)}${weekendTag}${isToday ? ' <span class="text-park-accent text-[8px] font-sans ml-1">(сегодня)</span>' : ''}</span>
                         <div class="flex items-center flex-wrap justify-end gap-1">${namesHtml}${editBtnHtml}</div>
                     </div>`;
 
@@ -1490,6 +1736,7 @@
             document.getElementById('edit-guests').value = shift.guestsCount;
             document.getElementById('edit-gazebo').value = shift.gazebo;
             
+            populateInstructorDropdowns(shift.date);
             document.querySelectorAll('#edit-instructor-select-list input').forEach(cb => {
                 cb.checked = shift.instructors.includes(cb.value);
             });
@@ -1735,13 +1982,16 @@
             showToast("Удалено");
         }
         
-        function populateInstructorDropdowns() {
-            const listHtml = appState.users.map(u => `
-                <label class="flex items-center space-x-2 text-[11px] text-slate-300 bg-slate-900 p-1.5 rounded-lg border border-slate-800 cursor-pointer hover:border-park-accent/50 transition">
+        function populateInstructorDropdowns(dateStr) {
+            const listHtml = appState.users.map(u => {
+                const meta = getInstructorStatusMeta(u.name, dateStr);
+                return `
+                <label class="flex items-center space-x-2 text-[11px] ${meta.text} bg-slate-900 p-1.5 rounded-lg border ${meta.wrap} cursor-pointer transition">
                     <input type="checkbox" value="${u.name}" class="rounded bg-slate-950 border-slate-800 accent-park-accent w-3.5 h-3.5 flex-shrink-0">
-                    <span class="truncate font-bold">${u.name}</span>
+                    <span class="truncate font-bold">${meta.icon}${u.name}</span>
                 </label>
-            `).join('');
+            `;
+            }).join('');
             
             const editList = document.getElementById('edit-instructor-select-list');
             if(editList) editList.innerHTML = listHtml;
