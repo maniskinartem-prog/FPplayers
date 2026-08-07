@@ -2,7 +2,7 @@
 <html lang="ru" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Family-Park-Координатор PRO</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -26,6 +26,54 @@
         ::-webkit-scrollbar { width: 0px; background: transparent; }
         .ios-scroll {
             -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+        button, label, input, select, textarea {
+            touch-action: manipulation;
+        }
+        .mobile-modal {
+            padding-top: max(12px, env(safe-area-inset-top));
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+        }
+        .mobile-modal-panel {
+            max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)));
+        }
+        #toast {
+            top: max(24px, calc(env(safe-area-inset-top) + 8px));
+        }
+        [id^="modal-"] {
+            padding-top: max(12px, env(safe-area-inset-top));
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+        }
+        .bulk-select-button {
+            min-height: 48px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            line-height: 1.15;
+        }
+        @media (max-width: 420px) {
+            body { border-left: 0 !important; border-right: 0 !important; }
+            #app-main { padding: 12px; }
+            .schedule-toolbar { align-items: stretch; flex-direction: column; gap: 8px; }
+            .schedule-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; width: 100%; }
+            .schedule-actions > button { min-height: 42px; width: 100%; margin: 0 !important; white-space: normal; line-height: 1.1; }
+            .schedule-actions > button:last-child { grid-column: 1 / -1; }
+            .mobile-modal { align-items: flex-end; padding-left: 8px; padding-right: 8px; }
+            .mobile-modal-panel { width: 100%; max-width: none; border-radius: 20px 20px 14px 14px; padding: 16px; }
+            [id^="modal-"] { align-items: flex-end; padding-left: 8px; padding-right: 8px; }
+            [id^="modal-"] > div {
+                width: 100%;
+                max-width: none;
+                max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)));
+                overflow-y: auto;
+                border-radius: 20px 20px 14px 14px;
+            }
+        }
+        @media (max-width: 350px) {
+            #app-main { padding: 9px; }
+            .schedule-actions { grid-template-columns: 1fr; }
+            .schedule-actions > button:last-child { grid-column: auto; }
         }
     </style>
 </head>
@@ -148,11 +196,14 @@
                 <button onclick="setScheduleFilter('pending')" id="filter-pending" class="py-1.5 text-[10px] font-bold rounded-lg text-slate-400">Ожидают</button>
             </div>
 
-            <div class="flex justify-between items-center pt-1">
+            <div class="schedule-toolbar flex justify-between items-center pt-1">
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">📋 Таймлайн</h4>
-                <div class="flex space-x-2">
+                <div class="schedule-actions flex space-x-2">
                     <button id="btn-inst-accept-all" onclick="acceptAllPendingGames()" class="hidden text-[10px] bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-lg font-brand font-black uppercase tracking-wider transition shadow-md shadow-emerald-900/20">
                         <i class="fa-solid fa-check-double mr-1"></i> Принять все
+                    </button>
+                    <button id="btn-admin-notification-queue" onclick="openNotificationQueueModal()" class="hidden text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1.5 rounded-lg font-brand font-black uppercase tracking-wider transition shadow-md shadow-indigo-900/20">
+                        <i class="fa-solid fa-bell mr-1"></i> Уведомить <span id="notification-queue-count" class="hidden ml-1 bg-slate-950/30 px-1 rounded"></span>
                     </button>
                     <button id="btn-admin-publish" onclick="publishScheduleToChat()" class="hidden text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded-lg font-brand font-black uppercase tracking-wider transition shadow-md shadow-blue-900/20">
                         <i class="fa-solid fa-paper-plane mr-1"></i> В чат
@@ -318,6 +369,18 @@
                 <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-rose-500 mr-1 flex-shrink-0"></span>Точно выходной</span>
                 <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-park-gold mr-1 flex-shrink-0"></span>Дежурный</span>
             </div>
+
+            <div class="bg-indigo-950/30 border border-indigo-500/25 rounded-xl p-3 space-y-2 flex-shrink-0">
+                <label class="flex items-center gap-2 text-[11px] font-bold text-indigo-200 cursor-pointer">
+                    <input type="checkbox" id="team-building-enabled" onchange="toggleTeamBuildingFields()" class="accent-indigo-400 w-4 h-4">
+                    <i class="fa-solid fa-people-group text-indigo-300"></i> Это тимбилдинг
+                </label>
+                <div id="team-building-details" class="hidden">
+                    <label class="block text-[8px] font-bold text-indigo-200/70 uppercase mb-1">Компания / название тимбилдинга</label>
+                    <input type="text" id="team-building-name" maxlength="80" placeholder="Например: ООО «Альфа»" class="w-full bg-slate-950 border border-indigo-500/30 rounded-lg py-1.5 px-2 text-[14px] text-white focus:outline-none focus:border-indigo-400">
+                    <p class="text-[8px] text-slate-400 mt-1">Все игры в этой форме будут объединены в один блок в расписании и Telegram.</p>
+                </div>
+            </div>
             
             <div id="mass-shifts-container" class="flex-grow overflow-y-auto pr-1 space-y-3 py-1 ios-scroll"></div>
             
@@ -329,6 +392,27 @@
                     <button onclick="closeAddShiftModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
                     <button onclick="saveCreatedShiftsMassive()" class="flex-1 bg-park-accent text-slate-950 font-brand font-black py-2.5 rounded-xl text-xs uppercase">Добавить всё</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-notification-queue" class="mobile-modal fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="mobile-modal-panel bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl flex flex-col">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-bell text-indigo-400 mr-1.5"></i> Уведомления сотрудникам</h3>
+                    <p class="text-[9px] text-slate-400 mt-1">Изменения собираются в один пакет на человека. Выберите только тех, кого нужно уведомить.</p>
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <button onclick="setAllQueuedRecipients(true)" class="bulk-select-button bg-indigo-500/15 border border-indigo-500/30 text-indigo-200 hover:bg-indigo-500/25 font-bold"><i class="fa-solid fa-check-double mr-1"></i> Выбрать всех</button>
+                        <button onclick="setAllQueuedRecipients(false)" class="bulk-select-button bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 font-bold"><i class="fa-solid fa-xmark mr-1"></i> Снять выбор</button>
+                    </div>
+                </div>
+                <button onclick="closeNotificationQueueModal()" aria-label="Закрыть" class="w-11 h-11 -mt-2 -mr-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="notification-queue-list" class="flex-grow min-h-0 overflow-y-auto ios-scroll space-y-2 pr-1"></div>
+            <div class="flex space-x-2 pt-2 border-t border-slate-800">
+                <button onclick="closeNotificationQueueModal()" class="flex-1 min-h-12 bg-slate-800 text-slate-300 font-bold px-3 py-3 rounded-xl text-xs">Позже</button>
+                <button id="btn-send-queued-notifications" onclick="sendSelectedQueuedNotifications()" class="flex-[1.4] min-h-12 bg-indigo-600 hover:bg-indigo-500 text-white font-brand font-black px-3 py-3 rounded-xl text-[11px] uppercase leading-tight"><i class="fa-solid fa-paper-plane mr-1"></i> Отправить выбранным</button>
             </div>
         </div>
     </div>
@@ -446,6 +530,12 @@
                     <input type="text" id="edit-gazebo" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white">
                 </div>
             </div>
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Тимбилдинг</label>
+                <input type="text" id="edit-team-building-name" maxlength="80" placeholder="Оставьте пустым для обычной игры" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white">
+                <p class="text-[8px] text-slate-500 mt-1">Изменение названия обновит весь тимбилдинг. Пустое поле исключит только эту игру.</p>
+                <button id="btn-disband-team-building" onclick="disbandCurrentTeamBuilding()" class="hidden mt-2 w-full text-rose-300 bg-rose-950/30 hover:bg-rose-950/50 border border-rose-500/30 font-bold py-1.5 rounded-lg text-[9px] uppercase transition"><i class="fa-solid fa-link-slash mr-1"></i> Расформировать весь тимбилдинг</button>
+            </div>
             <div class="flex space-x-2 pt-2 border-t border-slate-800">
                 <button onclick="closeEditGameModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
                 <button onclick="saveEditedGame()" class="flex-1 bg-park-accent text-slate-950 font-brand font-black py-2.5 rounded-xl text-xs uppercase">Сохранить</button>
@@ -526,37 +616,231 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzXec5QGq1mAj5FfeQEeIjn3jXphW1LksWQ5oWgws4zxSP7o_44wAZc7tzVEVCwQ3og/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwTzLf22Q_MWdKXJLzi-qBabvL_N4vihH7qE0_MsBgmkJ-A-cFdmrQlm9AOr-H_yiaT/exec";
         // ======================================================================================
 
         let appState = { 
             user: null, role: null, name: null, 
             shifts: [], logs: [], users: [], games: [], 
-            notifications: [], availability: {}, duty: {},
+            notifications: [], notificationQueue: [], availability: {}, duty: {},
             activeFilter: "all" 
         };
+
+        // null означает, что данные с сервера ещё не были корректно получены.
+        // В таком состоянии разрешено работать локально, но запрещено что-либо
+        // отправлять в Google Sheets: иначе пустой кэш может затереть базу.
+        let cloudBaseline = null;
 
         let toastTimeout = null;
         let gameRowCounter = 0;
         let dutyRowCounter = 0;
         let currentDutyModalDate = null;
         let pendingAvailabilityChange = null;
+        let notificationQueueSaveTimer = null;
+        let latestStateSaveRequest = Promise.resolve();
+        let notificationSendInProgress = false;
         const defaultGames = ["Лазертаг🔫", "Квесты🗝️", "Мафия🕵️‍♂️", "Анимации🤡", "Прятки в темноте👻"];
 
-        async function sendTelegramNotify(targetName, text) {
+        function createGameQueueEvent(type, shift) {
+            return {
+                type: type,
+                game: {
+                    id: String(shift.id || ''),
+                    game: String(shift.game || 'Активность'),
+                    startTime: String(shift.startTime || ''),
+                    endTime: String(shift.endTime || ''),
+                    gazebo: String(shift.gazebo || '—'),
+                    guestsCount: String(shift.guestsCount || ''),
+                    teamBuildingName: String(shift.teamBuildingName || ''),
+                    cancelReason: String(shift.cancelReason || '')
+                },
+                createdAt: new Date().toISOString()
+            };
+        }
+
+        function createDutyQueueEvent(type) {
+            return { type: type, createdAt: new Date().toISOString() };
+        }
+
+        function readQueueEvents(item) {
+            if (Array.isArray(item.events)) return item.events;
+            if (typeof item.events === 'string') {
+                try {
+                    const parsed = JSON.parse(item.events);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) { return []; }
+            }
+            return [];
+        }
+
+        function queueTelegramNotification(targetName, date, event = null) {
             const user = appState.users.find(u => u.name === targetName || u.username === targetName);
             if (!user || !user.telegram_id) {
-                console.warn(`У пользователя ${targetName} не найден telegram_id для отправки в ТГ`);
+                console.warn(`У пользователя ${targetName} не найден telegram_id для постановки уведомления в очередь`);
                 return;
             }
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date || ''))) return;
+            const normalizedName = user.name || targetName;
+            const existing = appState.notificationQueue.find(item => item.targetName === normalizedName && item.date === date);
+            if (existing) {
+                if (event) {
+                    existing.events = readQueueEvents(existing);
+                    existing.events.push(event);
+                    scheduleNotificationQueueSave();
+                }
+                renderNotificationQueue();
+                return;
+            }
+            appState.notificationQueue.push({
+                id: `notify_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+                targetName: normalizedName,
+                date: date,
+                createdAt: new Date().toISOString(),
+                events: event ? [event] : []
+            });
+            scheduleNotificationQueueSave();
+            renderNotificationQueue();
+        }
+
+        function scheduleNotificationQueueSave() {
+            persistLocalState();
+            if (notificationQueueSaveTimer) clearTimeout(notificationQueueSaveTimer);
+            notificationQueueSaveTimer = setTimeout(() => {
+                notificationQueueSaveTimer = null;
+                saveState();
+            }, 250);
+        }
+
+        function flushNotificationQueueSave() {
+            if (!notificationQueueSaveTimer) return latestStateSaveRequest;
+            clearTimeout(notificationQueueSaveTimer);
+            notificationQueueSaveTimer = null;
+            return saveState();
+        }
+
+        function getQueuedNotificationGroups() {
+            const groups = new Map();
+            appState.notificationQueue.forEach(item => {
+                if (!item || !item.id || !item.targetName || !/^\d{4}-\d{2}-\d{2}$/.test(String(item.date || ''))) return;
+                if (!groups.has(item.targetName)) groups.set(item.targetName, []);
+                groups.get(item.targetName).push(item);
+            });
+            return [...groups.entries()].map(([targetName, items]) => ({ targetName, items }));
+        }
+
+        function buildQueuedSchedulePreview(targetName, item) {
+            const games = appState.shifts.filter(shift =>
+                shift.date === item.date && shift.status !== 'cancelled' &&
+                Array.isArray(shift.instructors) && shift.instructors.includes(targetName)
+            );
+            const isDuty = Array.isArray(appState.duty[item.date]) && appState.duty[item.date].includes(targetName);
+            const parts = [`📅 ${formatDateRus(item.date)}`];
+            if (games.length) parts.push(`🎮 Игр: ${games.length}`);
+            if (isDuty) parts.push('🛡 Дежурный');
+            if (!games.length && !isDuty) parts.push('Нет актуальных назначений — лишние изменения будут отброшены');
+            return parts.join(' · ');
+        }
+
+        function renderNotificationQueue() {
+            const countEl = document.getElementById('notification-queue-count');
+            const button = document.getElementById('btn-admin-notification-queue');
+            const total = appState.notificationQueue.length;
+            if (countEl) {
+                countEl.textContent = total;
+                countEl.classList.toggle('hidden', total === 0);
+            }
+            if (!button || appState.role !== 'admin') return;
+
+            const container = document.getElementById('notification-queue-list');
+            if (!container) return;
+            const groups = getQueuedNotificationGroups();
+            if (groups.length === 0) {
+                container.innerHTML = '<div class="text-center text-slate-500 text-xs py-6">Очередь пуста. Изменения появятся здесь, но не будут отправлены без вашего действия.</div>';
+                return;
+            }
+            container.innerHTML = groups.map(group => `
+                <label class="block bg-slate-950 border border-slate-800 rounded-xl p-3.5 cursor-pointer hover:border-indigo-500/40 active:bg-slate-900 transition select-none">
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" class="notification-recipient-cb mt-0.5 w-5 h-5 flex-shrink-0 accent-indigo-400" value="${group.items.map(item => item.id).join(',')}">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2"><b class="text-[13px] text-white truncate">${escapeTelegramHtml(group.targetName)}</b><span class="text-[9px] bg-indigo-500/15 text-indigo-300 border border-indigo-500/25 px-1.5 py-0.5 rounded font-bold">${group.items.length}</span></div>
+                            <p class="text-[11px] text-slate-400 mt-1.5 leading-relaxed break-words">${group.items.map(item => escapeTelegramHtml(buildQueuedSchedulePreview(group.targetName, item))).join('<div class="h-2"></div>')}</p>
+                        </div>
+                    </div>
+                </label>`).join('');
+        }
+
+        function openNotificationQueueModal() {
+            if (appState.role !== 'admin') return;
+            renderNotificationQueue();
+            document.getElementById('modal-notification-queue').classList.remove('hidden');
+        }
+
+        function closeNotificationQueueModal() {
+            document.getElementById('modal-notification-queue').classList.add('hidden');
+        }
+
+        function setAllQueuedRecipients(checked) {
+            document.querySelectorAll('.notification-recipient-cb').forEach(box => { box.checked = checked; });
+        }
+
+        async function sendSelectedQueuedNotifications() {
+            if (notificationSendInProgress) return;
+            const ids = Array.from(document.querySelectorAll('.notification-recipient-cb:checked'))
+                .flatMap(box => box.value.split(',').filter(Boolean));
+            if (!ids.length) return showToast('Выберите хотя бы одного сотрудника.', true);
+            notificationSendInProgress = true;
+            const sendButton = document.getElementById('btn-send-queued-notifications');
+            if (sendButton) { sendButton.disabled = true; sendButton.classList.add('opacity-60'); }
+            showToast('Подготавливаю актуальные уведомления...');
             try {
-                fetch(BACKEND_URL, {
+                // Дожидаемся, пока последняя порция изменений попадёт в Sheets.
+                // Иначе быстрая кнопка «Отправить» могла опередить очередь.
+                const queueSaved = await flushNotificationQueueSave();
+                const lastSaveSucceeded = await latestStateSaveRequest;
+                if (!queueSaved || !lastSaveSucceeded) throw new Error('Не удалось сохранить очередь');
+                await fetch(BACKEND_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'notify_user', telegram_id: user.telegram_id, text: text })
-                }).catch(err => console.log("Фоновая ошибка отправки в ТГ:", err));
-            } catch (err) {}
+                    body: JSON.stringify({ action: 'send_notification_batch', notificationIds: ids })
+                });
+
+                // POST в Apps Script не даёт прочитать ответ из-за CORS. Поэтому
+                // запрашиваем состояние заново: неуспешно доставленные записи
+                // остаются в очереди, а погашенные сервер удалит сам.
+                const refreshResponse = await fetch(BACKEND_URL);
+                const cloudData = await refreshResponse.json();
+                if (!isCloudState(cloudData)) throw new Error('Не удалось обновить очередь уведомлений');
+                applyCloudState(cloudData);
+                renderNotificationQueue();
+                showToast('Очередь обновлена: отправлены только актуальные уведомления.');
+            } catch (err) {
+                console.log('Ошибка отправки пакета уведомлений:', err);
+                showToast('Не удалось отправить уведомления. Очередь сохранена.', true);
+            } finally {
+                notificationSendInProgress = false;
+                if (sendButton) { sendButton.disabled = false; sendButton.classList.remove('opacity-60'); }
+            }
+        }
+
+        function escapeTelegramHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+            }[char]));
+        }
+
+        function createTeamBuildingId() {
+            return `tb_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+        }
+
+        function formatShiftForChat(shift) {
+            const instList = Array.isArray(shift.instructors) && shift.instructors.length > 0
+                ? shift.instructors.join(', ')
+                : 'Не назначены';
+            return `🔹 <b>${escapeTelegramHtml(cleanTime(shift.startTime))} - ${escapeTelegramHtml(cleanTime(shift.endTime))}</b> | ${escapeTelegramHtml(shift.game)}\n` +
+                `👥 Гостей: ${escapeTelegramHtml(shift.guestsCount)} | 📍 ${escapeTelegramHtml(shift.gazebo || '—')}\n` +
+                `🎭 Инструктор(а): ${escapeTelegramHtml(instList)}\n`;
         }
 
         async function publishScheduleToChat() {
@@ -570,21 +854,27 @@
             shiftsToday.sort((a, b) => cleanTime(a.startTime).localeCompare(cleanTime(b.startTime)));
 
             const dutyNames = appState.duty[selectedDate] || [];
+            const publishedTeamBuildings = new Set();
 
             let messageText = `🗓 <b>Расписание на ${formatDateRus(selectedDate)}</b>\n`;
             if (dutyNames.length > 0) {
-                messageText += `🛡 <b>Дежурный:</b> ${dutyNames.join(', ')}\n`;
+                messageText += `🛡 <b>Дежурный:</b> ${escapeTelegramHtml(dutyNames.join(', '))}\n`;
             }
             messageText += `\n`;
 
             shiftsToday.forEach(shift => {
-                const instList = shift.instructors && shift.instructors.length > 0 
-                    ? shift.instructors.join(', ') 
-                    : "Не назначены";
-                    
-                messageText += `🔹 <b>${cleanTime(shift.startTime)} - ${cleanTime(shift.endTime)}</b> | ${shift.game}\n`;
-                messageText += `👥 Гостей: ${shift.guestsCount} | 📍 ${shift.gazebo}\n`;
-                messageText += `🎭 Инструктор(а): ${instList}\n\n`;
+                if (!shift.teamBuildingId) {
+                    messageText += `${formatShiftForChat(shift)}\n`;
+                    return;
+                }
+                if (publishedTeamBuildings.has(shift.teamBuildingId)) return;
+
+                publishedTeamBuildings.add(shift.teamBuildingId);
+                const teamShifts = shiftsToday.filter(item => item.teamBuildingId === shift.teamBuildingId);
+                const teamName = teamShifts.find(item => item.teamBuildingName)?.teamBuildingName || 'Без названия';
+                messageText += `━━━━━━━━━━━━━━━━━━━━\n<b>Тимбилдинг: ${escapeTelegramHtml(teamName)}</b>\n\n`;
+                teamShifts.forEach(item => { messageText += `${formatShiftForChat(item)}\n`; });
+                messageText += `━━━━━━━━━━━━━━━━━━━━\n\n`;
             });
 
             showToast("Отправка расписания в чат...");
@@ -693,6 +983,108 @@
             return dStr;
         }
 
+        function isPlainObject(value) {
+            return value !== null && typeof value === 'object' && !Array.isArray(value);
+        }
+
+        function cloneCoreState(state) {
+            return JSON.parse(JSON.stringify({
+                users: state.users,
+                shifts: state.shifts,
+                games: state.games,
+                logs: state.logs,
+                availability: state.availability,
+                duty: state.duty,
+                notificationQueue: state.notificationQueue
+            }));
+        }
+
+        function isCloudState(data) {
+            return data && !data.status &&
+                Array.isArray(data.users) && Array.isArray(data.shifts) &&
+                Array.isArray(data.games) && Array.isArray(data.logs) &&
+                isPlainObject(data.availability) && isPlainObject(data.duty);
+        }
+
+        function persistLocalState() {
+            localStorage.setItem('park_v5_users', JSON.stringify(appState.users));
+            localStorage.setItem('park_v5_shifts', JSON.stringify(appState.shifts));
+            localStorage.setItem('park_v5_logs', JSON.stringify(appState.logs));
+            localStorage.setItem('park_v5_games', JSON.stringify(appState.games));
+            localStorage.setItem('park_v5_notifications', JSON.stringify(appState.notifications));
+            localStorage.setItem('park_v5_notification_queue', JSON.stringify(appState.notificationQueue));
+            localStorage.setItem('park_v5_availability', JSON.stringify(appState.availability));
+            localStorage.setItem('park_v5_duty', JSON.stringify(appState.duty));
+        }
+
+        function applyCloudState(data) {
+            if (!isCloudState(data)) throw new Error('Получены неполные данные сервера');
+            appState.users = data.users;
+            appState.shifts = data.shifts;
+            appState.games = data.games;
+            appState.logs = data.logs;
+            appState.availability = data.availability;
+            appState.duty = data.duty;
+            appState.notificationQueue = Array.isArray(data.notificationQueue)
+                ? data.notificationQueue.filter(item => /^\d{4}-\d{2}-\d{2}$/.test(String(item.date || '')))
+                : [];
+            cloudBaseline = cloneCoreState(appState);
+            persistLocalState();
+        }
+
+        function diffValue(before, after) {
+            if (JSON.stringify(before) === JSON.stringify(after)) return undefined;
+            if (after === undefined) return { __delete: true };
+            if (isPlainObject(before) && isPlainObject(after)) {
+                const patch = {};
+                new Set([...Object.keys(before), ...Object.keys(after)]).forEach(key => {
+                    const value = diffValue(before[key], after[key]);
+                    if (value !== undefined) patch[key] = value;
+                });
+                return Object.keys(patch).length ? patch : undefined;
+            }
+            return after;
+        }
+
+        function buildRecordPatches(before, after, keyName) {
+            const previous = new Map(before.map(item => [String(item[keyName]), item]));
+            const current = new Map(after.map(item => [String(item[keyName]), item]));
+            const patches = [];
+            new Set([...previous.keys(), ...current.keys()]).forEach(key => {
+                if (!current.has(key)) patches.push({ key: key, delete: true });
+                else {
+                    const patch = diffValue(previous.get(key), current.get(key));
+                    if (patch !== undefined) patches.push({ key: key, patch: patch });
+                }
+            });
+            return patches;
+        }
+
+        function buildStateChanges(before, after) {
+            const changes = {};
+            const users = buildRecordPatches(before.users, after.users, 'username');
+            const shifts = buildRecordPatches(before.shifts, after.shifts, 'id');
+            if (users.length) changes.users = users;
+            if (shifts.length) changes.shifts = shifts;
+
+            const oldGames = new Set(before.games), newGames = new Set(after.games);
+            const addedGames = after.games.filter(game => !oldGames.has(game));
+            const removedGames = before.games.filter(game => !newGames.has(game));
+            if (addedGames.length || removedGames.length) changes.games = { add: addedGames, remove: removedGames };
+
+            const previousLogs = new Set(before.logs.map(log => JSON.stringify(log)));
+            const newLogs = after.logs.filter(log => !previousLogs.has(JSON.stringify(log)));
+            if (newLogs.length) changes.logs = newLogs;
+
+            const availability = diffValue(before.availability, after.availability);
+            const duty = diffValue(before.duty, after.duty);
+            const notificationQueue = buildRecordPatches(before.notificationQueue, after.notificationQueue, 'id');
+            if (availability !== undefined) changes.availability = availability;
+            if (duty !== undefined) changes.duty = duty;
+            if (notificationQueue.length) changes.notificationQueue = notificationQueue;
+            return changes;
+        }
+
         async function syncHeaderClick() {
             if (!BACKEND_URL || BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
                 return showToast("Ссылка синхронизации не задана в коде!", true);
@@ -701,23 +1093,12 @@
             try {
                 const response = await fetch(BACKEND_URL);
                 const cloudData = await response.json();
-                if (cloudData && !cloudData.status) {
-                    appState.users = cloudData.users || appState.users;
-                    appState.shifts = cloudData.shifts || appState.shifts;
-                    appState.games = cloudData.games && cloudData.games.length ? cloudData.games : appState.games;
-                    appState.logs = cloudData.logs || appState.logs;
-                    appState.availability = cloudData.availability || appState.availability;
-                    appState.duty = cloudData.duty || appState.duty;
-                    
-                    localStorage.setItem('park_v5_users', JSON.stringify(appState.users));
-                    localStorage.setItem('park_v5_shifts', JSON.stringify(appState.shifts));
-                    localStorage.setItem('park_v5_games', JSON.stringify(appState.games));
-                    localStorage.setItem('park_v5_logs', JSON.stringify(appState.logs));
-                    localStorage.setItem('park_v5_availability', JSON.stringify(appState.availability));
-                    localStorage.setItem('park_v5_duty', JSON.stringify(appState.duty));
+                if (isCloudState(cloudData)) {
+                    applyCloudState(cloudData);
                     
                     renderSchedule();
                     renderNotifications();
+                    renderNotificationQueue();
                     renderAvailability();
                     if (appState.role === 'admin') {
                         renderGameManager();
@@ -758,6 +1139,7 @@
             appState.logs = JSON.parse(localStorage.getItem('park_v5_logs')) || [{ timestamp: new Date().toLocaleString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }), user: 'Система', text: 'Платформа успешно запущена (Авто-Бэкенд).' }];
             appState.games = JSON.parse(localStorage.getItem('park_v5_games')) || defaultGames;
             appState.notifications = JSON.parse(localStorage.getItem('park_v5_notifications')) || [];
+            appState.notificationQueue = JSON.parse(localStorage.getItem('park_v5_notification_queue')) || [];
             appState.availability = JSON.parse(localStorage.getItem('park_v5_availability')) || {};
             appState.duty = JSON.parse(localStorage.getItem('park_v5_duty')) || {};
 
@@ -765,20 +1147,8 @@
                 try {
                     const response = await fetch(BACKEND_URL);
                     const cloudData = await response.json();
-                    if (cloudData && !cloudData.status) {
-                        appState.users = cloudData.users || appState.users;
-                        appState.shifts = cloudData.shifts || appState.shifts;
-                        appState.games = cloudData.games && cloudData.games.length ? cloudData.games : appState.games;
-                        appState.logs = cloudData.logs || appState.logs;
-                        appState.availability = cloudData.availability || appState.availability;
-                        appState.duty = cloudData.duty || appState.duty;
-                        
-                        localStorage.setItem('park_v5_users', JSON.stringify(appState.users));
-                        localStorage.setItem('park_v5_shifts', JSON.stringify(appState.shifts));
-                        localStorage.setItem('park_v5_games', JSON.stringify(appState.games));
-                        localStorage.setItem('park_v5_logs', JSON.stringify(appState.logs));
-                        localStorage.setItem('park_v5_availability', JSON.stringify(appState.availability));
-                        localStorage.setItem('park_v5_duty', JSON.stringify(appState.duty));
+                    if (isCloudState(cloudData)) {
+                        applyCloudState(cloudData);
                     }
                 } catch (err) {
                     console.log("Автономный режим работы: нет связи с таблицей", err);
@@ -799,29 +1169,42 @@
         };
 
         function saveState() {
-            localStorage.setItem('park_v5_users', JSON.stringify(appState.users));
-            localStorage.setItem('park_v5_shifts', JSON.stringify(appState.shifts));
-            localStorage.setItem('park_v5_logs', JSON.stringify(appState.logs));
-            localStorage.setItem('park_v5_games', JSON.stringify(appState.games));
-            localStorage.setItem('park_v5_notifications', JSON.stringify(appState.notifications));
-            localStorage.setItem('park_v5_availability', JSON.stringify(appState.availability));
-            localStorage.setItem('park_v5_duty', JSON.stringify(appState.duty));
+            persistLocalState();
+
+            if (!cloudBaseline) {
+                console.warn("Изменения сохранены локально: серверные данные ещё не загружены.");
+                latestStateSaveRequest = Promise.resolve(false);
+                return latestStateSaveRequest;
+            }
+
+            const currentState = cloneCoreState(appState);
+            const changes = buildStateChanges(cloudBaseline, currentState);
+            if (Object.keys(changes).length === 0) {
+                latestStateSaveRequest = Promise.resolve(true);
+                return latestStateSaveRequest;
+            }
+            // Не отправляем повторно уже поставленные в очередь изменения.
+            cloudBaseline = currentState;
 
             if (BACKEND_URL && !BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
-                fetch(BACKEND_URL, {
+                latestStateSaveRequest = fetch(BACKEND_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        users: appState.users,
-                        shifts: appState.shifts,
-                        games: appState.games,
-                        logs: appState.logs,
-                        availability: appState.availability,
-                        duty: appState.duty
+                        action: 'patch_state',
+                        changes: changes
                     })
-                }).catch(err => console.log("Ошибка фоновой отправки данных:", err));
+                }).then(() => true).catch(err => {
+                    // Не разрешаем следующей операции отправить полный/неизвестный снимок.
+                    cloudBaseline = null;
+                    console.log("Ошибка фоновой отправки данных:", err);
+                    return false;
+                });
+            } else {
+                latestStateSaveRequest = Promise.resolve(false);
             }
+            return latestStateSaveRequest;
         }
 
         async function syncWithGSheet() {
@@ -833,15 +1216,10 @@
             try {
                 const response = await fetch(BACKEND_URL);
                 const cloudData = await response.json();
-                if (cloudData && !cloudData.status) {
-                    appState.users = cloudData.users || appState.users;
-                    appState.shifts = cloudData.shifts || appState.shifts;
-                    appState.games = cloudData.games && cloudData.games.length ? cloudData.games : appState.games;
-                    appState.logs = cloudData.logs || appState.logs;
-                    appState.availability = cloudData.availability || appState.availability;
-                    appState.duty = cloudData.duty || appState.duty;
-                    
-                    saveState();
+                if (isCloudState(cloudData)) {
+                    // Синхронизация — только чтение. Она никогда не отправляет
+                    // обратно состояние браузера и потому не может стереть Sheets.
+                    applyCloudState(cloudData);
                     if (appState.user) enterDashboard();
                     showToast("Успешно синхронизировано с Google Sheets!");
                     logAction(appState.name, "Выполнил принудительную синхронизацию базы с Google Таблицей");
@@ -876,7 +1254,9 @@
 
         function pushNotification(targetUser, text) {
             appState.notifications.unshift({ targetUser: targetUser, text: text });
-            saveState();
+            // Внутренние уведомления хранятся только на устройстве; не создаём
+            // отдельный сетевой запрос на каждого сотрудника.
+            persistLocalState();
         }
 
         function notifyAllAdmins(text) {
@@ -933,6 +1313,7 @@
                 
                 document.getElementById('btn-admin-add-game').classList.remove('hidden');
                 document.getElementById('btn-admin-publish').classList.remove('hidden');
+                document.getElementById('btn-admin-notification-queue').classList.remove('hidden');
                 document.getElementById('admin-games-box').classList.remove('hidden');
                 document.getElementById('admin-gsheet-box').classList.remove('hidden');
                 document.getElementById('btn-tab-staff').classList.remove('hidden'); 
@@ -950,6 +1331,7 @@
                 
                 document.getElementById('btn-admin-add-game').classList.add('hidden');
                 document.getElementById('btn-admin-publish').classList.add('hidden');
+                document.getElementById('btn-admin-notification-queue').classList.add('hidden');
                 document.getElementById('admin-games-box').classList.add('hidden');
                 document.getElementById('admin-gsheet-box').classList.add('hidden');
                 document.getElementById('btn-tab-staff').classList.add('hidden'); 
@@ -959,7 +1341,7 @@
             }
 
             populateInstructorDropdowns(); updateGlobalGameSelects();
-            renderNotifications(); renderSchedule(); renderLogs(); renderAvailability();
+            renderNotifications(); renderNotificationQueue(); renderSchedule(); renderLogs(); renderAvailability();
         }
 
         function switchTab(tabId) {
@@ -1341,6 +1723,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <h4 class="font-brand font-bold text-xs text-white ${shift.status === 'cancelled' ? 'line-through text-slate-600':''}">${shift.game}</h4>
+                                ${shift.teamBuildingId ? `<p class="mt-1 inline-flex items-center gap-1 text-[8px] font-bold text-indigo-200 bg-indigo-500/10 border border-indigo-500/25 px-1.5 py-0.5 rounded"><i class="fa-solid fa-people-group"></i> Тимбилдинг: ${shift.teamBuildingName || 'Без названия'}</p>` : ''}
                                 <p class="text-[10px] text-slate-400 font-mono font-bold"><i class="fa-regular fa-calendar text-park-accent mr-1"></i> ${formattedDate} <span class="mx-1 text-slate-600">|</span> <i class="fa-regular fa-clock text-park-gold mr-1"></i>${st} - ${et}</p>
                             </div>
                             <div class="flex flex-col items-end space-y-0">${statusHtml}${adminButtons}</div>
@@ -1460,7 +1843,7 @@
             
             shift.instructors.forEach(inst => {
                 pushNotification(inst, `ВНИМАНИЕ: Админ отменил вашу игру "${shift.game}" на ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}. Причина: ${reason}`);
-                sendTelegramNotify(inst, `🚫 ВНИМАНИЕ! Ваша игра отменена!\n\n🎮 ${shift.game}\n🗓 ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}\n⚠️ Причина: ${reason}`);
+                queueTelegramNotification(inst, shift.date, createGameQueueEvent('cancelled', shift));
             });
             
             showToast("Игра отменена, инструкторы уведомлены!");
@@ -1470,9 +1853,17 @@
 
         function openAddShiftModal() {
             document.getElementById('mass-shifts-container').innerHTML = ''; gameRowCounter = 0;
+            document.getElementById('team-building-enabled').checked = false;
+            document.getElementById('team-building-name').value = '';
+            toggleTeamBuildingFields();
             addGameRowToModal(); document.getElementById('modal-add-shift').classList.remove('hidden');
         }
         function closeAddShiftModal() { document.getElementById('modal-add-shift').classList.add('hidden'); }
+
+        function toggleTeamBuildingFields() {
+            const enabled = document.getElementById('team-building-enabled').checked;
+            document.getElementById('team-building-details').classList.toggle('hidden', !enabled);
+        }
 
         function addGameRowToModal() {
             gameRowCounter++; const container = document.getElementById('mass-shifts-container');
@@ -1524,6 +1915,12 @@
 
         function saveCreatedShiftsMassive() {
             const date = document.getElementById('schedule-date').value;
+            const isTeamBuilding = document.getElementById('team-building-enabled').checked;
+            const teamBuildingName = document.getElementById('team-building-name').value.trim();
+            if (isTeamBuilding && !teamBuildingName) {
+                return showToast('Укажите компанию или название тимбилдинга.', true);
+            }
+            const teamBuildingId = isTeamBuilding ? createTeamBuildingId() : null;
             let addedCount = 0;
             let errorOccurred = false;
 
@@ -1545,7 +1942,7 @@
                 const gGuests = row.querySelector('.row-guests').value;
                 const gGazebo = row.querySelector('.row-gazebo').value.trim() || 'База';
 
-                appState.shifts.push({
+                const createdShift = {
                     id: "id_" + Math.random().toString(36).substr(2, 9), 
                     date: date,
                     startTime: gStart, 
@@ -1555,12 +1952,15 @@
                     responses: {...responsesObj},
                     guestsCount: gGuests, 
                     gazebo: gGazebo, 
-                    status: "pending"
-                }); 
+                    status: "pending",
+                    teamBuildingId: teamBuildingId,
+                    teamBuildingName: isTeamBuilding ? teamBuildingName : ''
+                };
+                appState.shifts.push(createdShift);
                 
                 selectedInstructors.forEach(inst => {
-                    pushNotification(inst, `Вам назначена игра ${gName} на ${formatDateRus(date)}.`);
-                    sendTelegramNotify(inst, `🔔 Вам назначена новая игра!\n\n🎮 ${gName}\n🗓 ${formatDateRus(date)}\n⏰ ${gStart} - ${gEnd}\n📍 Беседка: ${gGazebo}\n👥 Гостей: ${gGuests}`);
+                    pushNotification(inst, `Вам назначена игра ${gName} на ${formatDateRus(date)}.${isTeamBuilding ? ` Тимбилдинг: ${teamBuildingName}.` : ''}`);
+                    queueTelegramNotification(inst, date, createGameQueueEvent('new', createdShift));
                 });
 
                 addedCount++;
@@ -1571,7 +1971,7 @@
             }
 
             saveState(); 
-            logAction(appState.name, `Назначил ${addedCount} игр на дату ${formatDateRus(date)}`);
+            logAction(appState.name, `${isTeamBuilding ? `Создал тимбилдинг «${teamBuildingName}» (${addedCount} игр)` : `Назначил ${addedCount} игр`} на дату ${formatDateRus(date)}`);
             
             showToast(`Успешно добавлено игр: ${addedCount}`); 
             closeAddShiftModal(); 
@@ -1633,11 +2033,11 @@
 
             names.filter(n => !oldNames.includes(n)).forEach(n => {
                 pushNotification(n, `Вы назначены ДЕЖУРНЫМ инструктором на ${formatDateRus(date)}.`);
-                sendTelegramNotify(n, `🛡 Вы назначены ДЕЖУРНЫМ инструктором на ${formatDateRus(date)}!`);
+                queueTelegramNotification(n, date, createDutyQueueEvent('duty_assigned'));
             });
             oldNames.filter(n => !names.includes(n)).forEach(n => {
                 pushNotification(n, `Вы сняты с дежурства на ${formatDateRus(date)}.`);
-                sendTelegramNotify(n, `Вы больше не дежурный инструктор на ${formatDateRus(date)}.`);
+                queueTelegramNotification(n, date, createDutyQueueEvent('duty_removed'));
             });
 
             saveState();
@@ -1679,7 +2079,7 @@
             else delete appState.duty[date];
 
             pushNotification(name, `Вы сняты с дежурства на ${formatDateRus(date)}.`);
-            sendTelegramNotify(name, `Вы больше не дежурный инструктор на ${formatDateRus(date)}.`);
+            queueTelegramNotification(name, date, createDutyQueueEvent('duty_removed'));
 
             saveState();
             logAction(appState.name, `Снял дежурство (${name}) на ${formatDateRus(date)}`);
@@ -1735,6 +2135,8 @@
             document.getElementById('edit-end-time').value = cleanTime(shift.endTime);
             document.getElementById('edit-guests').value = shift.guestsCount;
             document.getElementById('edit-gazebo').value = shift.gazebo;
+            document.getElementById('edit-team-building-name').value = shift.teamBuildingName || '';
+            document.getElementById('btn-disband-team-building').classList.toggle('hidden', !shift.teamBuildingId);
             
             populateInstructorDropdowns(shift.date);
             document.querySelectorAll('#edit-instructor-select-list input').forEach(cb => {
@@ -1746,6 +2148,29 @@
 
         function closeEditGameModal() { document.getElementById('modal-edit-game').classList.add('hidden'); }
 
+        function disbandCurrentTeamBuilding() {
+            const id = document.getElementById('edit-shift-id').value;
+            const shift = appState.shifts.find(item => item.id === id);
+            if (!shift || !shift.teamBuildingId) return;
+            const teamBuildingId = shift.teamBuildingId;
+            const teamBuildingName = shift.teamBuildingName || 'Без названия';
+            if (!confirm(`Расформировать тимбилдинг «${teamBuildingName}»? Игры останутся в расписании, но будут обычными.`)) return;
+
+            appState.shifts.filter(item => item.teamBuildingId === teamBuildingId).forEach(item => {
+                const oldShiftForNotification = { ...item };
+                delete item.teamBuildingId;
+                delete item.teamBuildingName;
+                item.instructors.forEach(inst => {
+                    queueTelegramNotification(inst, item.date, createGameQueueEvent('changed', oldShiftForNotification));
+                });
+            });
+            saveState();
+            logAction(appState.name, `Расформировал тимбилдинг «${teamBuildingName}»`);
+            closeEditGameModal();
+            renderSchedule();
+            showToast('Тимбилдинг расформирован. Игры сохранены как обычные.');
+        }
+
         function saveEditedGame() {
             const id = document.getElementById('edit-shift-id').value;
             const shift = appState.shifts.find(s => s.id === id); if (!shift) return;
@@ -1755,6 +2180,20 @@
             if (newInstructors.length === 0) return showToast("Должен быть хотя бы один ведущий!", true);
 
             const oldInstructors = shift.instructors;
+            const oldScheduleDetails = {
+                game: shift.game,
+                startTime: shift.startTime,
+                endTime: shift.endTime,
+                guestsCount: shift.guestsCount,
+                gazebo: shift.gazebo,
+                teamBuildingId: shift.teamBuildingId,
+                teamBuildingName: shift.teamBuildingName
+            };
+            const oldShiftForNotification = {
+                id: shift.id,
+                date: shift.date,
+                ...oldScheduleDetails
+            };
             
             shift.game = document.getElementById('edit-game-select').value;
             shift.instructors = [...newInstructors];
@@ -1762,6 +2201,33 @@
             shift.endTime = document.getElementById('edit-end-time').value;
             shift.guestsCount = document.getElementById('edit-guests').value;
             shift.gazebo = document.getElementById('edit-gazebo').value;
+            const teamBuildingName = document.getElementById('edit-team-building-name').value.trim();
+            const relatedTeamBuildingChanges = [];
+            if (teamBuildingName) {
+                const teamBuildingId = shift.teamBuildingId || createTeamBuildingId();
+                // У одной группы всегда единое название — меняем его сразу во
+                // всех играх тимбилдинга, чтобы Telegram не разбил блок.
+                appState.shifts.filter(item => item.teamBuildingId === teamBuildingId).forEach(item => {
+                    if (item.id !== shift.id && item.teamBuildingName !== teamBuildingName) {
+                        relatedTeamBuildingChanges.push(item);
+                    }
+                    item.teamBuildingName = teamBuildingName;
+                });
+                shift.teamBuildingId = teamBuildingId;
+                shift.teamBuildingName = teamBuildingName;
+            } else {
+                delete shift.teamBuildingId;
+                delete shift.teamBuildingName;
+            }
+
+            const scheduleDetailsChanged =
+                oldScheduleDetails.game !== shift.game ||
+                oldScheduleDetails.startTime !== shift.startTime ||
+                oldScheduleDetails.endTime !== shift.endTime ||
+                String(oldScheduleDetails.guestsCount) !== String(shift.guestsCount) ||
+                oldScheduleDetails.gazebo !== shift.gazebo ||
+                oldScheduleDetails.teamBuildingId !== shift.teamBuildingId ||
+                oldScheduleDetails.teamBuildingName !== shift.teamBuildingName;
             
             let newResponses = {};
             newInstructors.forEach(inst => {
@@ -1773,18 +2239,23 @@
             oldInstructors.forEach(inst => {
                 if (!newInstructors.includes(inst)) {
                     pushNotification(inst, `Админ снял вас с игры ${shift.game} (${cleanTime(shift.startTime)})`);
-                    sendTelegramNotify(inst, `❌ Вас сняли с игры!\n\n🎮 ${shift.game}\n🗓 ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}`);
+                    queueTelegramNotification(inst, shift.date, createGameQueueEvent('removed', oldShiftForNotification));
                 }
             });
             newInstructors.forEach(inst => {
                 if (!oldInstructors.includes(inst)) {
                     pushNotification(inst, `Админ добавил вас в игру: ${shift.game} на ${cleanTime(shift.startTime)}`);
-                    sendTelegramNotify(inst, `🔔 Вас добавили в игру!\n\n🎮 ${shift.game}\n🗓 ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}\n📍 Беседка: ${shift.gazebo}`);
+                    queueTelegramNotification(inst, shift.date, createGameQueueEvent('new', shift));
                 }
-                else {
+                else if (scheduleDetailsChanged) {
                     pushNotification(inst, `ВНИМАНИЕ: Админ изменил параметры вашей игры ${shift.game} в ${cleanTime(shift.startTime)}.`);
-                    sendTelegramNotify(inst, `⚠️ Параметры игры изменены админом!\n\n🎮 ${shift.game}\n🗓 ${formatDateRus(shift.date)} в ${cleanTime(shift.startTime)}`);
+                    queueTelegramNotification(inst, shift.date, createGameQueueEvent('changed', shift));
                 }
+            });
+            relatedTeamBuildingChanges.forEach(relatedShift => {
+                relatedShift.instructors.forEach(inst => {
+                    queueTelegramNotification(inst, relatedShift.date, createGameQueueEvent('changed', relatedShift));
+                });
             });
 
             saveState(); 
@@ -2044,8 +2515,14 @@
                 if (result.status === true && result.data) {
                     const selectedDate = document.getElementById('schedule-date').value;
                     let added = 0;
+                    const importedTeamBuildingIds = {};
                     
                     result.data.forEach(gameData => {
+                        const teamBuildingName = typeof gameData.teamBuildingName === 'string' ? gameData.teamBuildingName.trim() : '';
+                        const teamBuildingKey = typeof gameData.teamBuildingKey === 'string' ? gameData.teamBuildingKey.trim() : '';
+                        const teamBuildingId = teamBuildingName
+                            ? (importedTeamBuildingIds[teamBuildingKey || teamBuildingName] ||= createTeamBuildingId())
+                            : '';
                         appState.shifts.push({
                             id: "id_" + Math.random().toString(36).substr(2, 9),
                             date: selectedDate,
@@ -2056,7 +2533,9 @@
                             responses: {},
                             guestsCount: gameData.guestsCount || 10,
                             gazebo: gameData.gazebo || "База",
-                            status: "pending"
+                            status: "pending",
+                            teamBuildingId: teamBuildingId,
+                            teamBuildingName: teamBuildingName
                         });
                         added++;
                     });
