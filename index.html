@@ -306,6 +306,22 @@
         </div>
 
         <div id="view-settings" class="flex flex-col h-full space-y-4 hidden">
+
+            <div id="telegram-binding-box" class="space-y-3 flex-shrink-0">
+                <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-brands fa-telegram text-sky-400 mr-1"></i> Telegram</h3>
+                <div class="bg-slate-900 border border-sky-500/30 rounded-xl p-3 shadow-md space-y-2">
+                    <p id="telegram-binding-status" class="text-[10px] text-slate-400">Telegram ещё не привязан.</p>
+                    <div class="flex space-x-2">
+                        <button id="btn-telegram-link" onclick="createTelegramLink()" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 rounded-lg text-[10px] uppercase transition">
+                            <i class="fa-solid fa-link mr-1"></i> Получить ссылку
+                        </button>
+                        <a id="telegram-link-anchor" class="hidden flex-1 bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold py-2 rounded-lg text-[10px] uppercase text-center transition" target="_blank" rel="noopener noreferrer">
+                            Открыть бота
+                        </a>
+                    </div>
+                    <p class="text-[8px] text-slate-500">Ссылка действует 10 минут и привязывает только ваш аккаунт.</p>
+                </div>
+            </div>
             
             <div id="admin-gsheet-box" class="hidden space-y-3 flex-shrink-0">
                 <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-table-cells text-emerald-400 mr-1"></i> Синхронизация таблиц</h3>
@@ -616,7 +632,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwTzLf22Q_MWdKXJLzi-qBabvL_N4vihH7qE0_MsBgmkJ-A-cFdmrQlm9AOr-H_yiaT/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyfn_3tcgBWEGQcL3qfSIZCdc2lAm9Q6nHYFRMQuYkFjfwbDiiqin3qKZ7RKf-r_aRV/exec";
         // ======================================================================================
 
         let appState = { 
@@ -637,8 +653,12 @@
         let currentDutyModalDate = null;
         let pendingAvailabilityChange = null;
         let notificationQueueSaveTimer = null;
-        let latestStateSaveRequest = Promise.resolve();
+        let latestStateSaveRequest = Promise.resolve(true);
+        let cloudPendingWrites = 0;
         let notificationSendInProgress = false;
+        let cloudRefreshTimer = null;
+        let cloudRefreshInProgress = false;
+        let cloudWriteInProgress = false;
         const defaultGames = ["Лазертаг🔫", "Квесты🗝️", "Мафия🕵️‍♂️", "Анимации🤡", "Прятки в темноте👻"];
 
         function createGameQueueEvent(type, shift) {
@@ -696,7 +716,8 @@
                 targetName: normalizedName,
                 date: date,
                 createdAt: new Date().toISOString(),
-                events: event ? [event] : []
+                events: event ? [event] : [],
+                sentKeys: []
             });
             scheduleNotificationQueueSave();
             renderNotificationQueue();
@@ -799,17 +820,24 @@
                 const queueSaved = await flushNotificationQueueSave();
                 const lastSaveSucceeded = await latestStateSaveRequest;
                 if (!queueSaved || !lastSaveSucceeded) throw new Error('Не удалось сохранить очередь');
-                await fetch(BACKEND_URL, {
+                // Не держим модальное окно открытым, пока Apps Script отправляет сообщения.
+                // Запрос всё равно остаётся под контролем notificationSendInProgress, поэтому
+                // повторный запуск до его завершения невозможен.
+                const sendRequest = fetch(BACKEND_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'send_notification_batch', notificationIds: ids })
                 });
+                closeNotificationQueueModal();
+                showToast('Отправка запущена. Уведомления доставляются…');
+                await sendRequest;
+                showToast('Сообщения отправлены сервером, проверяю очередь…');
 
                 // POST в Apps Script не даёт прочитать ответ из-за CORS. Поэтому
                 // запрашиваем состояние заново: неуспешно доставленные записи
                 // остаются в очереди, а погашенные сервер удалит сам.
-                const refreshResponse = await fetch(BACKEND_URL);
+                const refreshResponse = await fetch(BACKEND_URL, { cache: 'no-store' });
                 const cloudData = await refreshResponse.json();
                 if (!isCloudState(cloudData)) throw new Error('Не удалось обновить очередь уведомлений');
                 applyCloudState(cloudData);
@@ -1099,6 +1127,7 @@
                     renderSchedule();
                     renderNotifications();
                     renderNotificationQueue();
+                    renderTelegramBinding();
                     renderAvailability();
                     if (appState.role === 'admin') {
                         renderGameManager();
@@ -1173,36 +1202,45 @@
 
             if (!cloudBaseline) {
                 console.warn("Изменения сохранены локально: серверные данные ещё не загружены.");
-                latestStateSaveRequest = Promise.resolve(false);
-                return latestStateSaveRequest;
+                return Promise.resolve(false);
             }
 
             const currentState = cloneCoreState(appState);
             const changes = buildStateChanges(cloudBaseline, currentState);
             if (Object.keys(changes).length === 0) {
-                latestStateSaveRequest = Promise.resolve(true);
                 return latestStateSaveRequest;
             }
             // Не отправляем повторно уже поставленные в очередь изменения.
             cloudBaseline = currentState;
 
             if (BACKEND_URL && !BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
-                latestStateSaveRequest = fetch(BACKEND_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'patch_state',
-                        changes: changes
-                    })
-                }).then(() => true).catch(err => {
-                    // Не разрешаем следующей операции отправить полный/неизвестный снимок.
-                    cloudBaseline = null;
-                    console.log("Ошибка фоновой отправки данных:", err);
-                    return false;
+                // Все записи идут строго по цепочке. Иначе второй POST (например, запись
+                // журнала) мог опередить первый POST с новой игрой и очередью уведомлений.
+                cloudPendingWrites++;
+                cloudWriteInProgress = true;
+                const previousRequest = latestStateSaveRequest;
+                latestStateSaveRequest = previousRequest.then(previousSucceeded => {
+                    if (previousSucceeded === false) return false;
+                    return fetch(BACKEND_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'patch_state',
+                            changes: changes
+                        })
+                    }).then(() => true).catch(err => {
+                        // Не разрешаем следующей операции отправить полный/неизвестный снимок.
+                        cloudBaseline = null;
+                        console.log("Ошибка фоновой отправки данных:", err);
+                        return false;
+                    });
+                }).finally(() => {
+                    cloudPendingWrites--;
+                    cloudWriteInProgress = cloudPendingWrites > 0;
                 });
             } else {
-                latestStateSaveRequest = Promise.resolve(false);
+                return Promise.resolve(false);
             }
             return latestStateSaveRequest;
         }
@@ -1231,8 +1269,96 @@
             }
         }
 
+        function hasUnsavedCloudChanges() {
+            if (!cloudBaseline) return true;
+            try {
+                return Object.keys(buildStateChanges(cloudBaseline, cloneCoreState(appState))).length > 0;
+            } catch (error) {
+                return true;
+            }
+        }
+
+        async function refreshCloudStateSilently() {
+            if (!appState.user || !cloudBaseline || cloudWriteInProgress || notificationSendInProgress || cloudRefreshInProgress) return;
+            if (hasUnsavedCloudChanges()) return;
+            cloudRefreshInProgress = true;
+            try {
+                const response = await fetch(BACKEND_URL, { cache: 'no-store' });
+                const cloudData = await response.json();
+                if (!isCloudState(cloudData)) return;
+                const previousShifts = JSON.stringify(appState.shifts);
+                const previousQueue = JSON.stringify(appState.notificationQueue);
+                applyCloudState(cloudData);
+                if (previousShifts !== JSON.stringify(appState.shifts)) {
+                    renderSchedule();
+                    renderNotifications();
+                    renderLogs();
+                }
+                if (previousQueue !== JSON.stringify(appState.notificationQueue)) {
+                    renderNotificationQueue();
+                }
+            } catch (error) {
+                console.log('Фоновое обновление данных пока недоступно:', error);
+            } finally {
+                cloudRefreshInProgress = false;
+            }
+        }
+
+        function startCloudRefresh() {
+            if (cloudRefreshTimer) clearInterval(cloudRefreshTimer);
+            cloudRefreshTimer = setInterval(refreshCloudStateSilently, 5000);
+            refreshCloudStateSilently();
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) refreshCloudStateSilently();
+        });
+        window.addEventListener('focus', () => refreshCloudStateSilently());
+
         function saveGSheetUrl() {
             showToast("URL теперь надежно вшит в код файла, ничего сохранять не нужно!");
+        }
+
+        function renderTelegramBinding() {
+            const currentUser = appState.users.find(user => user.username === appState.user);
+            const statusEl = document.getElementById('telegram-binding-status');
+            const linkButton = document.getElementById('btn-telegram-link');
+            const linkAnchor = document.getElementById('telegram-link-anchor');
+            if (!statusEl || !linkButton || !linkAnchor) return;
+
+            if (currentUser && currentUser.telegram_id) {
+                statusEl.textContent = 'Telegram уже привязан к этому аккаунту ✅';
+                linkButton.classList.add('hidden');
+                linkAnchor.classList.add('hidden');
+            } else {
+                statusEl.textContent = 'Telegram ещё не привязан.';
+                linkButton.classList.remove('hidden');
+            }
+        }
+
+        async function createTelegramLink() {
+            if (!appState.user || !BACKEND_URL || BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
+                return showToast('Не удалось подготовить ссылку Telegram.', true);
+            }
+            const button = document.getElementById('btn-telegram-link');
+            const anchor = document.getElementById('telegram-link-anchor');
+            const statusEl = document.getElementById('telegram-binding-status');
+            if (button) { button.disabled = true; button.classList.add('opacity-60'); }
+            try {
+                const url = BACKEND_URL + '?action=create_telegram_link&username=' + encodeURIComponent(appState.user);
+                const response = await fetch(url);
+                const data = await response.json();
+                if (!data || data.status !== 'success' || !data.url) throw new Error(data && data.message ? data.message : 'Ошибка сервера');
+                anchor.href = data.url;
+                anchor.classList.remove('hidden');
+                statusEl.textContent = 'Ссылка готова. Откройте её и нажмите Start в боте.';
+                showToast('Ссылка для привязки готова!');
+            } catch (error) {
+                console.log('Ошибка создания Telegram-ссылки:', error);
+                showToast('Не удалось создать ссылку Telegram.', true);
+            } finally {
+                if (button) { button.disabled = false; button.classList.remove('opacity-60'); }
+            }
         }
 
         function recalculateShiftStatus(shift) {
@@ -1306,6 +1432,8 @@
             document.getElementById('app-header').classList.remove('hidden'); document.getElementById('app-main').classList.remove('hidden');
             document.getElementById('app-nav').classList.remove('hidden');
             document.getElementById('username-display').innerText = appState.name;
+            renderTelegramBinding();
+            startCloudRefresh();
             
             const badge = document.getElementById('role-badge');
             if (appState.role === 'admin') {
@@ -1940,7 +2068,7 @@
                 const gStart = row.querySelector('.row-start').value;
                 const gEnd = row.querySelector('.row-end').value;
                 const gGuests = row.querySelector('.row-guests').value;
-                const gGazebo = row.querySelector('.row-gazebo').value.trim() || 'База';
+                const gGazebo = row.querySelector('.row-gazebo').value.trim() || 'Без беседки';
 
                 const createdShift = {
                     id: "id_" + Math.random().toString(36).substr(2, 9), 
@@ -2532,7 +2660,7 @@
                             instructors: [],
                             responses: {},
                             guestsCount: gameData.guestsCount || 10,
-                            gazebo: gameData.gazebo || "База",
+                            gazebo: gameData.gazebo || "Без беседки",
                             status: "pending",
                             teamBuildingId: teamBuildingId,
                             teamBuildingName: teamBuildingName
