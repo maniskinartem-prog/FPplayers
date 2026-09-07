@@ -788,9 +788,6 @@
         }
     </style>
     <style id="mobile-motion-and-equipment">
-        #background-sync-notice { position: fixed; bottom: calc(86px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); padding: 9px 13px; border: 1px solid #315d69; border-radius: 12px; background: #102b36; color: #c6f3ff; font-size: 12px; line-height: 1.4; text-align: center; box-shadow: 0 4px 16px #0005; z-index: 150; pointer-events: none; }
-        #background-sync-notice[data-state="offline"] { background: #302719; color: #fcd98a; border-color: #695127; }
-        #background-sync-notice[data-state="busy"]::before { content: ''; display: inline-block; width: 11px; height: 11px; margin-right: 7px; border: 2px solid #527f8b; border-top-color: #c6f3ff; border-radius: 50%; vertical-align: -1px; animation: spin .9s linear infinite; }
         .toast-card { transform: translate3d(-50%, -28px, 0) scale(.96); transition: opacity .22s ease, transform .28s ease; touch-action: pan-y; }
         .toast-card.is-visible { transform: translate3d(-50%, 0, 0) scale(1); }
         .toast-card.toast-enter { animation: toast-arrive .48s cubic-bezier(.2,.75,.25,1) both; }
@@ -812,14 +809,12 @@
             #app-main { padding-bottom: max(18px, env(safe-area-inset-bottom)) !important; }
         }
         @media (prefers-reduced-motion: reduce) {
-            #background-sync-notice::before { animation: none !important; }
             .toast-card, .toast-card.toast-enter { animation: none !important; transition: none !important; }
         }
     </style>
 </head>
 <body class="bg-[#0b0f19] text-slate-100 h-[100dvh] flex flex-col justify-between max-w-md mx-auto relative overflow-hidden border-x border-slate-900 shadow-2xl">
 
-    <div id="background-sync-notice" class="hidden" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="toast" class="toast-card" data-kind="success" role="status" aria-live="polite" aria-atomic="true" aria-hidden="true" inert>
         <div class="toast-icon-box"><i id="toast-icon" class="fa-solid fa-circle-check"></i></div>
         <div class="toast-content">
@@ -1477,7 +1472,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx_6v8oHxfJoCCK1FxojZ_eC9QQlygUa1y1nXQeV_2DKs1Z9wxaay72e0DRtIW9YKmq/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx_6v8oHxfJoCCK1FxojZ_eC9QQlygUa1y1nXQeV_2DKs1Z9wxaay72e0DRtIW9YKmq/exec;
         // ======================================================================================
 
         function createOperationId() {
@@ -1555,7 +1550,6 @@
             if (cloudRefreshTimer) { clearInterval(cloudRefreshTimer); cloudRefreshTimer = null; }
             appState.user = null; appState.role = null; appState.name = null; appState.users = [];
             cloudRefreshAfterWrite = false;
-            updateBackgroundSyncNotice();
             cloudBaseline = null;
             setLastConfirmedCloudState(null);
             ['app-header', 'app-main', 'app-nav'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
@@ -2959,7 +2953,6 @@
             }
 
             cloudWriteInProgress = true;
-            updateBackgroundSyncNotice();
             cloudPendingWrites++;
             try {
                 await postStateChangesAndConfirm(pendingChanges);
@@ -3230,7 +3223,6 @@
                     cloudPendingWrites--;
                     cloudWriteInProgress = cloudPendingWrites > 0;
                     cloudSaveWorkerPromise = null;
-                    updateBackgroundSyncNotice();
                     if (completed && workerToken === authToken) {
                         // Pull colleagues' changes after our save queue drains. The
                         // refresh still checks for newer local edits before applying.
@@ -3347,17 +3339,6 @@
             }
         }
 
-        function updateBackgroundSyncNotice() {
-            const notice = document.getElementById('background-sync-notice');
-            if (!notice) return;
-            const busy = cloudWriteInProgress || cloudRefreshInProgress;
-            const offline = cloudRefreshFailureCount > 0 && !cloudSaveBlocked;
-            notice.classList.toggle('hidden', !appState.user || (!busy && !offline));
-            notice.dataset.state = busy ? 'busy' : 'offline';
-            notice.textContent = cloudWriteInProgress ? 'Сохраняем изменения… Можно работать' : cloudRefreshInProgress
-                ? 'Обновляем данные… Можно работать' : offline ? 'Нет связи. Повторим обновление автоматически' : '';
-        }
-
         function refreshCloudStateSilently(force = false) {
             if (cloudRefreshPromise) return cloudRefreshPromise;
             cloudRefreshPromise = refreshCloudStateOnce(force === true).finally(() => {
@@ -3386,7 +3367,6 @@
             if (cloudBaseline && hasUnsavedCloudChanges()) return;
             const revisionAtStart = localStateRevision;
             cloudRefreshInProgress = true;
-            updateBackgroundSyncNotice();
             setSyncStatus('syncing', 'Обновляем в фоне…');
             lastBackgroundAttemptAt = Date.now();
             let applied = false;
@@ -3451,7 +3431,6 @@
                 console.log('Фоновое обновление данных пока недоступно:', error);
             } finally {
                 cloudRefreshInProgress = false;
-                updateBackgroundSyncNotice();
                 if (!applied && !cloudWriteInProgress && !cloudSaveBlocked && !cloudRefreshFailureCount) setSyncStatus('synced', 'Автообновление включено');
             }
         }
@@ -4595,7 +4574,7 @@
                     <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Беседка</label><input type="text" maxlength="100" aria-label="Беседка игры ${gameRowCounter}" placeholder="№1" class="row-gazebo w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] text-white"></div>
                 </div>
                 <div class="pt-1">
-                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Инструктор(а) на эту игру</label>
+                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Инструктора на эту игру</label>
                     <div class="grid grid-cols-2 gap-1.5 max-h-[85px] overflow-y-auto ios-scroll p-1.5 bg-slate-900 rounded-xl border border-slate-800">
                         ${instructorsHtml}
                     </div>
