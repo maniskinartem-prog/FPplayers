@@ -1338,6 +1338,19 @@
         </div>
     </div>
 
+    <div id="modal-delete-game" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="delete-game-title" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl animate-fade-in">
+            <h3 id="delete-game-title" class="font-brand font-bold text-rose-400">Удалить игру навсегда?</h3>
+            <input type="hidden" id="delete-shift-id">
+            <p id="delete-game-details" class="text-sm text-slate-200 break-words"></p>
+            <p class="text-sm text-slate-400">Игра исчезнет из расписания и статистики. Восстановить её в приложении нельзя. Запись об удалении останется в журнале.</p>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeDeleteGameModal()" class="flex-1 bg-slate-800 text-slate-200 rounded-xl p-3 font-bold">Оставить</button>
+                <button type="button" id="btn-confirm-delete-game" onclick="saveDeleteGame()" class="flex-1 bg-rose-600 text-white rounded-xl p-3 font-bold">Удалить</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-cancel-game" role="dialog" aria-modal="true" aria-hidden="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl animate-fade-in">
             <h3 class="font-brand font-bold text-rose-400 text-xs uppercase flex items-center">
@@ -1472,7 +1485,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx_6v8oHxfJoCCK1FxojZ_eC9QQlygUa1y1nXQeV_2DKs1Z9wxaay72e0DRtIW9YKmq/exec;
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxv43UhGzkjhDnYU9cYiB5dw9CewbUt-9sTYJnoywXyFx1HN_ufpd4VdUWLr-xbbu9B/exec";
         // ======================================================================================
 
         function createOperationId() {
@@ -1577,6 +1590,7 @@
             document.querySelector('.header-profile').dataset.role = role;
         }
         function canOperateClient(role = appState.role) { return ['sysadmin', 'director', 'manager', 'admin'].includes(normalizeClientRole(role)); }
+        function canDeleteGamesClient() { return ['sysadmin', 'director'].includes(normalizeClientRole(appState.role)); }
         function isSysadminClient() { return appState.role === 'sysadmin'; }
         function ensureSysadmin() {
             if (isSysadminClient()) return true;
@@ -4218,6 +4232,8 @@
                     </div>`;
             }
 
+            if (canDeleteGamesClient()) adminButtons += `<div class="shift-admin-actions flex justify-end mt-1"><button type="button" onclick="openDeleteGameModal('${shiftIdSafe}')" class="text-[9px] text-rose-400 bg-slate-950 border border-rose-500/30 rounded-lg px-2 py-1 font-bold"><i class="fa-solid fa-trash-can mr-1"></i>Удалить</button></div>`;
+
             const cancelReasonHtml = shift.status === 'cancelled' && shift.cancelReason
                 ? `<div class="text-[9px] text-rose-400 bg-rose-950/20 p-2 rounded border border-rose-900/30 mt-2"><b>Причина отмены:</b> ${escapeHtml(shift.cancelReason)}</div>`
                 : '';
@@ -4443,6 +4459,31 @@
             showToast("Ваш ответ сохранен и отправлен админу!");
             closeInstructorStatusModal();
             renderSchedule();
+        }
+
+        function openDeleteGameModal(id) {
+            if (!canDeleteGamesClient()) return showToast('Удалять игры могут только директор и системный администратор.', true);
+            const shift = appState.shifts.find(s => String(s.id) === String(id));
+            if (!shift) return;
+            document.getElementById('delete-shift-id').value = shift.id;
+            document.getElementById('delete-game-details').textContent = `${shift.game} · ${formatDateRus(shift.date)} · ${cleanTime(shift.startTime)}–${cleanTime(shift.endTime)}`;
+            document.getElementById('modal-delete-game').classList.remove('hidden');
+        }
+
+        function closeDeleteGameModal() { document.getElementById('modal-delete-game').classList.add('hidden'); }
+
+        async function saveDeleteGame() {
+            if (!canDeleteGamesClient()) return showToast('Недостаточно прав для удаления игры.', true);
+            if (document.getElementById('modal-delete-game').classList.contains('hidden')) return;
+            const id = document.getElementById('delete-shift-id').value;
+            const shift = appState.shifts.find(s => String(s.id) === id);
+            closeDeleteGameModal();
+            if (!shift) return;
+            const tokenAtStart = authToken;
+            appState.shifts = appState.shifts.filter(s => String(s.id) !== id);
+            const saved = saveState();
+            renderSchedule();
+            if (await saved && authToken === tokenAtStart) showToast('Игра удалена. Удаление записано в журнал.');
         }
 
         function openCancelGameModal(id) {
