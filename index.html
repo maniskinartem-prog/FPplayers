@@ -787,10 +787,40 @@
             #admin-summary-date { width: 140px; padding-left: 5px; padding-right: 5px; }
         }
     </style>
+    <style id="mobile-motion-and-equipment">
+        #background-sync-notice { position: fixed; bottom: calc(86px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); padding: 9px 13px; border: 1px solid #315d69; border-radius: 12px; background: #102b36; color: #c6f3ff; font-size: 12px; line-height: 1.4; text-align: center; box-shadow: 0 4px 16px #0005; z-index: 150; pointer-events: none; }
+        #background-sync-notice[data-state="offline"] { background: #302719; color: #fcd98a; border-color: #695127; }
+        #background-sync-notice[data-state="busy"]::before { content: ''; display: inline-block; width: 11px; height: 11px; margin-right: 7px; border: 2px solid #527f8b; border-top-color: #c6f3ff; border-radius: 50%; vertical-align: -1px; animation: spin .9s linear infinite; }
+        .toast-card { transform: translate3d(-50%, -28px, 0) scale(.96); transition: opacity .22s ease, transform .28s ease; touch-action: pan-y; }
+        .toast-card.is-visible { transform: translate3d(-50%, 0, 0) scale(1); }
+        .toast-card.toast-enter { animation: toast-arrive .48s cubic-bezier(.2,.75,.25,1) both; }
+        @keyframes toast-arrive {
+            0% { opacity: 0; transform: translate3d(-50%, -35px, 0) scale(.94); }
+            70% { opacity: 1; transform: translate3d(-50%, 3px, 0) scale(1.01); }
+            100% { opacity: 1; transform: translate3d(-50%, 0, 0) scale(1); }
+        }
+        .toast-content { max-height: min(42dvh, 320px); overflow-y: auto; overscroll-behavior: contain; }
+        .parallel-games-note { color: #fcd98a; background: #302719; border: 1px solid #695127; border-radius: 9px; padding: 8px 10px; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+        #app-main { scrollbar-gutter: stable; overscroll-behavior-y: contain; }
+        @media (pointer: coarse) {
+            #app-main button, #app-main .shift-admin-actions > button, #app-main .staff-account-actions button,
+            #app-main .shift-personal-actions button, #app-main #avail-list-yes > button, #app-main #avail-list-no > button,
+            #app-main #avail-list-unknown button, #app-main .availability-duty-card > div:first-child > button,
+            #app-main #duty-today-display button, #app-main .log-filters button { min-height: 44px; }
+            #app-main #duty-today-display button, [role="dialog"] button { min-width: 44px; min-height: 44px; }
+            input, select, textarea { font-size: 16px !important; }
+            #app-main { padding-bottom: max(18px, env(safe-area-inset-bottom)) !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #background-sync-notice::before { animation: none !important; }
+            .toast-card, .toast-card.toast-enter { animation: none !important; transition: none !important; }
+        }
+    </style>
 </head>
 <body class="bg-[#0b0f19] text-slate-100 h-[100dvh] flex flex-col justify-between max-w-md mx-auto relative overflow-hidden border-x border-slate-900 shadow-2xl">
 
-    <div id="toast" class="toast-card" data-kind="success" role="status" aria-live="polite" aria-atomic="true" aria-hidden="true">
+    <div id="background-sync-notice" class="hidden" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div id="toast" class="toast-card" data-kind="success" role="status" aria-live="polite" aria-atomic="true" aria-hidden="true" inert>
         <div class="toast-icon-box"><i id="toast-icon" class="fa-solid fa-circle-check"></i></div>
         <div class="toast-content">
             <strong id="toast-title">Готово</strong>
@@ -1447,7 +1477,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwbVfxuPw58miFTzBJPWklaWHMnlwgCLV8sl-n81ePcjKRIpfugO9QCoNIOX48gxzRC/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbx_6v8oHxfJoCCK1FxojZ_eC9QQlygUa1y1nXQeV_2DKs1Z9wxaay72e0DRtIW9YKmq/exec";
         // ======================================================================================
 
         function createOperationId() {
@@ -1524,6 +1554,8 @@
             clearAuthSession();
             if (cloudRefreshTimer) { clearInterval(cloudRefreshTimer); cloudRefreshTimer = null; }
             appState.user = null; appState.role = null; appState.name = null; appState.users = [];
+            cloudRefreshAfterWrite = false;
+            updateBackgroundSyncNotice();
             cloudBaseline = null;
             setLastConfirmedCloudState(null);
             ['app-header', 'app-main', 'app-nav'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
@@ -1977,6 +2009,8 @@
         let notificationSendInProgress = false;
         let cloudRefreshTimer = null;
         let cloudRefreshInProgress = false;
+        let cloudRefreshPromise = null;
+        let cloudRefreshAfterWrite = false;
         let cloudRefreshFailureCount = 0;
         let lastCloudReadAt = 0;
         let lastBackgroundAttemptAt = 0;
@@ -2394,7 +2428,8 @@
                 const issues = Array.isArray(sendResult.issues) ? sendResult.issues : [];
                 showToast(remaining
                     ? 'Осталось в очереди: ' + remaining + '. ' + (issues[0] || 'Есть новые изменения или недоставленные сообщения. Повторите отправку.')
-                    : 'Уведомления доставлены. Получателей: ' + (Number(sendResult.recipients) || 0) + '.',
+                    : Number(sendResult.recipients) > 0 ? 'Уведомления доставлены. Получателей: ' + Number(sendResult.recipients) + '.'
+                    : 'Очередь обновлена: актуальных изменений для отправки нет.',
                     remaining > 0, { kind: remaining ? 'warning' : 'success', persistent: remaining > 0 });
             } catch (err) {
                 console.log('Ошибка отправки пакета уведомлений:', err);
@@ -2481,13 +2516,60 @@
             ].join('\u001f');
         }
 
+        function getParallelGames(shift) {
+            const name = String(shift.game || '').trim().replace(/\s+/g, ' ').toLowerCase();
+            const start = cleanTime(shift.startTime), end = cleanTime(shift.endTime);
+            if (!name || shift.status === 'cancelled' || !isValidShiftTimeRange(start, end)) return [];
+            return appState.shifts.filter(other => String(other.id) !== String(shift.id) && other.date === shift.date &&
+                other.status !== 'cancelled' && String(other.game || '').trim().replace(/\s+/g, ' ').toLowerCase() === name &&
+                isValidShiftTimeRange(cleanTime(other.startTime), cleanTime(other.endTime)) && cleanTime(other.startTime) < end && start < cleanTime(other.endTime))
+                .sort((a, b) => cleanTime(a.startTime).localeCompare(cleanTime(b.startTime)) || String(a.id).localeCompare(String(b.id)));
+        }
+
+        function parallelGamesNote(shift) {
+            const parallel = getParallelGames(shift);
+            if (!parallel.length) return '';
+            const times = [...new Set(parallel.map(item => `${cleanTime(item.startTime)}–${cleanTime(item.endTime)}`))].slice(0, 5).join(', ');
+            return `⚠️ Общее оборудование · параллельно: ${times}. Нужно разделить между играми.`;
+        }
+
+        function buildParallelNotes(shifts) {
+            const groups = new Map(), notes = new Map();
+            for (const shift of shifts) {
+                if (shift.status === 'cancelled') continue;
+                const start = cleanTime(shift.startTime), end = cleanTime(shift.endTime);
+                if (!isValidShiftTimeRange(start, end)) continue;
+                const name = String(shift.game || '').trim().replace(/\s+/g, ' ').toLowerCase();
+                if (!name) continue;
+                const key = JSON.stringify([shift.date, name]);
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push({ id: shift.id, start, end, times: new Set() });
+            }
+            groups.forEach(group => {
+                group.sort((a, b) => a.start.localeCompare(b.start));
+                for (let i = 0; i < group.length; i++) {
+                    const a = group[i];
+                    for (let j = i + 1; j < group.length && group[j].start < a.end; j++) {
+                        const b = group[j];
+                        if (a.id === b.id) continue;
+                        if (a.times.size < 5) a.times.add(`${b.start}–${b.end}`);
+                        if (b.times.size < 5) b.times.add(`${a.start}–${a.end}`);
+                    }
+                }
+                group.forEach(item => notes.set(item.id, item.times.size
+                    ? `⚠️ Общее оборудование · параллельно: ${[...item.times].sort().join(', ')}. Нужно разделить между играми.` : ''));
+            });
+            return notes;
+        }
+
         function formatShiftForChat(shift) {
             const instList = Array.isArray(shift.instructors) && shift.instructors.length > 0
                 ? shift.instructors.join(', ')
                 : 'Не назначены';
             return `🔹 <b>${escapeTelegramHtml(cleanTime(shift.startTime))} - ${escapeTelegramHtml(cleanTime(shift.endTime))}</b> | ${escapeTelegramHtml(shift.game)}\n` +
                 `👥 Гостей: ${escapeTelegramHtml(shift.guestsCount)} | 📍 ${escapeTelegramHtml(shift.gazebo || '—')}\n` +
-                `🎭 Инструктор(а): ${escapeTelegramHtml(instList)}\n`;
+                `🎭 Инструктор(а): ${escapeTelegramHtml(instList)}\n` +
+                (parallelGamesNote(shift) ? `${escapeTelegramHtml(parallelGamesNote(shift))}\n` : '');
         }
 
         async function publishScheduleToChat() {
@@ -2696,6 +2778,7 @@
             appState.logs = data.logs;
             // Server-generated account events are never cached or sent back in patches.
             appState.accountLogs = Array.isArray(data.accountLogs) ? data.accountLogs : [];
+            appState.notifications = Array.isArray(data.notifications) ? data.notifications : [];
             appState.availability = data.availability;
             appState.duty = data.duty;
             appState.notificationQueue = Array.isArray(data.notificationQueue)
@@ -2876,6 +2959,7 @@
             }
 
             cloudWriteInProgress = true;
+            updateBackgroundSyncNotice();
             cloudPendingWrites++;
             try {
                 await postStateChangesAndConfirm(pendingChanges);
@@ -3146,12 +3230,14 @@
                     cloudPendingWrites--;
                     cloudWriteInProgress = cloudPendingWrites > 0;
                     cloudSaveWorkerPromise = null;
+                    updateBackgroundSyncNotice();
                     if (completed && workerToken === authToken) {
                         // Pull colleagues' changes after our save queue drains. The
                         // refresh still checks for newer local edits before applying.
                         lastCloudReadAt = 0;
                         lastBackgroundAttemptAt = 0;
-                        setTimeout(() => refreshCloudStateSilently(), 0);
+                        if (cloudRefreshPromise) cloudRefreshAfterWrite = true;
+                        else setTimeout(() => refreshCloudStateSilently(), 0);
                     }
                 }
             })();
@@ -3261,11 +3347,36 @@
             }
         }
 
-        async function refreshCloudStateSilently() {
+        function updateBackgroundSyncNotice() {
+            const notice = document.getElementById('background-sync-notice');
+            if (!notice) return;
+            const busy = cloudWriteInProgress || cloudRefreshInProgress;
+            const offline = cloudRefreshFailureCount > 0 && !cloudSaveBlocked;
+            notice.classList.toggle('hidden', !appState.user || (!busy && !offline));
+            notice.dataset.state = busy ? 'busy' : 'offline';
+            notice.textContent = cloudWriteInProgress ? 'Сохраняем изменения… Можно работать' : cloudRefreshInProgress
+                ? 'Обновляем данные… Можно работать' : offline ? 'Нет связи. Повторим обновление автоматически' : '';
+        }
+
+        function refreshCloudStateSilently(force = false) {
+            if (cloudRefreshPromise) return cloudRefreshPromise;
+            cloudRefreshPromise = refreshCloudStateOnce(force === true).finally(() => {
+                cloudRefreshPromise = null;
+                // A read started before a write cannot confirm that write.
+                // Fetch again once it finishes, without delaying any UI action.
+                if (cloudRefreshAfterWrite) {
+                    cloudRefreshAfterWrite = false;
+                    setTimeout(() => refreshCloudStateSilently(true), 0);
+                }
+            });
+            return cloudRefreshPromise;
+        }
+
+        async function refreshCloudStateOnce(force) {
             if (document.hidden || navigator.onLine === false) return;
             if (!appState.user || cloudWriteInProgress || notificationSendInProgress || cloudRefreshInProgress) return;
             const minInterval = Math.min(60000, 12000 * Math.pow(2, cloudRefreshFailureCount));
-            if (Date.now() - Math.max(lastCloudReadAt, lastBackgroundAttemptAt) < minInterval) return;
+            if (!force && Date.now() - Math.max(lastCloudReadAt, lastBackgroundAttemptAt) < minInterval) return;
             // После неуспешной записи локальное состояние важнее серверного.
             // Фоновый GET не имеет права стирать игры, которые ещё не удалось отправить.
             if (cloudSaveBlocked) return;
@@ -3275,16 +3386,25 @@
             if (cloudBaseline && hasUnsavedCloudChanges()) return;
             const revisionAtStart = localStateRevision;
             cloudRefreshInProgress = true;
+            updateBackgroundSyncNotice();
+            setSyncStatus('syncing', 'Обновляем в фоне…');
             lastBackgroundAttemptAt = Date.now();
+            let applied = false;
             try {
                 const cloudData = await fetchAuthenticatedState(0);
                 if (!isCloudState(cloudData)) return;
                 // Ответ мог быть сформирован до локального изменения игры.
                 // Не даём устаревшему GET перезаписать свежие данные в интерфейсе.
-                if (cloudBaseline && (revisionAtStart !== localStateRevision || cloudWriteInProgress || hasUnsavedCloudChanges())) return;
+                if (revisionAtStart !== localStateRevision || cloudWriteInProgress || cloudSaveBlocked || hasUnsavedCloudChanges() ||
+                    document.querySelector('[role="dialog"][id^="modal-"]:not(.hidden)')) return;
                 // applyCloudState заменяет разделы, не изменяя прежние массивы на месте.
+                const main = document.getElementById('app-main');
+                const scrollTop = main.scrollTop;
+                const anchor = [...main.querySelectorAll('[data-shift-id]')].find(el => el.getBoundingClientRect().bottom > main.getBoundingClientRect().top);
+                const anchorId = anchor?.dataset.shiftId, anchorTop = anchor?.getBoundingClientRect().top;
                 const previousState = { ...appState };
                 applyCloudState(cloudData);
+                applied = true;
 
                 const usersChanged = JSON.stringify(previousState.users) !== JSON.stringify(appState.users);
                 const shiftsChanged = JSON.stringify(previousState.shifts) !== JSON.stringify(appState.shifts);
@@ -3293,6 +3413,8 @@
                 const availabilityChanged = JSON.stringify(previousState.availability) !== JSON.stringify(appState.availability);
                 const dutyChanged = JSON.stringify(previousState.duty) !== JSON.stringify(appState.duty);
                 const queueChanged = JSON.stringify(previousState.notificationQueue) !== JSON.stringify(appState.notificationQueue);
+                const inboxChanged = JSON.stringify(previousState.notifications) !== JSON.stringify(appState.notifications);
+                if (inboxChanged) renderNotifications();
 
                 if (isViewVisible('view-schedule') && (shiftsChanged || dutyChanged || usersChanged)) {
                     renderSchedule();
@@ -3319,13 +3441,18 @@
                     if ((usersChanged || shiftsChanged) && isViewVisible('view-staff')) renderStaffManager();
                 }
                 cloudRefreshFailureCount = 0;
+                const nextAnchor = anchorId && [...main.querySelectorAll('[data-shift-id]')].find(el => el.dataset.shiftId === anchorId);
+                main.scrollTop = nextAnchor ? main.scrollTop + nextAnchor.getBoundingClientRect().top - anchorTop : scrollTop;
                 setSyncStatus('synced', 'Данные актуальны');
+                return true;
             } catch (error) {
                 cloudRefreshFailureCount++;
-                if (cloudRefreshFailureCount >= 2) setSyncStatus('offline', 'Связь нестабильна');
+                if (!cloudWriteInProgress && !cloudSaveBlocked) setSyncStatus('offline', 'Повторим обновление');
                 console.log('Фоновое обновление данных пока недоступно:', error);
             } finally {
                 cloudRefreshInProgress = false;
+                updateBackgroundSyncNotice();
+                if (!applied && !cloudWriteInProgress && !cloudSaveBlocked && !cloudRefreshFailureCount) setSyncStatus('synced', 'Автообновление включено');
             }
         }
 
@@ -3339,10 +3466,18 @@
         }
 
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) refreshCloudStateSilently();
+            if (!document.hidden) refreshCloudStateSilently(true);
         });
         window.addEventListener('focus', () => refreshCloudStateSilently());
-        window.addEventListener('online', () => { lastBackgroundAttemptAt = 0; refreshCloudStateSilently(); });
+        window.addEventListener('pageshow', () => refreshCloudStateSilently(true));
+        window.addEventListener('online', () => refreshCloudStateSilently(true));
+
+        // Start a background read after idle, but let the original click run
+        // immediately. Saves use their own queue; stale reads are discarded.
+        document.addEventListener('click', event => {
+            const button = event.target.closest?.('#app-main button[onclick], #app-nav button[onclick]');
+            if (button && Date.now() - lastCloudReadAt >= 15000) refreshCloudStateSilently();
+        }, true);
 
         function saveGSheetUrl() {
             showToast("URL теперь надежно вшит в код файла, ничего сохранять не нужно!");
@@ -3566,6 +3701,9 @@
         function canAssignUser(user) { return user && user.assignable !== false && !checkUserBanStatus(user) && !user.activationRequired; }
 
         function pushNotification(targetUser, text) {
+            // Cross-account events are generated and stored by the server
+            // together with their game/duty/availability change.
+            if (targetUser !== appState.name) return;
             appState.notifications.unshift({
                 id: 'notice_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7),
                 targetUser: targetUser,
@@ -4033,7 +4171,8 @@
             if (render) renderSchedule();
         }
 
-        function renderShiftCardHtml(shift, activeConflicts, nestedInTeamBuilding = false) {
+        function renderShiftCardHtml(shift, activeConflicts, nestedInTeamBuilding = false, preparedNote = null) {
+            const equipmentNote = preparedNote === null ? parallelGamesNote(shift) : preparedNote;
             let statusHtml = '';
             let borderClass = 'border-slate-800/80';
             let conflictWarning = '';
@@ -4118,7 +4257,7 @@
                 : '<span class="unassigned-note"><i class="fa-regular fa-clock"></i> Ведущий пока не назначен</span>');
 
             return `
-                <div class="shift-card p-3 rounded-xl border ${borderClass} ${nestedInTeamBuilding ? 'bg-slate-950/55' : 'bg-slate-900/60'} space-y-2.5 shadow-sm relative animate-fade-in">
+                <div data-shift-id="${escapeHtml(shift.id)}" class="shift-card p-3 rounded-xl border ${borderClass} ${nestedInTeamBuilding ? 'bg-slate-950/55' : 'bg-slate-900/60'} space-y-2.5 shadow-sm relative animate-fade-in">
                     <div class="shift-card-head flex justify-between items-start gap-2">
                         <div class="min-w-0">
                             <h4 class="font-brand font-bold text-xs text-white ${shift.status === 'cancelled' ? 'line-through text-slate-600' : ''}">${escapeHtml(shift.game)}</h4>
@@ -4132,6 +4271,7 @@
                         <div><span class="text-slate-500">👥 Гости:</span> <b class="text-slate-200">${escapeHtml(shift.guestsCount)} чел.</b></div>
                     </div>
                     <div class="shift-instructors pt-1">${conflictWarning ? `<div class="shift-conflict-warning">${conflictWarning}</div>` : ''}<div class="shift-instructors-label text-[9px] text-slate-500 uppercase font-bold mb-1.5">Инструктор(а):</div><div class="flex flex-wrap gap-1.5">${instructorsListHtml}</div></div>
+                    ${equipmentNote ? `<div class="parallel-games-note">${escapeHtml(equipmentNote)}</div>` : ''}
                     ${actionsHtml}${cancelReasonHtml}
                 </div>`;
         }
@@ -4158,9 +4298,18 @@
             return items;
         }
 
+        let schedulePageKey = '';
+        let scheduleVisibleLimit = 40;
+        function loadMoreSchedule() {
+            scheduleVisibleLimit += 40;
+            renderSchedule();
+        }
+
         function renderSchedule() {
             const container = document.getElementById('schedule-container');
             const selectedDate = document.getElementById('schedule-date').value;
+            const pageKey = appState.user + '|' + selectedDate + '|' + appState.activeFilter;
+            if (schedulePageKey !== pageKey) { schedulePageKey = pageKey; scheduleVisibleLimit = 40; }
             renderDutyBanner(selectedDate);
 
             const weekdayEl = document.getElementById('schedule-date-weekday');
@@ -4198,11 +4347,12 @@
 
             dailyShifts.sort((a, b) => cleanTime(a.startTime).localeCompare(cleanTime(b.startTime)));
             const activeConflicts = checkForTimeConflicts(allDailyShifts);
+            const parallelNotes = buildParallelNotes(allDailyShifts);
             const teamGroups = new Map(getTeamBuildingGroups(selectedDate).map(group => [group.id, group]));
 
-            const displayItems = buildScheduleDisplayItems(dailyShifts);
+            const displayItems = buildScheduleDisplayItems(dailyShifts.slice(0, scheduleVisibleLimit));
             container.innerHTML = displayItems.map(item => {
-                if (item.type === 'shift') return renderShiftCardHtml(item.shift, activeConflicts);
+                if (item.type === 'shift') return renderShiftCardHtml(item.shift, activeConflicts, false, parallelNotes.get(item.shift.id) || '');
 
                 item.shifts.sort((a, b) => cleanTime(a.startTime).localeCompare(cleanTime(b.startTime)));
                 const fullGroup = teamGroups.get(String(item.id));
@@ -4237,9 +4387,11 @@
                             </div>
                             ${teamActions}
                         </div>
-                        <div class="space-y-2">${item.shifts.map(shift => renderShiftCardHtml(shift, activeConflicts, true)).join('')}</div>
+                        <div class="space-y-2">${item.shifts.map(shift => renderShiftCardHtml(shift, activeConflicts, true, parallelNotes.get(shift.id) || '')).join('')}</div>
                     </section>`;
             }).join('');
+            if (dailyShifts.length > scheduleVisibleLimit) container.insertAdjacentHTML('beforeend',
+                `<button type="button" id="schedule-load-more" onclick="loadMoreSchedule()" class="w-full bg-slate-900 text-emerald-300 border border-slate-700 rounded-xl p-3">Показать ещё · ${scheduleVisibleLimit} из ${dailyShifts.length}</button>`);
         }
 
         function changeGameStatusQuick(id, newStatus) {
@@ -4443,7 +4595,7 @@
                     <div><label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Беседка</label><input type="text" maxlength="100" aria-label="Беседка игры ${gameRowCounter}" placeholder="№1" class="row-gazebo w-full bg-slate-900 border border-slate-800 rounded-lg py-1 px-2 text-[16px] text-white"></div>
                 </div>
                 <div class="pt-1">
-                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Инструктора на эту игру</label>
+                    <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Инструктор(а) на эту игру</label>
                     <div class="grid grid-cols-2 gap-1.5 max-h-[85px] overflow-y-auto ios-scroll p-1.5 bg-slate-900 rounded-xl border border-slate-800">
                         ${instructorsHtml}
                     </div>
@@ -5279,7 +5431,15 @@
             });
         }
         
-        function clearAllNotifications() { appState.notifications = appState.notifications.filter(n => n.targetUser !== appState.name); saveState(); renderNotifications(); }
+        async function clearAllNotifications() {
+            const ids = appState.notifications.filter(n => n.targetUser === appState.name).map(n => String(n.id));
+            try {
+                const stored = ids.filter(id => id.startsWith('inbox_'));
+                if (stored.length) await apiPost({ action: 'dismiss_notifications', ids: stored });
+                appState.notifications = appState.notifications.filter(n => !ids.includes(String(n.id)));
+                persistLocalState(); renderNotifications();
+            } catch (error) { showToast('Не удалось очистить уведомления: ' + error.message, true); }
+        }
         
         function renderNotifications() {
             const box = document.getElementById('notifications-box'); const list = document.getElementById('notifications-list');
@@ -5307,8 +5467,9 @@
             if (!toast) return;
             if (toastTimeout) clearTimeout(toastTimeout);
             toastTimeout = null;
-            toast.classList.remove('is-visible', 'has-timer');
+            toast.classList.remove('is-visible', 'has-timer', 'toast-enter');
             toast.setAttribute('aria-hidden', 'true');
+            toast.inert = true;
         }
 
         function showToast(text, isError = false, options = {}) {
@@ -5336,18 +5497,31 @@
             toast.style.setProperty('--toast-duration', `${duration}ms`);
             toast.setAttribute('aria-live', isError ? 'assertive' : 'polite');
             toast.setAttribute('aria-hidden', 'false');
+            toast.inert = false;
             title.textContent = settings.title || titles[kind] || titles.success;
             message.textContent = String(text || '');
             icon.className = icons[kind] || icons.success;
-            toast.classList.remove('has-timer');
+            toast.classList.remove('has-timer', 'toast-enter');
             void document.getElementById('toast-progress').offsetWidth;
             if (!persistent) toast.classList.add('has-timer');
-            toast.classList.add('is-visible');
+            toast.classList.add('is-visible', 'toast-enter');
 
             if (!persistent) {
                 toastTimeout = setTimeout(hideToast, duration);
             }
         }
+
+        let toastSwipe = null;
+        document.getElementById('toast').addEventListener('pointerdown', event => {
+            if (event.target.closest('button') || !event.isPrimary) return;
+            toastSwipe = { id: event.pointerId, x: event.clientX, y: event.clientY };
+        });
+        document.getElementById('toast').addEventListener('pointerup', event => {
+            if (toastSwipe && toastSwipe.id === event.pointerId &&
+                Math.abs(event.clientX - toastSwipe.x) > 55 && Math.abs(event.clientY - toastSwipe.y) < 55) hideToast();
+            toastSwipe = null;
+        });
+        document.getElementById('toast').addEventListener('pointercancel', () => { toastSwipe = null; });
 
         async function importFromAI() {
             if (!ensureAdmin()) return;
