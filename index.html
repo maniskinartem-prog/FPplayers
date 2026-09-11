@@ -2,7 +2,7 @@
 <html lang="ru" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="application-version" content="chat-restore-20260911-v19">
+    <meta name="application-version" content="manual-sync-telegram-20260911-v20">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.googleusercontent.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
     <title>Family-Park-Координатор PRO</title>
@@ -347,7 +347,8 @@
         #role-badge { display: inline-block; margin-top: 2px; font-size: 9px !important; text-transform: none; font-weight: 500; }
         .header-actions { display: flex; align-items: center; gap: 8px; }
         #sync-status {
-            min-height: 38px;
+            min-height: 44px;
+            min-width: 44px;
             display: inline-flex;
             align-items: center;
             gap: 7px;
@@ -359,7 +360,10 @@
             font-size: 10px;
             font-weight: 600;
             white-space: nowrap;
+            cursor: pointer;
         }
+        #sync-status:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 3px; }
+        #sync-status:active { background: rgba(56,189,248,.18); }
         #sync-status[data-state="syncing"] { color: #bae6fd; background: rgba(56,189,248,.1); border-color: rgba(56,189,248,.22); }
         #sync-status[data-state="syncing"] i { animation: spin 1s linear infinite; }
         #sync-status[data-state="offline"], #sync-status[data-state="error"] { color: #fecdd3; background: rgba(251,113,133,.1); border-color: rgba(251,113,133,.24); }
@@ -1189,9 +1193,9 @@
             <div id="telegram-binding-box" class="space-y-3 flex-shrink-0">
                 <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-brands fa-telegram text-sky-400 mr-1"></i> Telegram</h3>
                 <div class="bg-slate-900 border border-sky-500/30 rounded-xl p-3 shadow-md space-y-2">
-                    <p id="telegram-binding-status" class="text-[10px] text-slate-400">Telegram ещё не привязан.</p>
+                    <p id="telegram-binding-status" class="text-[10px] text-slate-400">Проверяем подключение Telegram…</p>
                     <div class="telegram-action-row flex space-x-2">
-                        <button id="btn-telegram-link" onclick="createTelegramLink()" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 rounded-lg text-[10px] uppercase transition">
+                        <button id="btn-telegram-link" onclick="createTelegramLink()" class="hidden flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 rounded-lg text-[10px] uppercase transition">
                             <i class="fa-solid fa-link mr-1"></i> Привязать Telegram
                         </button>
                         <a id="telegram-link-anchor" class="hidden flex-1 bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold py-2 rounded-lg text-[10px] uppercase text-center transition" target="_blank" rel="noopener noreferrer">
@@ -1633,7 +1637,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyOKaXeUlIEU1iwghkDXv7QAmzVNA785qXDAX4MbW4A5slnXcBxnmwbagovMZ5MOuo/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxq39KLk4QOvxmHdzt-0doWMwJ5vLkUcGXlkGKuTECglHnvWbZFr440bJ5iTOQe7go/exec";
         // ======================================================================================
 
         function createOperationId() {
@@ -2191,6 +2195,7 @@
         let lastCloudSaveError = null;
         let pendingCloudSaveSnapshot = null;
         let cloudSaveWorkerPromise = null;
+        let activeCloudSaveSnapshot = null;
         let cloudPendingWrites = 0;
         let notificationSendInProgress = false;
         let cloudRefreshTimer = null;
@@ -2198,6 +2203,7 @@
         let cloudRefreshPromise = null;
         let cloudRefreshAfterWrite = false;
         let cloudRecoveryPromise = null;
+        let manualCloudSyncRequest = null;
         let cloudRefreshFailureCount = 0;
         let lastCloudReadAt = 0;
         let lastBackgroundAttemptAt = 0;
@@ -2267,7 +2273,12 @@
         function safeBootCore(state) {
             const core = cloneCoreState(state);
             const fields = ['username', 'name', 'role', 'telegramLinked', 'activationRequired', 'assignable', 'blocked', 'banUntil'];
-            core.users = core.users.map(user => Object.fromEntries(fields.filter(key => key in user).map(key => [key, user[key]])));
+            core.users = core.users.map(user => {
+                const linked = telegramBindingState(user);
+                const safe = Object.fromEntries(fields.filter(key => key in user).map(key => [key, user[key]]));
+                if (linked !== null) safe.telegramLinked = linked;
+                return safe;
+            });
             return core;
         }
 
@@ -2340,13 +2351,15 @@
             const normalized = ['syncing', 'synced', 'offline', 'error'].includes(state) ? state : 'synced';
             const iconByState = {
                 syncing: 'fa-solid fa-arrows-rotate',
-                synced: 'fa-solid fa-check',
+                synced: 'fa-solid fa-arrows-rotate',
                 offline: 'fa-solid fa-cloud-arrow-up',
                 error: 'fa-solid fa-triangle-exclamation'
             };
             status.dataset.state = normalized;
+            status.title = (text || 'Синхронизация') + '. Нажмите, чтобы обновить данные.';
+            status.setAttribute('aria-label', 'Обновить данные. ' + (text || 'Синхронизация'));
             icon.className = iconByState[normalized];
-            label.textContent = text || (normalized === 'synced' ? 'Данные актуальны' : 'Синхронизация');
+            label.textContent = normalized === 'synced' ? 'Обновить' : (text || 'Синхронизация');
         }
 
         function setButtonBusy(button, busy, busyText) {
@@ -3284,6 +3297,7 @@
             cloudWriteInProgress = true;
             cloudPendingWrites++;
             let saved = false;
+            activeCloudSaveSnapshot = targetState;
             try {
                 // Keep the original business-field bases: only service queue events
                 // can merge. A colleague's competing edit still rejects the write.
@@ -3309,6 +3323,7 @@
             } finally {
                 cloudPendingWrites--;
                 cloudWriteInProgress = cloudPendingWrites > 0;
+                activeCloudSaveSnapshot = null;
             }
             if (saved) {
                 // Actions made while retrying stay in appState. Queue their diff
@@ -3321,15 +3336,60 @@
             return saved;
         }
 
-        async function syncHeaderClick() {
+        function syncHeaderClick() {
             if (!BACKEND_URL || BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
                 return showToast("Ссылка синхронизации не задана в коде!", true);
             }
-            if (cloudWriteInProgress) {
-                setSyncStatus('syncing', 'Сохраняю…');
-                return false;
+            if (!authToken || !appState.user) return Promise.resolve(false);
+            if (manualCloudSyncRequest?.token === authToken) return manualCloudSyncRequest.promise;
+            const request = { token: authToken };
+            manualCloudSyncRequest = request;
+            request.promise = runManualCloudSync(request.token).finally(() => {
+                if (manualCloudSyncRequest === request) manualCloudSyncRequest = null;
+            });
+            return request.promise;
+        }
+
+        async function runManualCloudSync(token) {
+            try {
+                while (token === authToken && appState.user) {
+                    if (navigator.onLine === false) throw new Error('Нет соединения с интернетом.');
+                    // Remember the tap while a write is running. The interface stays
+                    // usable; a read must follow all saves, including later edits.
+                    if (cloudWriteInProgress || notificationSendInProgress) {
+                        setSyncStatus('syncing', cloudWriteInProgress ? 'После сохранения…' : 'После отправки…');
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        continue;
+                    }
+                    if (cloudSaveBlocked) return await recoverCloudStateManually();
+                    if (document.querySelector('[role="dialog"][id^="modal-"]:not(.hidden)')) {
+                        setSyncStatus('syncing', 'После закрытия формы…');
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        continue;
+                    }
+                    if (cloudBaseline && hasUnsavedCloudChanges()) {
+                        if (!await saveState() && !cloudSaveBlocked) throw new Error('Не удалось сохранить текущие изменения.');
+                        continue;
+                    }
+                    setSyncStatus('syncing', 'Обновляю…');
+                    const refreshed = await refreshCloudStateSilently(true);
+                    if (token !== authToken) return false;
+                    if (refreshed && !cloudWriteInProgress && !cloudSaveBlocked && !hasUnsavedCloudChanges()) return true;
+                    if (cloudRefreshFailureCount) throw new Error('Сервер пока не ответил. Нажмите кнопку обновления, чтобы повторить.');
+                    // A form or edit may have appeared during the request. Retry
+                    // when it is safe, without replacing the user's local input.
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            } catch (error) {
+                if (token === authToken) {
+                    setSyncStatus('offline', 'Повторить');
+                    showToast('Не удалось обновить данные: ' + error.message, true);
+                }
             }
-            if (!cloudSaveBlocked) return refreshCloudStateSilently(true);
+            return false;
+        }
+
+        async function recoverCloudStateManually() {
             if (cloudRecoveryPromise) return cloudRecoveryPromise;
             const token = authToken;
             setSyncStatus('syncing', 'Восстанавливаем связь…');
@@ -3494,6 +3554,7 @@
                 try {
                     while (pendingCloudSaveSnapshot) {
                         const targetState = pendingCloudSaveSnapshot;
+                        activeCloudSaveSnapshot = targetState;
                         pendingCloudSaveSnapshot = null;
                         if (!lastConfirmedCloudState) {
                             throw new Error('Нет подтверждённой серверной версии для безопасного сохранения.');
@@ -3524,6 +3585,7 @@
                     cloudPendingWrites--;
                     cloudWriteInProgress = cloudPendingWrites > 0;
                     cloudSaveWorkerPromise = null;
+                    activeCloudSaveSnapshot = null;
                     if (completed && workerToken === authToken) {
                         // Pull colleagues' changes after our save queue drains. The
                         // refresh still checks for newer local edits before applying.
@@ -3645,7 +3707,7 @@
             if (cloudBaseline && hasUnsavedCloudChanges()) return;
             const revisionAtStart = localStateRevision;
             cloudRefreshInProgress = true;
-            setSyncStatus('syncing', 'Обновляем в фоне…');
+            setSyncStatus('syncing', manualCloudSyncRequest?.token === authToken ? 'Обновляю…' : 'Обновляем в фоне…');
             lastBackgroundAttemptAt = Date.now();
             let applied = false;
             try {
@@ -3768,14 +3830,16 @@
             try {
                 const result = await apiPost({action:'telegram_link_status'}, 20000);
                 if (token !== authToken) return;
-                if (result.user?.telegramLinked) {
+                const wasLinked = telegramBindingState() === true;
+                applyTelegramBindingProfile(result.user);
+                renderTelegramBinding();
+                if (telegramBindingState() === true) {
                     stopTelegramLinkPolling();
-                    const data = await fetchAuthenticatedState();
-                    if (token !== authToken) return;
-                    applyCloudState(data);
-                    renderTelegramBinding();
                     populateInstructorDropdowns();
-                    showToast('Telegram подключён. Уведомления и восстановление пароля доступны.');
+                    // Status checks update only server-owned profile fields. A full
+                    // refresh must use the normal safeguards for pending edits.
+                    void refreshCloudStateSilently(true);
+                    if (!wasLinked) showToast('Telegram подключён. Уведомления и восстановление пароля доступны.');
                 } else if (manual) status.textContent = 'Подтверждение ещё не получено. Откройте бота по персональной ссылке и нажмите «Старт». Если это уже сделано, попросите администратора проверить подключение бота.';
             } catch (error) { if (manual && token === authToken) status.textContent = error.message; }
             finally { telegramLinkCheckBusy = false; }
@@ -3787,8 +3851,7 @@
         let passwordCooldown = null;
         function openPasswordRecovery(change = false) {
             if (passwordBusy) return showToast('Дождитесь завершения запроса.', true);
-            const user = appState.users.find(user => user.username === appState.user);
-            if (change && !user?.telegram_id) return showToast('Сначала подключите Telegram.', true);
+            if (change && telegramBindingState() !== true) return showToast(telegramBindingState() === null ? 'Подключение Telegram ещё проверяется.' : 'Сначала подключите Telegram.', true);
             passwordDialogEpoch++;
             passwordChallengeId = '';
             document.getElementById('password-username').value = change ? appState.user : document.getElementById('login-user').value.trim();
@@ -3855,6 +3918,31 @@
             finally { passwordBusy = false; document.getElementById('btn-password-save').disabled = false; }
         }
 
+        function telegramBindingState(user = appState.users.find(item => item.username === appState.user)) {
+            if (typeof user?.telegramLinked === 'boolean') return user.telegramLinked;
+            if (user && Object.prototype.hasOwnProperty.call(user, 'telegram_id')) return Boolean(user.telegram_id);
+            return null;
+        }
+
+        function applyTelegramBindingProfile(profile) {
+            if (!profile || profile.username !== appState.user || typeof profile.telegramLinked !== 'boolean') return;
+            const previous = JSON.stringify(appState.users.find(user => user.username === profile.username));
+            // Keep the diff baselines consistent: these fields came from the
+            // server, and must never be sent back as a local account edit.
+            for (const state of [appState, cloudBaseline, lastConfirmedCloudState, activeCloudSaveSnapshot, pendingCloudSaveSnapshot]) {
+                const user = state?.users?.find(item => item.username === profile.username);
+                if (!user) continue;
+                for (const key of ['telegramLinked', 'telegram_id', 'activationRequired', 'assignable']) {
+                    if (Object.prototype.hasOwnProperty.call(profile, key)) user[key] = profile[key];
+                }
+            }
+            if (previous !== JSON.stringify(appState.users.find(user => user.username === profile.username))) {
+                // An earlier full read must not undo this newer confirmation.
+                localStateRevision++;
+            }
+            persistBootCache();
+        }
+
         function renderTelegramBinding() {
             const currentUser = appState.users.find(user => user.username === appState.user);
             const statusEl = document.getElementById('telegram-binding-status');
@@ -3862,16 +3950,23 @@
             const linkAnchor = document.getElementById('telegram-link-anchor');
             if (!statusEl || !linkButton || !linkAnchor) return;
             const changePassword = document.getElementById('btn-change-password');
-            const linked = !!currentUser?.telegram_id;
-            const ready = !linked && Number(linkAnchor.dataset.expiresAt) > Date.now();
+            const linked = telegramBindingState(currentUser);
+            const ready = linked === false && Number(linkAnchor.dataset.expiresAt) > Date.now();
+            linkButton.disabled = linked !== false;
             if (changePassword) { changePassword.disabled = !linked; changePassword.classList.toggle('hidden', !linked); }
-            document.getElementById('telegram-binding-help').classList.toggle('hidden', linked);
-            document.getElementById('telegram-binding-troubleshoot').classList.toggle('hidden', linked || !ready);
+            document.getElementById('telegram-binding-help').classList.toggle('hidden', linked !== false);
+            document.getElementById('telegram-binding-troubleshoot').classList.toggle('hidden', !ready);
 
-            if (currentUser && currentUser.telegram_id) {
+            if (linked === null) {
+                statusEl.textContent = 'Проверяем подключение Telegram…';
+                linkButton.classList.add('hidden');
+                linkAnchor.classList.add('hidden');
+            } else if (linked) {
                 statusEl.textContent = 'Telegram уже привязан к этому аккаунту ✅';
                 linkButton.classList.add('hidden');
                 linkAnchor.classList.add('hidden');
+                linkAnchor.removeAttribute('href');
+                delete linkAnchor.dataset.expiresAt;
                 stopTelegramLinkPolling();
             } else {
                 statusEl.textContent = currentUser?.activationRequired ? '🟡 Подтвердите Telegram, чтобы открыть расписание и активировать аккаунт.' : 'Telegram ещё не привязан. Подключите его для уведомлений и восстановления пароля.';
@@ -3885,6 +3980,7 @@
             if (!appState.user || !BACKEND_URL || BACKEND_URL.includes("ВСТАВИТЬ_ССЫЛКУ_СЮДА")) {
                 return showToast('Не удалось подготовить ссылку Telegram.', true);
             }
+            if (telegramBindingState() !== false) { renderTelegramBinding(); return; }
             const button = document.getElementById('btn-telegram-link');
             const anchor = document.getElementById('telegram-link-anchor');
             const statusEl = document.getElementById('telegram-binding-status');
@@ -3895,6 +3991,12 @@
             try {
                 const data = await apiPost({ action: 'create_telegram_link', username: appState.user });
                 if (token !== authToken) return;
+                if (data?.status === 'success' && data.alreadyLinked && data.user?.telegramLinked) {
+                    applyTelegramBindingProfile(data.user);
+                    renderTelegramBinding();
+                    return;
+                }
+                if (telegramBindingState() === true) { renderTelegramBinding(); return; }
                 if (!data || data.status !== 'success' || !data.url) throw new Error(data && data.message ? data.message : 'Ошибка сервера');
                 anchor.href = data.url;
                 anchor.dataset.expiresAt = String(Date.parse(data.expiresAt) || Date.now() + 29 * 60000);
@@ -3905,11 +4007,12 @@
                 startTelegramLinkPolling();
                 anchor.focus();
             } catch (error) {
+                if (token !== authToken) return;
                 console.log('Ошибка создания Telegram-ссылки:', error);
                 statusEl.textContent = 'Не удалось подготовить ссылку: ' + error.message;
                 showToast(statusEl.textContent, true);
             } finally {
-                if (button) { button.disabled = false; button.classList.remove('opacity-60'); }
+                if (button && token === authToken) { button.disabled = telegramBindingState() !== false; button.classList.remove('opacity-60'); }
             }
         }
 
