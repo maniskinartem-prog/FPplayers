@@ -2,7 +2,7 @@
 <html lang="ru" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="application-version" content="manual-sync-telegram-20260911-v20">
+    <meta name="application-version" content="connection-sessions-20260914-v23">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.googleusercontent.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
     <title>Family-Park-Координатор PRO</title>
@@ -906,6 +906,7 @@
         .journal-toolbar .log-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 4px; background: #080f1e; border: 1px solid #253044; border-radius: 11px; }
         #app-main .journal-toolbar .log-filters button { min-height: 40px; font-size: 12px; border-color: transparent; }
         #app-main .journal-toolbar .log-filters button[aria-pressed="true"] { background: #1c2c3a; border-color: #365c59; }
+        #log-filter-staff { grid-column: 1 / -1; }
         .journal-search { position: relative; margin-top: 10px; }
         .journal-search > svg { position: absolute; left: 11px; top: 12px; color: #94a3b8; pointer-events: none; }
         #log-search { width: 100%; min-width: 0; min-height: 44px; padding: 10px 44px 10px 39px; border: 1px solid #334155; border-radius: 10px; background: #080f1e; color: #e2e8f0; font-size: 16px; }
@@ -1259,6 +1260,7 @@
                 <div class="log-filters" role="group" aria-label="Фильтр журнала">
                     <button id="log-filter-all" type="button" aria-pressed="true" onclick="setLogFilter('all')">Весь журнал</button>
                     <button id="log-filter-account" type="button" aria-pressed="false" onclick="setLogFilter('account')">Мой аккаунт</button>
+                    <button id="log-filter-staff" class="hidden" type="button" aria-pressed="false" onclick="setLogFilter('staff')">Аккаунты сотрудников</button>
                 </div>
                 <div class="journal-search">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
@@ -1637,7 +1639,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxq39KLk4QOvxmHdzt-0doWMwJ5vLkUcGXlkGKuTECglHnvWbZFr440bJ5iTOQe7go/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxO07wa0okeVkjD6yTkq193M75V2cXuE8flDFpH5a4cZjQ9KNab-1FZIRkKyRUwyLSA/exec";
         // ======================================================================================
 
         function createOperationId() {
@@ -1668,9 +1670,13 @@
                 return await fetch(url, { ...options, signal: controller.signal });
             } catch (error) {
                 if (controller.signal.aborted) {
-                    throw new Error(`Сервер не ответил за ${Math.ceil(timeoutMs / 1000)} сек.`);
+                    const timeout = new Error(`Сервер не ответил за ${Math.ceil(timeoutMs / 1000)} сек. Повторите обновление.`);
+                    timeout.code = 'request_timeout';
+                    throw timeout;
                 }
-                throw error;
+                const networkError = new Error('Не удалось связаться с сервером приложения. Повторите обновление.');
+                networkError.code = 'network_error';
+                throw networkError;
             } finally {
                 clearTimeout(timer);
             }
@@ -1693,6 +1699,13 @@
             localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ token: authToken, expiresAt: String(expiresAt || '') }));
         }
 
+        function updateAuthSessionExpiry(token, expiresAt) {
+            if (!token || token !== authToken || !Number.isFinite(Date.parse(expiresAt))) return;
+            const stored = readLocalJson(AUTH_STORAGE_KEY, null);
+            if (!stored || stored.token !== token || Date.parse(stored.expiresAt) >= Date.parse(expiresAt)) return;
+            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({...stored, expiresAt}));
+        }
+
         function clearAuthSession() {
             authToken = '';
             localStorage.removeItem(BOOT_CACHE_KEY);
@@ -1708,6 +1721,7 @@
             closeSyncConflict();
             lastCloudSaveError = null;
             appState.accountLogs = [];
+            appState.staffAccountLogs = [];
             appState.logFilter = 'all';
             resetLogView();
             document.getElementById('logs-timeline-container').replaceChildren();
@@ -1918,18 +1932,38 @@
                 body: JSON.stringify(body),
                 cache: 'no-store'
             }, timeoutMs);
-            const result = await response.json();
+            if (!response.ok) {
+                const error = new Error(`Сервер приложения временно недоступен (HTTP ${response.status}). Повторите обновление.`);
+                error.code = 'http_error';
+                throw error;
+            }
+            let result;
+            try { result = await response.json(); }
+            catch (cause) {
+                const error = new Error('Сервер вернул некорректный ответ. Повторите обновление.');
+                error.code = 'invalid_response';
+                throw error;
+            }
             if (body.token && body.token !== authToken) throw new Error('Сессия изменилась. Войдите снова.');
-            if (result && result.status === 'auth_required') {
+            const accessCodes = ['session_expired', 'session_revoked', 'account_changed', 'account_blocked', 'account_unblocked', 'role_changed', 'password_changed'];
+            // Older deployments returned only these exact expiry messages.
+            // A generic storage/network error mentioning a session is not logout.
+            const legacyAccessError = body.token && result?.status === 'error' && [
+                'Сессия истекла. Войдите снова.',
+                'Сессия истекла или доступ закрыт. Войдите снова.'
+            ].includes(String(result.message || '').replace(/^Error:\s*/i, '').trim());
+            if (result && (result.status === 'auth_required' || legacyAccessError || (result.status === 'error' && accessCodes.includes(result.code)))) {
                 const message = String(result.message || 'Сессия завершена. Войдите снова.').replace(/^Error:\s*/i, '');
                 endSessionWithNotice({...result, message});
-                throw new Error(message);
+                const error = new Error(message); error.authRequired = true; error.code = result.code;
+                throw error;
             }
             if (!allowErrorStatus && result && result.status === 'error') {
                 const message = String(result.message || 'Сервер отклонил запрос.').replace(/^Error:\s*/i, '');
-                if (body.token && /сессия|вход в систему|доступ закрыт|аккаунт заблокирован/i.test(message)) endSessionWithNotice({message});
-                throw new Error(message);
+                const error = new Error(message); error.code = result.code;
+                throw error;
             }
+            if (body.token && result?._session?.expiresAt) updateAuthSessionExpiry(body.token, result._session.expiresAt);
             return result;
         }
 
@@ -1960,7 +1994,7 @@
                     return data;
                 } catch (error) {
                     lastError = error;
-                    if (attempt >= retryCount || /сессия|войдите|доступ закрыт/i.test(String(error && error.message || ''))) break;
+                    if (attempt >= retryCount || error.authRequired || token !== authToken) break;
                     await new Promise(resolve => setTimeout(resolve, 800));
                 }
             }
@@ -2174,7 +2208,7 @@
 
         let appState = { 
             user: null, role: null, name: null, 
-            shifts: [], logs: [], accountLogs: [], logFilter: 'all', users: [], games: [],
+            shifts: [], logs: [], accountLogs: [], staffAccountLogs: [], logFilter: 'all', users: [], games: [],
             notifications: [], notificationQueue: [], availability: {}, duty: {},
             activeFilter: "all" 
         };
@@ -2205,6 +2239,7 @@
         let cloudRecoveryPromise = null;
         let manualCloudSyncRequest = null;
         let cloudRefreshFailureCount = 0;
+        let lastCloudRefreshError = null;
         let lastCloudReadAt = 0;
         let lastBackgroundAttemptAt = 0;
         let cloudWriteInProgress = false;
@@ -2298,6 +2333,7 @@
             Object.assign(appState, cached.local);
             applyAuthProfile(cached.profile);
             appState.accountLogs = [];
+            appState.staffAccountLogs = [];
             appState.notifications = Array.isArray(cached.notifications) ? cached.notifications : [];
             lastConfirmedCloudState = cloneCoreState(cached.confirmed);
             cloudBaseline = cloneCoreState(cached.confirmed);
@@ -2318,7 +2354,8 @@
         async function resumeStoredSession() {
             const storedAuth = readLocalJson(AUTH_STORAGE_KEY, null);
             if (!storedAuth?.token) { returnToLoginScreen(); return false; }
-            if (storedAuth.expiresAt && Date.parse(storedAuth.expiresAt) <= Date.now()) { endSessionWithNotice({title:'Сессия завершена', message:'Срок входа истёк. Войдите снова.'}); return false; }
+            // The saved expiry may predate renewal on another tab; device clocks
+            // can also be wrong. Only a server auth_required response ends login.
             authToken = String(storedAuth.token);
             if (sessionResumeRequest?.token === authToken) return sessionResumeRequest.promise;
             if (restoreBootCache(authToken)) return true;
@@ -2475,10 +2512,13 @@
                 ? shift.responses
                 : {};
             const normalizedResponses = {};
+            const responseKeys = new Map();
+            Object.keys(sourceResponses).forEach(key => {
+                const name = normalizePersonName(key);
+                if (!responseKeys.has(name)) responseKeys.set(name, key);
+            });
             shift.instructors.forEach(instructor => {
-                const responseKey = Object.keys(sourceResponses).find(key =>
-                    normalizePersonName(key) === normalizePersonName(instructor)
-                );
+                const responseKey = responseKeys.get(normalizePersonName(instructor));
                 const response = responseKey ? String(sourceResponses[responseKey] || 'pending') : 'pending';
                 normalizedResponses[instructor] = ['pending', 'accepted', 'declined'].includes(response)
                     ? response
@@ -2831,21 +2871,25 @@
                 if (!name) continue;
                 const key = JSON.stringify([shift.date, name]);
                 if (!groups.has(key)) groups.set(key, []);
-                groups.get(key).push({ id: shift.id, start, end, times: new Set() });
+                groups.get(key).push({ id: shift.id, start, end });
             }
             groups.forEach(group => {
                 group.sort((a, b) => a.start.localeCompare(b.start));
-                for (let i = 0; i < group.length; i++) {
-                    const a = group[i];
-                    for (let j = i + 1; j < group.length && group[j].start < a.end; j++) {
-                        const b = group[j];
-                        if (a.id === b.id) continue;
-                        if (a.times.size < 5) a.times.add(`${b.start}–${b.end}`);
-                        if (b.times.size < 5) b.times.add(`${a.start}–${a.end}`);
+                // Cards need only the presence of an overlap. Keep the two
+                // furthest ends with different IDs instead of listing every pair.
+                let latest = null, second = null;
+                group.forEach(item => {
+                    const other = latest?.id === item.id ? second : latest;
+                    if (other && item.start < other.end) {
+                        notes.set(item.id, '↔ Общее оборудование');
+                        notes.set(other.id, '↔ Общее оборудование');
                     }
-                }
-                group.forEach(item => notes.set(item.id, item.times.size
-                    ? '↔ Общее оборудование' : ''));
+                    if (!latest) latest = item;
+                    else if (latest.id === item.id) { if (item.end > latest.end) latest = item; }
+                    else if (item.end > latest.end) { second = latest; latest = item; }
+                    else if (!second || item.end > second.end) second = item;
+                });
+                group.forEach(item => { if (!notes.has(item.id)) notes.set(item.id, ''); });
             });
             return notes;
         }
@@ -2879,7 +2923,6 @@
                 };
                 const outcome = outcomes[result.type];
                 if (!outcome) throw new Error('Сервер вернул неизвестный результат публикации. Проверьте расписание в чате.');
-                logAction(appState.name, `${outcome.log} на ${formatDateRus(selectedDate)} в общем чате`);
                 showToast(outcome.text);
             } catch (err) {
                 console.log('Ошибка публикации расписания:', err);
@@ -3086,6 +3129,7 @@
             appState.logs = data.logs;
             // Server-generated account events are never cached or sent back in patches.
             appState.accountLogs = Array.isArray(data.accountLogs) ? data.accountLogs : [];
+            appState.staffAccountLogs = Array.isArray(data.staffAccountLogs) ? data.staffAccountLogs : [];
             appState.notifications = Array.isArray(data.notifications) ? data.notifications : [];
             appState.availability = data.availability;
             appState.duty = data.duty;
@@ -3353,7 +3397,7 @@
         async function runManualCloudSync(token) {
             try {
                 while (token === authToken && appState.user) {
-                    if (navigator.onLine === false) throw new Error('Нет соединения с интернетом.');
+                    // Browser connectivity hints can be false while requests work.
                     // Remember the tap while a write is running. The interface stays
                     // usable; a read must follow all saves, including later edits.
                     if (cloudWriteInProgress || notificationSendInProgress) {
@@ -3375,7 +3419,7 @@
                     const refreshed = await refreshCloudStateSilently(true);
                     if (token !== authToken) return false;
                     if (refreshed && !cloudWriteInProgress && !cloudSaveBlocked && !hasUnsavedCloudChanges()) return true;
-                    if (cloudRefreshFailureCount) throw new Error('Сервер пока не ответил. Нажмите кнопку обновления, чтобы повторить.');
+                    if (cloudRefreshFailureCount) throw lastCloudRefreshError || new Error('Сервер пока не ответил. Нажмите кнопку обновления, чтобы повторить.');
                     // A form or edit may have appeared during the request. Retry
                     // when it is safe, without replacing the user's local input.
                     await new Promise(resolve => setTimeout(resolve, 100));
@@ -3694,7 +3738,7 @@
         }
 
         async function refreshCloudStateOnce(force) {
-            if (document.hidden || navigator.onLine === false) return;
+            if (document.hidden) return;
             if (!appState.user || cloudWriteInProgress || notificationSendInProgress || cloudRefreshInProgress) return;
             const minInterval = Math.min(60000, 12000 * Math.pow(2, cloudRefreshFailureCount));
             if (!force && Date.now() - Math.max(lastCloudReadAt, lastBackgroundAttemptAt) < minInterval) return;
@@ -3729,7 +3773,7 @@
                 const usersChanged = JSON.stringify(previousState.users) !== JSON.stringify(appState.users);
                 const shiftsChanged = JSON.stringify(previousState.shifts) !== JSON.stringify(appState.shifts);
                 const gamesChanged = JSON.stringify(previousState.games) !== JSON.stringify(appState.games);
-                const logsChanged = JSON.stringify(previousState.logs) !== JSON.stringify(appState.logs) || JSON.stringify(previousState.accountLogs) !== JSON.stringify(appState.accountLogs);
+                const logsChanged = JSON.stringify(previousState.logs) !== JSON.stringify(appState.logs) || JSON.stringify(previousState.accountLogs) !== JSON.stringify(appState.accountLogs) || JSON.stringify(previousState.staffAccountLogs) !== JSON.stringify(appState.staffAccountLogs);
                 const availabilityChanged = JSON.stringify(previousState.availability) !== JSON.stringify(appState.availability);
                 const dutyChanged = JSON.stringify(previousState.duty) !== JSON.stringify(appState.duty);
                 const queueChanged = JSON.stringify(previousState.notificationQueue) !== JSON.stringify(appState.notificationQueue);
@@ -3761,6 +3805,7 @@
                     if ((usersChanged || shiftsChanged) && isViewVisible('view-staff')) renderStaffManager();
                 }
                 cloudRefreshFailureCount = 0;
+                lastCloudRefreshError = null;
                 const nextAnchor = anchorId && [...main.querySelectorAll('[data-shift-id]')].find(el => el.dataset.shiftId === anchorId);
                 main.scrollTop = nextAnchor ? main.scrollTop + nextAnchor.getBoundingClientRect().top - anchorTop : scrollTop;
                 setSyncStatus('synced', 'Данные актуальны');
@@ -3768,6 +3813,7 @@
             } catch (error) {
                 if (!authToken) return;
                 cloudRefreshFailureCount++;
+                lastCloudRefreshError = error;
                 if (!cloudWriteInProgress && !cloudSaveBlocked) setSyncStatus('offline', 'Повторим обновление');
                 console.log('Фоновое обновление данных пока недоступно:', error);
             } finally {
@@ -4045,7 +4091,7 @@
 
         function setShiftResponse(shift, status, targetName = appState.name) {
             const key = findShiftInstructorKey(shift, targetName);
-            if (!key) return false;
+            if (!key || shift.status === 'cancelled' || !['accepted', 'declined'].includes(status) || getShiftResponse(shift, targetName) === status) return false;
             if (!shift.responses || typeof shift.responses !== 'object') shift.responses = {};
             shift.responses[key] = status;
             return true;
@@ -4115,7 +4161,6 @@
                     const cloudData = isCloudState(registration.state) ? registration.state : await fetchAuthenticatedState();
                     applyCloudState(cloudData);
                     enterDashboard();
-                    logAction(appState.name, 'Регистрация и первый вход в систему');
                     showToast(`Аккаунт создан, ${appState.name}. Подтвердите Telegram в настройках, чтобы начать работу.`, false, { duration: 11000, title: 'Остался один шаг' });
                 } else {
                     document.getElementById('login-user').value = username;
@@ -4767,15 +4812,37 @@
                 `<button type="button" id="schedule-load-more" onclick="loadMoreSchedule()" class="w-full bg-slate-900 text-emerald-300 border border-slate-700 rounded-xl p-3">Показать ещё · ${scheduleVisibleLimit} из ${dailyShifts.length}</button>`);
         }
 
-        function changeGameStatusQuick(id, newStatus) {
+        async function changeGameStatusQuick(id, newStatus) {
+            if (responseSaveInProgress) return;
             const shift = appState.shifts.find(s => s.id === id); if (!shift) return;
             if (!setShiftResponse(shift, newStatus)) return;
             recalculateShiftStatus(shift);
-            logAction(appState.name, `${newStatus === 'accepted' ? '🟢 ПРИНЯЛ' : '🔴 ОТКЛОНИЛ'} игру "${shift.game}"`);
-            showToast("Ваш ответ принят!"); renderSchedule();
+            return saveGameResponses('Ваш ответ сохранён на сервере.');
         }
 
-        function acceptAllPendingGames() {
+        let responseSaveInProgress = false;
+        async function saveGameResponses(successText, logText) {
+            const ownerToken = authToken;
+            responseSaveInProgress = true;
+            renderSchedule();
+            showToast('Сохраняю ответ на сервере…');
+            try {
+                const saved = await (logText ? logAction(appState.name, logText) : saveState());
+                if (ownerToken !== authToken) return false;
+                if (!saved) {
+                    showToast('Ответ пока не подтверждён сервером. Изменения остались на устройстве — нажмите «Обновить», чтобы повторить сохранение.', true, {duration:10000});
+                    return false;
+                }
+                showToast(successText);
+                return true;
+            } finally {
+                responseSaveInProgress = false;
+                if (ownerToken === authToken) renderSchedule();
+            }
+        }
+
+        async function acceptAllPendingGames() {
+            if (responseSaveInProgress) return;
             const selectedDate = document.getElementById('schedule-date').value;
             let pendingShifts = appState.shifts.filter(s => 
                 s.date === selectedDate && 
@@ -4790,14 +4857,12 @@
 
             let acceptedCount = 0;
             pendingShifts.forEach(shift => {
-                setShiftResponse(shift, 'accepted');
+                if (!setShiftResponse(shift, 'accepted')) return;
                 recalculateShiftStatus(shift);
                 acceptedCount++;
             });
 
-            logAction(appState.name, `🟢 Массово ПРИНЯЛ свои игры (${acceptedCount} шт.) на ${formatDateRus(selectedDate)}`);
-            showToast(`Успешно принято игр: ${acceptedCount}!`);
-            renderSchedule();
+            return saveGameResponses(`На сервере принято игр: ${acceptedCount}.`);
         }
 
         function openInstructorStatusModal(id) {
@@ -4815,7 +4880,8 @@
 
         function closeInstructorStatusModal() { document.getElementById('modal-instructor-status').classList.add('hidden'); }
 
-        function saveInstructorStatus() {
+        async function saveInstructorStatus() {
+            if (responseSaveInProgress) return;
             const id = document.getElementById('inst-shift-id').value;
             const newStatus = document.getElementById('inst-status-select').value;
             const reason = document.getElementById('inst-status-reason').value.trim();
@@ -4830,13 +4896,8 @@
             recalculateShiftStatus(shift);
             
             const actionText = newStatus === 'accepted' ? '🟢 ПРИНЯЛ' : '🔴 ОТКЛОНИЛ';
-            logAction(appState.name, `${actionText} свою часть игры "${shift.game}" (${cleanTime(shift.startTime)}). Причина: ${reason || 'Без причины'}`);
-            
-            notifyAllAdmins(`Инструктор ${appState.name} изменил статус в игре ${shift.game} (${cleanTime(shift.startTime)}) на "${newStatus === 'accepted' ? 'ПРИНЯТА' : 'ОТКАЗ'}". Причина: ${reason || 'Не указана'}`);
-            
-            showToast("Ваш ответ сохранен и отправлен админу!");
             closeInstructorStatusModal();
-            renderSchedule();
+            return saveGameResponses('Ваш ответ сохранён на сервере.', `${actionText} свою часть игры "${shift.game}" (${cleanTime(shift.startTime)}). Причина: ${reason || 'Без причины'}`);
         }
 
         function openDeleteGameModal(id) {
@@ -5731,7 +5792,8 @@
             if (appState.users.find(item => item.username === appState.user)?.activationRequired) return;
             appState.logs.unshift({ timestamp: new Date().toLocaleString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }), user: user, text: text });
             appState.logs = appState.logs.slice(0, MAX_LOCAL_LOGS);
-            saveState(); if (isViewVisible('view-settings') || isViewVisible('view-logs')) renderLogs();
+            const saved = saveState(); if (isViewVisible('view-settings') || isViewVisible('view-logs')) renderLogs();
+            return saved;
         }
 
         function getLogIconMeta(text) {
@@ -5776,7 +5838,7 @@
         }
 
         function setLogFilter(filter) {
-            appState.logFilter = filter === 'account' ? 'account' : 'all';
+            appState.logFilter = filter === 'account' ? 'account' : filter === 'staff' && canViewStaffAudit() ? 'staff' : 'all';
             updateLogFilters();
         }
 
@@ -5807,10 +5869,16 @@
             return Number.isFinite(parsed) ? parsed : 0;
         }
 
+        const logDateTimeFormatter = new Intl.DateTimeFormat('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+        const logDayFormatter = new Intl.DateTimeFormat('ru-RU', {day:'numeric', month:'long', year:'numeric'});
+        const logTimeFormatter = new Intl.DateTimeFormat('ru-RU', {hour:'2-digit', minute:'2-digit'});
+
         function formatLogTimestamp(value) {
             const timestamp = logTimestampValue(value);
-            return timestamp ? new Date(timestamp).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'}) : String(value || '');
+            return timestamp ? logDateTimeFormatter.format(timestamp) : String(value || '');
         }
+
+        function canViewStaffAudit() { return ['sysadmin', 'director'].includes(normalizeClientRole(appState.role)); }
 
         function renderLogs(preservePosition = true) {
             const container = document.getElementById('logs-timeline-container'); if(!container) return;
@@ -5822,9 +5890,13 @@
             const anchorKey = anchor?.dataset.logKey, anchorTop = anchor?.getBoundingClientRect().top;
             const expanded = new Set(Array.from(container.querySelectorAll('details[open]')).map(el => el.closest('[data-log-key]').dataset.logKey));
             const accountOnly = appState.logFilter === 'account';
+            const staffOnly = appState.logFilter === 'staff' && canViewStaffAudit();
             const accountLogs = (appState.accountLogs || []).filter(log => log.targetUsername === appState.user).map(log => ({...log, kind:'account'}));
+            const staffLogs = canViewStaffAudit() ? (appState.staffAccountLogs || []).map(log => ({...log, kind:'account'})) : [];
+            const allAccountLogs = Array.from(new Map(staffLogs.concat(accountLogs).map(log => [JSON.stringify([log.timestamp, log.user, log.text, log.targetUsername]), log])).values());
             const ordinaryLogs = appState.logs.filter(log => canOperateClient() || normalizePersonName(log.user) === normalizePersonName(appState.name) || log.user === 'Система').map(log => ({...log, kind:'activity'}));
             const query = normalizePersonName(document.getElementById('log-search').value).toLocaleLowerCase('ru-RU').replace(/ё/g, 'е');
+            const queryWords = query ? query.split(/\s+/) : [];
             const period = document.getElementById('log-period').value;
             const selectedDate = document.getElementById('log-date').value;
             const now = new Date(), today = toLocalDateStr(now);
@@ -5833,16 +5905,20 @@
             if (period === 'month') since.setDate(since.getDate() - 29);
             const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
             const logKey = log => JSON.stringify([log.kind, log.timestamp, log.user, log.text, log.targetUsername]);
-            let logsToShow = (accountOnly ? accountLogs : accountLogs.concat(ordinaryLogs)).map(log => ({...log, time:logTimestampValue(log.timestamp), key:logKey(log)})).filter(log => {
-                const searchable = normalizePersonName([log.user, log.text, formatLogTimestamp(log.timestamp)].join(' ')).toLocaleLowerCase('ru-RU').replace(/ё/g, 'е');
-                if (query && !query.split(/\s+/).every(word => searchable.includes(word))) return false;
+            let logsToShow = (accountOnly ? accountLogs : staffOnly ? staffLogs : allAccountLogs.concat(ordinaryLogs)).map(log => ({...log, time:logTimestampValue(log.timestamp), key:logKey(log)})).filter(log => {
+                if (queryWords.length) {
+                    const searchable = normalizePersonName([log.user, log.targetName, log.targetUsername, log.text, formatLogTimestamp(log.timestamp)].join(' ')).toLocaleLowerCase('ru-RU').replace(/ё/g, 'е');
+                    if (!queryWords.every(word => searchable.includes(word))) return false;
+                }
                 if (period === 'date') return Boolean(log.time) && toLocalDateStr(new Date(log.time)) === selectedDate;
                 if (period !== 'all') return log.time >= since.getTime() && log.time < tomorrow.getTime();
                 return true;
             }).sort((a, b) => b.time - a.time);
-            document.getElementById('log-filter-all').setAttribute('aria-pressed', String(!accountOnly));
+            document.getElementById('log-filter-all').setAttribute('aria-pressed', String(!accountOnly && !staffOnly));
             document.getElementById('log-filter-account').setAttribute('aria-pressed', String(accountOnly));
-            document.getElementById('log-type-badge').textContent = accountOnly ? 'Мой аккаунт' : (canOperateClient() ? 'Общий журнал' : 'Личный журнал');
+            document.getElementById('log-filter-staff').setAttribute('aria-pressed', String(staffOnly));
+            document.getElementById('log-filter-staff').classList.toggle('hidden', !canViewStaffAudit());
+            document.getElementById('log-type-badge').textContent = accountOnly ? 'Мой аккаунт' : staffOnly ? 'Аккаунты сотрудников' : (canOperateClient() ? 'Общий журнал' : 'Личный журнал');
             document.getElementById('log-clear-search').classList.toggle('hidden', !query);
             document.getElementById('log-date').classList.toggle('hidden', period !== 'date');
             if (anchorKey) logViewState.limit = Math.max(logViewState.limit, logsToShow.findIndex(log => log.key === anchorKey) + 1);
@@ -5863,7 +5939,7 @@
                 const day = date ? toLocalDateStr(date) : 'unknown';
                 let group = '';
                 if (day !== lastDay) {
-                    const label = day === today ? 'Сегодня' : day === toLocalDateStr(yesterday) ? 'Вчера' : date ? date.toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'}) : 'Без даты';
+                    const label = day === today ? 'Сегодня' : day === toLocalDateStr(yesterday) ? 'Вчера' : date ? logDayFormatter.format(date) : 'Без даты';
                     group = `${lastDay === null ? '' : '</section>'}<section class="journal-day"><h5>${escapeHtml(label)}</h5>`;
                     lastDay = day;
                 }
@@ -5876,8 +5952,8 @@
                     : `<p class="journal-message">${escapeHtml(message)}</p>`;
                 const meta = l.kind === 'account' ? {icon:'fa-user-gear', color:'text-indigo-300', bg:'bg-indigo-500/10'} : getLogIconMeta(l.text);
                 return `${group}<article class="journal-entry ${l.kind === 'account' ? 'account-log-entry' : ''}" data-log-key="${escapeHtmlAttribute(l.key)}">
-                    <div class="journal-entry-head"><span class="journal-dot ${meta.color}" aria-hidden="true"></span><span class="journal-actor">${escapeHtml(l.user || 'Система')}</span><time ${date ? `datetime="${date.toISOString()}"` : ''} title="${escapeHtmlAttribute(formatLogTimestamp(l.timestamp))}">${date ? date.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : '—'}</time></div>
-                    ${l.kind === 'account' ? '<p class="journal-account-label">Изменение вашего аккаунта</p>' : ''}${body}</article>`;
+                    <div class="journal-entry-head"><span class="journal-dot ${meta.color}" aria-hidden="true"></span><span class="journal-actor">${escapeHtml(l.user || 'Система')}</span><time ${date ? `datetime="${date.toISOString()}"` : ''} title="${escapeHtmlAttribute(formatLogTimestamp(l.timestamp))}">${date ? logTimeFormatter.format(date) : '—'}</time></div>
+                    ${l.kind === 'account' ? `<p class="journal-account-label">${l.targetUsername === appState.user ? 'Ваш аккаунт' : 'Аккаунт: ' + escapeHtml(l.targetName || l.targetUsername)}</p>` : ''}${body}</article>`;
             }).join('') + '</section>';
             if (anchorKey) {
                 const nextAnchor = Array.from(container.querySelectorAll('[data-log-key]')).find(el => el.dataset.logKey === anchorKey);
@@ -6087,7 +6163,7 @@
                     if (invalidSkipped) skippedParts.push(`Записей с неполными данными: ${invalidSkipped}`);
                     setAuthOperationStatus('ai-import-progress', `Импорт на ${formatDateRus(selectedDate)} завершён. Добавлено игр: ${added}.`, 'success');
                     showToast(added > 0
-                        ? `Добавлено игр на ${formatDateRus(selectedDate)}: ${added}. Назначьте ведущих вручную. Состояние отправки в таблицу видно в верхней панели.${skippedParts.length ? ` ${skippedParts.join(', ')}.` : ''}`
+                        ? `Добавлено игр на ${formatDateRus(selectedDate)}: ${added}. Назначьте ведущих вручную. Состояние отправки в базу данных видно в верхней панели.${skippedParts.length ? ` ${skippedParts.join(', ')}.` : ''}`
                         : `Новых игр не найдено${skippedParts.length ? `. ${skippedParts.join(', ')}` : ''}`,
                         false,
                         { duration: 12000, title: added > 0 ? 'Расписание импортировано' : 'Импорт завершён' });
