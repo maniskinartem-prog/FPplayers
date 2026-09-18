@@ -2,7 +2,7 @@
 <html lang="ru" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="application-version" content="connection-sessions-20260914-v23">
+    <meta name="application-version" content="persistent-sessions-20260918-v24">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.googleusercontent.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
     <title>Family-Park-Координатор PRO</title>
@@ -1639,7 +1639,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxO07wa0okeVkjD6yTkq193M75V2cXuE8flDFpH5a4cZjQ9KNab-1FZIRkKyRUwyLSA/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwpp9t-_sSBK0fkHGrmiXWH1efWC4S-l8a7Wl1zAKMo2NgA3V1cttW30s0mUqwJ3XcS/exec";
         // ======================================================================================
 
         function createOperationId() {
@@ -1700,9 +1700,10 @@
         }
 
         function updateAuthSessionExpiry(token, expiresAt) {
-            if (!token || token !== authToken || !Number.isFinite(Date.parse(expiresAt))) return;
+            if (!token || token !== authToken || (expiresAt !== 'never' && !Number.isFinite(Date.parse(expiresAt)))) return;
             const stored = readLocalJson(AUTH_STORAGE_KEY, null);
-            if (!stored || stored.token !== token || Date.parse(stored.expiresAt) >= Date.parse(expiresAt)) return;
+            if (!stored || stored.token !== token || stored.expiresAt === 'never' ||
+                (expiresAt !== 'never' && Date.parse(stored.expiresAt) >= Date.parse(expiresAt))) return;
             localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({...stored, expiresAt}));
         }
 
@@ -1945,7 +1946,7 @@
                 throw error;
             }
             if (body.token && body.token !== authToken) throw new Error('Сессия изменилась. Войдите снова.');
-            const accessCodes = ['session_expired', 'session_revoked', 'account_changed', 'account_blocked', 'account_unblocked', 'role_changed', 'password_changed'];
+            const accessCodes = ['session_expired', 'session_missing', 'session_revoked', 'account_changed', 'account_blocked', 'account_unblocked', 'role_changed', 'password_changed'];
             // Older deployments returned only these exact expiry messages.
             // A generic storage/network error mentioning a session is not logout.
             const legacyAccessError = body.token && result?.status === 'error' && [
@@ -6163,7 +6164,7 @@
                     if (invalidSkipped) skippedParts.push(`Записей с неполными данными: ${invalidSkipped}`);
                     setAuthOperationStatus('ai-import-progress', `Импорт на ${formatDateRus(selectedDate)} завершён. Добавлено игр: ${added}.`, 'success');
                     showToast(added > 0
-                        ? `Добавлено игр на ${formatDateRus(selectedDate)}: ${added}. Назначьте ведущих вручную. Состояние отправки в базу данных видно в верхней панели.${skippedParts.length ? ` ${skippedParts.join(', ')}.` : ''}`
+                        ? `Добавлено игр на ${formatDateRus(selectedDate)}: ${added}. Назначьте ведущих вручную. Состояние отправки в таблицу видно в верхней панели.${skippedParts.length ? ` ${skippedParts.join(', ')}.` : ''}`
                         : `Новых игр не найдено${skippedParts.length ? `. ${skippedParts.join(', ')}` : ''}`,
                         false,
                         { duration: 12000, title: added > 0 ? 'Расписание импортировано' : 'Импорт завершён' });
