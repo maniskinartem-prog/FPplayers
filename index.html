@@ -2,7 +2,7 @@
 <html lang="ru" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="application-version" content="persistent-sessions-20260918-v24">
+    <meta name="application-version" content="import-audit-20260918-v26">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.googleusercontent.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
     <title>Family-Park-Координатор PRO</title>
@@ -682,6 +682,13 @@
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
         }
+        #session-recovery { flex-shrink: 0; margin: 8px 12px 0; padding: 12px; border: 1px solid #9a7530; border-radius: 14px; background: #111827; color: #cbd5e1; font-size: 12px; line-height: 1.45; max-height: min(40dvh, 260px); overflow-y: auto; }
+        #session-recovery strong { display: block; color: #fcd34d; font-size: 14px; }
+        #session-recovery p { margin: 6px 0 10px; }
+        #session-recovery > div { display: flex; flex-wrap: wrap; gap: 8px; }
+        #session-recovery button { min-height: 44px; padding: 8px 12px; border: 1px solid #475569; border-radius: 9px; color: #e2e8f0; background: #1e293b; font-size: 12px; }
+        #session-recovery #btn-session-retry { background: #047857; color: white; border-color: #059669; font-weight: bold; }
+        #session-recovery button:focus-visible { outline: 2px solid #fcd34d; outline-offset: 2px; }
     </style>
     <style>
         /* Keep the account dialog above the fixed navigation; these new styles
@@ -689,6 +696,13 @@
         #modal-account { z-index: 120; background: rgba(2, 6, 23, .92); backdrop-filter: blur(6px); }
         #modal-account form { width: 100%; max-width: 36rem; max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
         #modal-account button:disabled { opacity: .55; cursor: wait; }
+        #session-recovery { flex-shrink: 0; margin: 8px 12px 0; padding: 12px; border: 1px solid #9a7530; border-radius: 14px; background: #111827; color: #cbd5e1; font-size: 12px; line-height: 1.45; max-height: min(40dvh, 260px); overflow-y: auto; }
+        #session-recovery strong { display: block; color: #fcd34d; font-size: 14px; }
+        #session-recovery p { margin: 6px 0 10px; }
+        #session-recovery > div { display: flex; flex-wrap: wrap; gap: 8px; }
+        #session-recovery button { min-height: 44px; padding: 8px 12px; border: 1px solid #475569; border-radius: 9px; color: #e2e8f0; background: #1e293b; font-size: 12px; }
+        #session-recovery #btn-session-retry { background: #047857; color: white; border-color: #059669; font-weight: bold; }
+        #session-recovery button:focus-visible { outline: 2px solid #fcd34d; outline-offset: 2px; }
     </style>
     <style id="compact-cards-and-roles">
         /* Role accents use light text on dark fills, including the burgundy badge. */
@@ -769,6 +783,13 @@
             #app-main .staff-account-actions button { width: auto; }
             #admin-summary-date { width: 140px; padding-left: 5px; padding-right: 5px; }
         }
+        #session-recovery { flex-shrink: 0; margin: 8px 12px 0; padding: 12px; border: 1px solid #9a7530; border-radius: 14px; background: #111827; color: #cbd5e1; font-size: 12px; line-height: 1.45; max-height: min(40dvh, 260px); overflow-y: auto; }
+        #session-recovery strong { display: block; color: #fcd34d; font-size: 14px; }
+        #session-recovery p { margin: 6px 0 10px; }
+        #session-recovery > div { display: flex; flex-wrap: wrap; gap: 8px; }
+        #session-recovery button { min-height: 44px; padding: 8px 12px; border: 1px solid #475569; border-radius: 9px; color: #e2e8f0; background: #1e293b; font-size: 12px; }
+        #session-recovery #btn-session-retry { background: #047857; color: white; border-color: #059669; font-weight: bold; }
+        #session-recovery button:focus-visible { outline: 2px solid #fcd34d; outline-offset: 2px; }
     </style>
     <style id="mobile-motion-and-equipment">
         .toast-card { transform: translate3d(-50%, -28px, 0) scale(.96); transition: opacity .22s ease, transform .28s ease; touch-action: pan-y; }
@@ -801,6 +822,13 @@
         @media (prefers-reduced-motion: reduce) {
             .toast-card, .toast-card.toast-enter { animation: none !important; transition: none !important; }
         }
+        #session-recovery { flex-shrink: 0; margin: 8px 12px 0; padding: 12px; border: 1px solid #9a7530; border-radius: 14px; background: #111827; color: #cbd5e1; font-size: 12px; line-height: 1.45; max-height: min(40dvh, 260px); overflow-y: auto; }
+        #session-recovery strong { display: block; color: #fcd34d; font-size: 14px; }
+        #session-recovery p { margin: 6px 0 10px; }
+        #session-recovery > div { display: flex; flex-wrap: wrap; gap: 8px; }
+        #session-recovery button { min-height: 44px; padding: 8px 12px; border: 1px solid #475569; border-radius: 9px; color: #e2e8f0; background: #1e293b; font-size: 12px; }
+        #session-recovery #btn-session-retry { background: #047857; color: white; border-color: #059669; font-weight: bold; }
+        #session-recovery button:focus-visible { outline: 2px solid #fcd34d; outline-offset: 2px; }
     </style>
     <style id="schedule-card-layout">
         #app-main .shift-card { padding: 12px 13px 12px 16px; }
@@ -830,6 +858,13 @@
         #app-main .shift-personal-actions { padding-top: 9px; }
         #app-main .shift-personal-actions button { min-height: 44px; text-transform: none; letter-spacing: normal; font-weight: 600; }
         #app-main .shift-personal-actions + .shift-admin-actions { margin-top: 8px !important; padding-top: 0; border-top: 0; }
+        #session-recovery { flex-shrink: 0; margin: 8px 12px 0; padding: 12px; border: 1px solid #9a7530; border-radius: 14px; background: #111827; color: #cbd5e1; font-size: 12px; line-height: 1.45; max-height: min(40dvh, 260px); overflow-y: auto; }
+        #session-recovery strong { display: block; color: #fcd34d; font-size: 14px; }
+        #session-recovery p { margin: 6px 0 10px; }
+        #session-recovery > div { display: flex; flex-wrap: wrap; gap: 8px; }
+        #session-recovery button { min-height: 44px; padding: 8px 12px; border: 1px solid #475569; border-radius: 9px; color: #e2e8f0; background: #1e293b; font-size: 12px; }
+        #session-recovery #btn-session-retry { background: #047857; color: white; border-color: #059669; font-weight: bold; }
+        #session-recovery button:focus-visible { outline: 2px solid #fcd34d; outline-offset: 2px; }
     </style>
     <style id="availability-and-cancelled-layout">
         .availability-hours-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
@@ -890,6 +925,13 @@
         .shift-cancel-reason { border-left: 2px solid #a36a79; background: #251c2960; padding: 8px 10px; border-radius: 3px 8px 8px 3px; overflow-wrap: anywhere; }
         .shift-cancel-reason > span { display: block; color: #b894a2; font-size: 10px; margin-bottom: 3px; }
         .shift-cancel-reason p { color: #e4cad2; font-size: 12px; line-height: 1.45; white-space: pre-wrap; }
+        #session-recovery { flex-shrink: 0; margin: 8px 12px 0; padding: 12px; border: 1px solid #9a7530; border-radius: 14px; background: #111827; color: #cbd5e1; font-size: 12px; line-height: 1.45; max-height: min(40dvh, 260px); overflow-y: auto; }
+        #session-recovery strong { display: block; color: #fcd34d; font-size: 14px; }
+        #session-recovery p { margin: 6px 0 10px; }
+        #session-recovery > div { display: flex; flex-wrap: wrap; gap: 8px; }
+        #session-recovery button { min-height: 44px; padding: 8px 12px; border: 1px solid #475569; border-radius: 9px; color: #e2e8f0; background: #1e293b; font-size: 12px; }
+        #session-recovery #btn-session-retry { background: #047857; color: white; border-color: #059669; font-weight: bold; }
+        #session-recovery button:focus-visible { outline: 2px solid #fcd34d; outline-offset: 2px; }
     </style>
     <style id="activity-journal-layout">
         #app-main .journal-launch { display: flex; align-items: center; gap: 12px; width: 100%; padding: 16px; border: 1px solid #334155; border-radius: 14px; background: #111a2b; text-align: left; }
@@ -943,6 +985,13 @@
         #view-logs :is(button, input, select, summary):focus-visible, .journal-launch:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
         @media (max-width: 600px) { .journal-toolbar { top: -12px; } }
         @media (max-height: 520px) { .journal-toolbar { position: static; } }
+        #session-recovery { flex-shrink: 0; margin: 8px 12px 0; padding: 12px; border: 1px solid #9a7530; border-radius: 14px; background: #111827; color: #cbd5e1; font-size: 12px; line-height: 1.45; max-height: min(40dvh, 260px); overflow-y: auto; }
+        #session-recovery strong { display: block; color: #fcd34d; font-size: 14px; }
+        #session-recovery p { margin: 6px 0 10px; }
+        #session-recovery > div { display: flex; flex-wrap: wrap; gap: 8px; }
+        #session-recovery button { min-height: 44px; padding: 8px 12px; border: 1px solid #475569; border-radius: 9px; color: #e2e8f0; background: #1e293b; font-size: 12px; }
+        #session-recovery #btn-session-retry { background: #047857; color: white; border-color: #059669; font-weight: bold; }
+        #session-recovery button:focus-visible { outline: 2px solid #fcd34d; outline-offset: 2px; }
     </style>
 </head>
 <body class="bg-[#0b0f19] text-slate-100 h-[100dvh] flex flex-col justify-between max-w-md mx-auto relative overflow-hidden border-x border-slate-900 shadow-2xl">
@@ -956,6 +1005,15 @@
         <button id="toast-close" type="button" onclick="hideToast()" aria-label="Закрыть уведомление"><i class="fa-solid fa-xmark"></i></button>
         <div id="toast-progress" aria-hidden="true"></div>
     </div>
+
+    <aside id="session-recovery" class="hidden shrink-0 mx-3 mt-3 p-3 rounded-xl border border-amber-400/40 bg-slate-900 text-sm" role="status" aria-live="polite">
+        <strong class="block text-amber-300">Не удалось проверить вход</strong>
+        <p id="session-recovery-text" class="mt-1 text-slate-200"></p>
+        <div class="flex flex-wrap gap-2 mt-2">
+            <button id="btn-session-retry" type="button" onclick="retrySessionVerification()" class="min-h-11 px-3 rounded-lg bg-emerald-700 text-white font-bold">Повторить проверку</button>
+            <button type="button" onclick="openSessionLogin()" class="min-h-11 px-3 rounded-lg border border-slate-600 text-slate-200">Ввести пароль</button>
+        </div>
+    </aside>
 
     <div id="view-auth" class="flex-grow flex flex-col px-6 py-8 overflow-y-auto ios-scroll">
         <div class="auth-brand text-center space-y-2">
@@ -1639,7 +1697,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwpp9t-_sSBK0fkHGrmiXWH1efWC4S-l8a7Wl1zAKMo2NgA3V1cttW30s0mUqwJ3XcS/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw75d0417OBzjtDEjMZc3E-FinwSuEjMwIQs2JtPFB_Ptqaytb_PjxN9Ot1aXvULIon/exec";
         // ======================================================================================
 
         function createOperationId() {
@@ -1662,6 +1720,7 @@
         const BOOT_CACHE_KEY = 'park_v11_session_cache';
         const MAX_LOCAL_LOGS = 500;
         let authToken = '';
+        let authStorageReadFailed = false;
 
         async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_GET_TIMEOUT_MS) {
             const controller = new AbortController();
@@ -1683,11 +1742,13 @@
         }
 
         function readLocalJson(key, fallback) {
+            if (key === AUTH_STORAGE_KEY) authStorageReadFailed = false;
             try {
                 const raw = localStorage.getItem(key);
                 return raw ? JSON.parse(raw) : fallback;
             } catch (error) {
-                localStorage.removeItem(key);
+                // Failed reads must not delete the saved login or drafts.
+                if (key === AUTH_STORAGE_KEY) authStorageReadFailed = true;
                 return fallback;
             }
         }
@@ -1696,7 +1757,9 @@
             authToken = String(token || '');
             if (!authToken) return localStorage.removeItem(AUTH_STORAGE_KEY);
             clearAccountAccessNotice();
-            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ token: authToken, expiresAt: String(expiresAt || '') }));
+            clearSessionVerificationIssue();
+            try { localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ token: authToken, expiresAt: String(expiresAt || '') })); }
+            catch (error) { showToast('Не удалось сохранить вход на устройстве. Он останется активным в этом окне, но после закрытия может потребоваться пароль.', true); }
         }
 
         function updateAuthSessionExpiry(token, expiresAt) {
@@ -1704,18 +1767,19 @@
             const stored = readLocalJson(AUTH_STORAGE_KEY, null);
             if (!stored || stored.token !== token || stored.expiresAt === 'never' ||
                 (expiresAt !== 'never' && Date.parse(stored.expiresAt) >= Date.parse(expiresAt))) return;
-            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({...stored, expiresAt}));
+            try { localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({...stored, expiresAt})); }
+            catch (error) { console.log('Не удалось обновить локальные сведения о входе.'); }
         }
 
         function clearAuthSession() {
             authToken = '';
-            localStorage.removeItem(BOOT_CACHE_KEY);
-            localStorage.removeItem(AUTH_STORAGE_KEY);
-            localStorage.removeItem('park_v5_session');
-            localStorage.removeItem('park_v5_users');
+            clearSessionVerificationIssue();
+            [BOOT_CACHE_KEY, AUTH_STORAGE_KEY, 'park_v5_session', 'park_v5_users'].forEach(key => {
+                try { localStorage.removeItem(key); } catch (error) { console.log('Не удалось очистить локальное хранилище.'); }
+            });
         }
 
-        function returnToLoginScreen() {
+        function returnToLoginScreen(clearSavedLogin = true) {
             switchAuthTab('login');
             document.querySelectorAll('[role="dialog"][id^="modal-"]').forEach(modal => modal.classList.add('hidden'));
             closeAccountEditor(true);
@@ -1733,7 +1797,7 @@
             telegramAnchor.removeAttribute('href');
             delete telegramAnchor.dataset.expiresAt;
             telegramAnchor.classList.add('hidden');
-            clearAuthSession();
+            if (clearSavedLogin) clearAuthSession();
             if (cloudRefreshTimer) { clearInterval(cloudRefreshTimer); cloudRefreshTimer = null; }
             appState.user = null; appState.role = null; appState.name = null; appState.users = [];
             cloudRefreshAfterWrite = false;
@@ -1909,19 +1973,67 @@
 
         function showAccountAccessNotice(notice) {
             activeAccountNotice = {title:String(notice.title || 'Сессия завершена'), message:String(notice.message || 'Войдите снова.'), code:String(notice.code || 'session_expired')};
-            localStorage.setItem(ACCOUNT_NOTICE_KEY, JSON.stringify(activeAccountNotice));
+            try { localStorage.setItem(ACCOUNT_NOTICE_KEY, JSON.stringify(activeAccountNotice)); } catch (error) {}
             setAuthOperationStatus('login-operation-status', activeAccountNotice.title + '. ' + activeAccountNotice.message, 'error');
             showToast(activeAccountNotice.message, true, {title:activeAccountNotice.title, persistent:true, accountNotice:true});
         }
 
         function clearAccountAccessNotice() {
             activeAccountNotice = null;
-            localStorage.removeItem(ACCOUNT_NOTICE_KEY);
+            try { localStorage.removeItem(ACCOUNT_NOTICE_KEY); } catch (error) {}
         }
 
         function endSessionWithNotice(notice) {
             returnToLoginScreen();
             showAccountAccessNotice(notice);
+        }
+
+        let sessionVerificationIssue = null;
+        function clearSessionVerificationIssue() {
+            sessionVerificationIssue = null;
+            document.getElementById('session-recovery')?.classList.add('hidden');
+        }
+
+        function showSessionVerificationIssue(result) {
+            hideToast();
+            const code = String(result.code || 'session_unverified');
+            const reason = code === 'local_storage_unavailable' ? 'Не удалось прочитать сохранённый вход на устройстве.' : code === 'session_missing' ? 'Сервер не нашёл сохранённый вход.' :
+                code === 'session_expired' ? 'Сервер сообщил об истечении входа.' : 'Сервер не подтвердил сохранённый вход.';
+            const message = reason + ' Вход на устройстве и локальные правки сохранены. Обновление и отправка изменений пока не подтверждены. Повторите проверку.';
+            sessionVerificationIssue = {code, message};
+            document.getElementById('session-recovery-text').textContent = message;
+            document.getElementById('session-recovery').classList.remove('hidden');
+            setSyncStatus('error', 'Проверить вход');
+            const error = new Error(message);
+            error.code = code; error.authRequired = true; error.sessionUnverified = true;
+            return error;
+        }
+
+        async function retrySessionVerification() {
+            const button = document.getElementById('btn-session-retry');
+            if (button.disabled) return false;
+            setButtonBusy(button, true, 'Проверяем…');
+            try {
+                if (!appState.user || document.getElementById('app-main').classList.contains('hidden')) return await resumeStoredSession();
+                // Checking access must not close an editor or replace its draft.
+                if (cloudWriteInProgress || notificationSendInProgress || document.querySelector('[role="dialog"][id^="modal-"]:not(.hidden)')) {
+                    await fetchAuthenticatedState(0);
+                    return true;
+                }
+                return await syncHeaderClick();
+            } catch (error) {
+                if (authToken) showToast(error.message || 'Повторная проверка пока не удалась.', true);
+                return false;
+            } finally { setButtonBusy(button, false); }
+        }
+
+        function openSessionLogin() {
+            // Keep saved access/drafts until a replacement login succeeds.
+            ['app-header', 'app-main', 'app-nav'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
+            document.getElementById('view-auth').classList.remove('hidden');
+            switchAuthTab('login');
+            document.getElementById('login-user').value = appState.user || '';
+            document.getElementById('login-pass').focus();
         }
 
         async function apiPost(payload, timeoutMs = CLOUD_GET_TIMEOUT_MS, allowErrorStatus = false) {
@@ -1955,7 +2067,11 @@
             ].includes(String(result.message || '').replace(/^Error:\s*/i, '').trim());
             if (result && (result.status === 'auth_required' || legacyAccessError || (result.status === 'error' && accessCodes.includes(result.code)))) {
                 const message = String(result.message || 'Сессия завершена. Войдите снова.').replace(/^Error:\s*/i, '');
-                endSessionWithNotice({...result, message});
+                const revokedCodes = ['session_revoked', 'account_changed', 'account_blocked', 'account_unblocked', 'role_changed', 'password_changed'];
+                if (body.token) {
+                    if (revokedCodes.includes(result.code)) endSessionWithNotice({...result, message});
+                    else throw showSessionVerificationIssue(result);
+                }
                 const error = new Error(message); error.authRequired = true; error.code = result.code;
                 throw error;
             }
@@ -1992,6 +2108,7 @@
                     if (token !== authToken) throw new Error('Сессия изменилась. Войдите снова.');
                     if (!isCloudState(data)) throw new Error('Получены неполные данные сервера.');
                     applyAuthProfile(data._auth);
+                    clearSessionVerificationIssue();
                     return data;
                 } catch (error) {
                     lastError = error;
@@ -2353,10 +2470,13 @@
 
         let sessionResumeRequest = null;
         async function resumeStoredSession() {
-            const storedAuth = readLocalJson(AUTH_STORAGE_KEY, null);
-            if (!storedAuth?.token) { returnToLoginScreen(); return false; }
-            // The saved expiry may predate renewal on another tab; device clocks
-            // can also be wrong. Only a server auth_required response ends login.
+            const storedAuth = readLocalJson(AUTH_STORAGE_KEY, null) || (authToken ? {token:authToken} : null);
+            if (!storedAuth?.token) {
+                if (authStorageReadFailed) showSessionVerificationIssue({code:'local_storage_unavailable'});
+                else returnToLoginScreen(false);
+                return false;
+            }
+            // Generic authentication failures preserve login for a retry.
             authToken = String(storedAuth.token);
             if (sessionResumeRequest?.token === authToken) return sessionResumeRequest.promise;
             if (restoreBootCache(authToken)) return true;
@@ -2372,8 +2492,8 @@
                     return true;
                 } catch (error) {
                     if (token !== authToken) return false;
-                    setAuthOperationStatus('login-operation-status', 'Вход сохранён, но данные пока не получены. Повторяем загрузку…', 'loading');
-                    setTimeout(() => { if (authToken === token && !appState.user) void resumeStoredSession(); }, 10000);
+                    setAuthOperationStatus('login-operation-status', 'Вход сохранён, но данные пока не получены. ' + (error.message || 'Повторяем загрузку…'), 'error');
+                    setTimeout(() => { if (authToken === token && document.getElementById('app-main').classList.contains('hidden')) void resumeStoredSession(); }, 10000);
                     return false;
                 } finally { if (sessionResumeRequest === request) sessionResumeRequest = null; }
             })();
@@ -2382,6 +2502,7 @@
         }
 
         function setSyncStatus(state, text) {
+            if (sessionVerificationIssue && state !== 'syncing') { state = 'error'; text = 'Проверить вход'; }
             const status = document.getElementById('sync-status');
             const icon = document.getElementById('sync-status-icon');
             const label = document.getElementById('sync-status-text');
@@ -3197,10 +3318,26 @@
             return base;
         }
 
+        function buildShiftRecordPatches(before, after) {
+            // Keep import provenance in local drafts, including reload/retry,
+            // but send it as operation context, never as a column in Shifts.
+            const withoutLocalContext = shift => {
+                const record = { ...shift };
+                delete record._aiImportBatchId;
+                return record;
+            };
+            const records = new Map(after.map(shift => [String(shift.id), shift]));
+            return buildRecordPatches(before.map(withoutLocalContext), after.map(withoutLocalContext), 'id').map(change => {
+                const batchId = records.get(String(change.key))?._aiImportBatchId;
+                if (change.base === null && batchId) change.creationContext = { source: 'ai_import', batchId };
+                return change;
+            });
+        }
+
         function buildStateChanges(before, after) {
             const changes = {};
             const users = buildRecordPatches(before.users, after.users, 'username');
-            const shifts = buildRecordPatches(before.shifts, after.shifts, 'id').filter(change => {
+            const shifts = buildShiftRecordPatches(before.shifts, after.shifts).filter(change => {
                 const previous = before.shifts.find(shift => String(shift.id) === String(change.key));
                 if (!previous || change.delete) return true;
                 change.lifecycle = previous.status === 'cancelled' ? 'cancelled' : 'active';
@@ -3250,11 +3387,7 @@
                 .filter(isRecoverableLocalShift)
                 .filter(shift => !cloudShiftIds.has(String(shift.id || '')));
             if (localShifts.length) {
-                changes.shifts = localShifts.map(shift => ({
-                    key: String(shift.id),
-                    patch: JSON.parse(JSON.stringify(normalizeShiftRecord(shift))),
-                    base: null
-                }));
+                changes.shifts = buildShiftRecordPatches([], localShifts.map(shift => normalizeShiftRecord(shift)));
             }
 
             const cloudGames = new Set(cloudData.games || []);
@@ -3584,7 +3717,7 @@
             if (!isPlainObject(appState.availability)) appState.availability = {};
             if (!isPlainObject(appState.duty)) appState.duty = {};
 
-            if (readLocalJson(AUTH_STORAGE_KEY, null)) void resumeStoredSession();
+            if (readLocalJson(AUTH_STORAGE_KEY, null) || authStorageReadFailed) void resumeStoredSession();
             else { const notice = readLocalJson(ACCOUNT_NOTICE_KEY, null); if (notice && typeof notice.message === 'string') showAccountAccessNotice(notice); }
         });
 
@@ -4172,9 +4305,14 @@
                 }
             } catch (error) {
                 if (accountCreated) {
-                    clearAuthSession();
                     document.getElementById('login-user').value = username;
                     switchAuthTab('login');
+                    if (authToken) {
+                        showToast('Аккаунт создан. Вход сохранён, повторяем загрузку данных.', true, { title: 'Данные пока недоступны' });
+                        await resumeStoredSession();
+                        return;
+                    }
+                    if (activeAccountNotice) return;
                     setAuthOperationStatus('login-operation-status', 'Аккаунт создан, но расписание не загрузилось. Попробуйте войти ещё раз.', 'error');
                     showToast('Аккаунт создан, но данные пока не загрузились. Войдите с указанным паролем ещё раз.', true, { title: 'Нестабильное соединение' });
                 } else {
@@ -4194,21 +4332,26 @@
             if (button.disabled) return;
             const priorNotice = activeAccountNotice;
             clearAccountAccessNotice();
-            clearAuthSession();
             hideToast();
             setButtonBusy(button, true, 'Входим…');
             setAuthOperationStatus('login-operation-status', 'Проверяем учётную запись…', 'loading');
             try {
                 const login = await apiPost({ action: 'login', username, password, includeState: false }, CLOUD_AUTH_TIMEOUT_MS);
                 if (!login || login.status !== 'success' || !login.token) throw new Error('Сервер не создал сессию.');
+                const previousCache = readLocalJson(BOOT_CACHE_KEY, null);
+                const keepDrafts = previousCache?.token === authToken && previousCache.profile?.username === login.user?.username;
+                clearAuthSession();
                 saveAuthSession(login.token, login.expiresAt);
+                if (keepDrafts) {
+                    previousCache.token = login.token;
+                    previousCache.profile = {username:login.user.username, name:login.user.name, role:login.user.role};
+                    try { localStorage.setItem(BOOT_CACHE_KEY, JSON.stringify(previousCache)); } catch (error) {}
+                }
                 document.getElementById('login-pass').value = '';
                 if (!await resumeStoredSession()) return;
                 setAuthOperationStatus('login-operation-status', '');
                 if (priorNotice?.code === 'account_blocked') showToast('Доступ восстановлен. Вы вошли в аккаунт.', false, {title:'Блокировка снята'});
             } catch (error) {
-                clearAuthSession();
-                appState.user = null; appState.role = null; appState.name = null;
                 setAuthOperationStatus('login-operation-status', error.message || 'Неверные данные входа.', 'error');
                 showToast(error.message || 'Неверные данные входа.', true, { title: 'Не удалось войти' });
             } finally {
@@ -5555,7 +5698,7 @@
                 });
             });
 
-            logAction(appState.name, `✏️ Изменил игру: ${shift.game}. Тимбилдинг: ${shift.teamBuildingName || 'нет'}. Состав: ${newInstructors.join(', ')}`);
+            logAction(appState.name, `Изменил игру «${shift.game}» на ${formatDateRus(shift.date)}, ${shift.startTime}–${shift.endTime}. Ведущие: ${newInstructors.join(', ') || 'не назначены'}.`);
             showToast(newInstructors.length ? 'Игра обновлена. Уведомления для ведущих подготовлены.' : 'Игра обновлена. Ведущих можно назначить позже.');
             closeEditGameModal();
             renderSchedule();
@@ -6024,6 +6167,8 @@
         }
 
         function showToast(text, isError = false, options = {}) {
+            // The recovery banner already explains this error and offers retry.
+            if (sessionVerificationIssue && String(text).includes(sessionVerificationIssue.message)) return;
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
             const title = document.getElementById('toast-title');
@@ -6101,6 +6246,7 @@
                 if (authToken !== importToken || !canOperateClient()) return;
 
                 if (result.status === true && Array.isArray(result.data)) {
+                    const importBatchId = createOperationId();
                     let added = 0;
                     let invalidSkipped = Number(result.skippedCount) || 0;
                     let duplicateSkipped = 0;
@@ -6134,6 +6280,7 @@
                         }
                         const importedShift = {
                             id: createUniqueShiftId(),
+                            _aiImportBatchId: importBatchId,
                             date: selectedDate,
                             startTime: startTime,
                             endTime: endTime,
@@ -6157,7 +6304,7 @@
                     });
 
                     if (added > 0) {
-                        logAction(appState.name, `ИИ-Импорт: загружено ${added} игр на ${formatDateRus(selectedDate)}`);
+                        logAction(appState.name, `ИИ-импорт из таблицы на ${formatDateRus(selectedDate)}: добавлено игр — ${added}.`);
                     }
                     const skippedParts = [];
                     if (duplicateSkipped) skippedParts.push(`Пропущено дублей: ${duplicateSkipped}`);
