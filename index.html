@@ -2,7 +2,7 @@
 <html lang="ru" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="application-version" content="staff-audit-20260927-v30">
+    <meta name="application-version" content="roles-design-20260927-v31">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.googleusercontent.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
     <title>Family-Park-Координатор PRO</title>
@@ -1004,6 +1004,97 @@
         #session-recovery #btn-session-retry { background: #047857; color: white; border-color: #059669; font-weight: bold; }
         #session-recovery button:focus-visible { outline: 2px solid #fcd34d; outline-offset: 2px; }
     </style>
+
+    <style id="staff-tools-design">
+        .admin-tool-modal { z-index:121; padding:16px; }
+        [role="dialog"].admin-tool-modal > .admin-tool-panel {
+            display:flex; flex-direction:column; width:100%; max-width:580px; min-height:0;
+            max-height:calc(100vh - 32px); max-height:calc(100dvh - 32px); overflow:hidden;
+            padding:0 !important; margin:0; border:1px solid #304056 !important; border-radius:24px !important;
+            background:#101a29 !important; box-shadow:0 24px 80px #0008; color:#e5edf5;
+        }
+        .admin-tool-header { display:flex; align-items:center; gap:12px; padding:20px; border-bottom:1px solid #27364b; flex-shrink:0; }
+        .admin-tool-icon { display:grid; place-items:center; width:44px; height:44px; flex-shrink:0; border:1px solid #237567; border-radius:14px; background:#10332f; color:#60dbc0; }
+        .admin-tool-icon svg { width:23px; height:23px; }
+        .admin-tool-heading { flex:1; min-width:0; }
+        .admin-tool-heading h3 { margin:0; font-size:19px !important; font-weight:700; color:#f1f5f9; }
+        .admin-tool-modal .admin-tool-heading p { margin:4px 0 0; font-size:12px; color:#9aacc1; }
+        .admin-tool-close { display:grid; place-items:center; width:44px; height:44px; padding:0; flex-shrink:0; border-radius:12px; border:1px solid #324157; background:#172436; color:#c3d0de; font-size:22px; }
+        .admin-tool-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:20px; display:flex; flex-direction:column; gap:18px; scrollbar-width:thin; scrollbar-color:#45576f transparent; }
+        .admin-tool-footer { flex-shrink:0; padding:16px 20px; border-top:1px solid #27364b; background:#101a29; display:flex; gap:10px; }
+        .admin-tool-footer > button { flex:1; }
+        .admin-tool-modal .admin-tool-button { min-height:46px; padding:11px 14px; border:1px solid #35475f; border-radius:12px; background:#1b2a3e; color:#d5e0ef; font-size:13px; line-height:1.35; font-weight:600; }
+        .admin-tool-modal .admin-tool-button.primary { background:#36cfad; border-color:#36cfad; color:#06251f; }
+        .admin-tool-modal .admin-tool-button.danger { color:#fda4af; background:#341e2b; border-color:#603344; }
+        .admin-tool-modal button:disabled { cursor:default; opacity:.45; }
+        .admin-tool-modal button:enabled:hover { filter:brightness(1.12); }
+        .admin-tool-field { display:flex; flex-direction:column; gap:7px; min-width:0; }
+        .admin-tool-modal .admin-tool-field > label { color:#ccd7e5; font-size:13px; font-weight:600; }
+        .admin-tool-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+        .admin-tool-modal .admin-tool-input { min-width:0; width:100%; min-height:46px; padding:11px 12px; background:#0a1220; border:1px solid #35465e; border-radius:12px; color:#edf4fc; font-size:16px; }
+        .admin-tool-input::placeholder { color:#71859e; }
+        .admin-tool-modal textarea.admin-tool-input { min-height:124px; resize:vertical; }
+        .admin-tool-note { color:#9badc2; font-size:12px !important; line-height:1.55; margin:0; }
+        .admin-tool-status { padding:12px 14px; background:#152a36; border:1px solid #315264; border-radius:12px; color:#c4dfeb; font-size:13px; line-height:1.55; white-space:pre-line; overflow-wrap:anywhere; }
+        .admin-tool-status:empty { display:none; }
+        .admin-tool-check { display:flex; align-items:flex-start; gap:12px; padding:14px; background:#132336; border:1px solid #304259; border-radius:14px; color:#cbd8e8; }
+        .admin-tool-modal input[type=checkbox] { accent-color:#36cfad; width:20px; height:20px; flex-shrink:0; margin-top:2px; }
+        .admin-tool-check strong { display:block; font-size:13px; }
+        .admin-tool-check small { display:block; color:#9badc2; margin-top:4px; font-size:12px; line-height:1.5; }
+        .permission-person { padding:12px 14px; background:#132d2c; border:1px solid #25584e; border-radius:12px; color:#a8edd9; overflow-wrap:anywhere; }
+        .permission-group { border:1px solid #2c3c51; border-radius:15px; overflow:hidden; background:#0c1625; }
+        .permission-group h4 { margin:0; padding:12px 14px; font-size:12px; font-weight:700; color:#84cdbf; background:#142333; }
+        .admin-tool-modal .permission-option { display:grid; grid-template-columns:minmax(0,1fr) 162px; align-items:center; gap:12px; margin:0; padding:12px 14px; border:0; border-top:1px solid #26364b; }
+        .permission-option > span { color:#cfdaea; font-size:13px; line-height:1.4; }
+        .permission-option small { display:block; color:#91a4bb; font-size:11px; margin-top:5px; line-height:1.4; }
+        .permission-option select { font-size:13px !important; min-height:44px; padding:9px !important; }
+        .permission-option select[data-choice=allow] { color:#8ee8cc; border-color:#33715f; background:#0e2c24; }
+        .permission-option select[data-choice=deny] { color:#fda4af; border-color:#794252; background:#301c28; }
+        .permission-groups { display:flex; flex-direction:column; gap:14px; }
+        .permission-locked { padding:14px; border:1px dashed #3a4a60; border-radius:14px; color:#9badc2; font-size:12px; line-height:1.6; }
+        .permission-locked strong { display:block; color:#c4d1e2; margin-bottom:5px; }
+        .staff-selection-toolbar { display:flex; gap:8px; }
+        .staff-selection-toolbar > button { flex:1; }
+        .staff-selection-summary { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#92a8bf; font-size:12px; flex-wrap:wrap; }
+        .staff-selection-summary strong { color:#8ce0c7; font-weight:600; }
+        #staff-message-recipients { max-height:236px; overflow-y:auto; overscroll-behavior:contain; border:1px solid #2e4056; border-radius:14px; background:#0a1423; }
+        .admin-tool-modal .staff-recipient { display:flex; align-items:center; gap:11px; min-height:65px; padding:11px 13px; cursor:pointer; border-bottom:1px solid #24354a; }
+        .staff-recipient:last-child { border-bottom:0; }
+        .staff-recipient:has(:checked) { background:#112e2c; }
+        .staff-recipient:has(:disabled) { cursor:default; background:#0c1420; }
+        .staff-recipient:has(:disabled) .staff-recipient-avatar { opacity:.5; }
+        .staff-recipient-avatar { display:grid; place-items:center; flex-shrink:0; width:32px; height:32px; border-radius:10px; color:#a7c4dc; background:#24354a; font-weight:600; }
+        .staff-recipient-copy { min-width:0; flex:1; }
+        .staff-recipient-copy strong { display:block; color:#dce6f3; font-weight:500; font-size:13px; overflow-wrap:anywhere; }
+        .staff-recipient-copy small { display:block; color:#94a8bf; font-size:11px; margin-top:3px; }
+        .staff-recipient.hidden { display:none; }
+        #staff-message-empty { padding:16px; text-align:center; color:#9badc2; font-size:13px; }
+        #staff-message-limit[data-over-limit=true] { color:#fda4af; }
+        .queue-recipient { padding:14px; border:1px solid #304259; border-radius:15px; background:#0c1625; }
+        .queue-recipient:has(:checked) { border-color:#39856e; background:#102923; }
+        .queue-recipient-heading { display:flex; align-items:center; gap:11px; min-height:44px; cursor:pointer; }
+        .queue-recipient-heading strong { flex:1; min-width:0; overflow-wrap:anywhere; font-size:14px; }
+        .queue-recipient-count { color:#9dc6be; font-size:12px; background:#1f3935; padding:4px 8px; border-radius:8px; }
+        .queue-event { display:flex; gap:12px; align-items:center; justify-content:space-between; padding-top:11px; margin-top:9px; border-top:1px solid #2b3d4e; }
+        .queue-event > span { min-width:0; color:#aabbd0; font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+        .queue-event button { flex-shrink:0; min-height:44px; padding:8px 10px; border:1px solid #694050; border-radius:10px; font-size:12px; color:#f6abb7; }
+        #modal-notification-queue .admin-tool-footer { display:grid; grid-template-columns:1fr 1fr; }
+        #btn-send-queued-notifications { grid-column:1/-1; }
+        #notification-queue-list { display:flex; flex-direction:column; gap:12px; }
+        @media(max-width:540px) {
+            [role="dialog"].admin-tool-modal { padding:10px; }
+            [role="dialog"].admin-tool-modal > .admin-tool-panel { border-radius:20px !important; max-height:calc(100dvh - 20px) !important; padding:0 !important; }
+            .admin-tool-header { padding:16px; gap:10px; }
+            .admin-tool-heading h3 { font-size:17px !important; }
+            .admin-tool-icon { width:38px; height:38px; border-radius:12px; }
+            .admin-tool-body { padding:16px; gap:16px; }
+            .admin-tool-footer { padding:12px 16px max(12px, env(safe-area-inset-bottom)); }
+            .admin-tool-grid { grid-template-columns:1fr; }
+            .admin-tool-modal .permission-option { grid-template-columns:1fr; gap:8px; }
+            .permission-option select { width:100%; }
+        }
+        @media(max-height:500px) { .admin-tool-header { padding:10px 14px; } .admin-tool-heading p { display:none; } .admin-tool-footer { padding:10px 14px; } }
+    </style>
 </head>
 <body class="bg-[#0b0f19] text-slate-100 h-[100dvh] flex flex-col justify-between max-w-md mx-auto relative overflow-hidden border-x border-slate-900 shadow-2xl">
 
@@ -1265,6 +1356,9 @@
                 <button id="btn-create-account" type="button" onclick="openCreateAccount()" class="w-full min-h-12 bg-indigo-600 text-white rounded-lg font-bold text-sm">Создать аккаунт</button>
                 <button id="btn-staff-message" type="button" onclick="openStaffMessage()" class="w-full min-h-12 bg-sky-700 text-white rounded-lg font-bold text-sm">Сообщение сотрудникам в Telegram</button>
                 <div id="profile-permissions-box" class="hidden space-y-2">
+                    <label for="profile-permissions-role" class="block text-sm text-slate-300">Общие права роли</label>
+                    <select id="profile-permissions-role" class="admin-tool-input"><option value="instructor">Инструктор</option><option value="admin">Администратор</option><option value="manager">Менеджер</option><option value="director">Директор</option></select>
+                    <button id="btn-edit-role-permissions" type="button" onclick="openRolePermissionsEditor(document.getElementById('profile-permissions-role').value)" class="w-full min-h-12 bg-slate-800 text-indigo-200 rounded-lg font-bold text-sm">Настроить роль</button>
                     <label for="profile-permissions-user" class="block text-sm text-slate-300">Персональные права сотрудника</label>
                     <select id="profile-permissions-user" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-base text-white"></select>
                     <button type="button" onclick="openPermissionsEditor(document.getElementById('profile-permissions-user').value)" class="w-full min-h-12 bg-slate-800 text-indigo-200 rounded-lg font-bold text-sm">Настроить права</button>
@@ -1417,27 +1511,11 @@
         </div>
     </div>
 
-    <div id="modal-notification-queue" role="dialog" aria-modal="true" aria-hidden="true" class="mobile-modal fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="mobile-modal-panel bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl flex flex-col">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-bell text-indigo-400 mr-1.5"></i> Уведомления сотрудникам</h3>
-                    <p class="text-[9px] text-slate-400 mt-1">Изменения собираются в один пакет на человека. Выберите только тех, кого нужно уведомить.</p>
-                    <div class="grid grid-cols-2 gap-2 mt-3">
-                        <button onclick="setAllQueuedRecipients(true)" class="bulk-select-button bg-indigo-500/15 border border-indigo-500/30 text-indigo-200 hover:bg-indigo-500/25 font-bold"><i class="fa-solid fa-check-double mr-1"></i> Выбрать всех</button>
-                        <button onclick="setAllQueuedRecipients(false)" class="bulk-select-button bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 font-bold"><i class="fa-solid fa-xmark mr-1"></i> Снять выбор</button>
-                    </div>
-                </div>
-                <button onclick="closeNotificationQueueModal()" aria-label="Закрыть" class="w-11 h-11 -mt-2 -mr-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div id="notification-queue-list" class="flex-grow min-h-0 overflow-y-auto ios-scroll space-y-2 pr-1"></div>
-            <div class="flex space-x-2 pt-2 border-t border-slate-800">
-                <button onclick="closeNotificationQueueModal()" class="flex-1 min-h-12 bg-slate-800 text-slate-300 font-bold px-3 py-3 rounded-xl text-xs">Позже</button>
-                <button id="btn-delete-queued-notifications" type="button" onclick="deleteSelectedQueuedNotifications()" class="hidden min-h-12 bg-rose-950 text-rose-200 rounded-xl p-3 text-xs font-bold">Удалить выбранные</button>
-                <button id="btn-send-queued-notifications" onclick="sendSelectedQueuedNotifications()" class="flex-[1.4] min-h-12 bg-indigo-600 hover:bg-indigo-500 text-white font-brand font-black px-3 py-3 rounded-xl text-[11px] uppercase leading-tight"><i class="fa-solid fa-paper-plane mr-1"></i> Отправить выбранным</button>
-            </div>
-        </div>
-    </div>
+    <div id="modal-notification-queue" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="notification-queue-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center"><div class="admin-tool-panel">
+<header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span><div class="admin-tool-heading"><h3 id="notification-queue-title">Очередь уведомлений</h3><p>Изменения игр и назначений</p></div><button type="button" class="admin-tool-close" onclick="closeNotificationQueueModal()" aria-label="Закрыть окно">×</button></header>
+<div class="admin-tool-body"><p class="admin-tool-note">Выберите сотрудников для отправки в Telegram. Ненужные записи можно удалить из очереди.</p>
+<div class="staff-selection-toolbar"><button  type="button" onclick="setAllQueuedRecipients(true)" class="admin-tool-button ">Выбрать всех</button><button  type="button" onclick="setAllQueuedRecipients(false)" class="admin-tool-button ">Снять выбор</button></div><div id="notification-queue-list"></div></div>
+<footer class="admin-tool-footer"><button  type="button" onclick="closeNotificationQueueModal()" class="admin-tool-button ">Позже</button><button id="btn-delete-queued-notifications" type="button" onclick="deleteSelectedQueuedNotifications()" class="admin-tool-button danger hidden">Удалить выбранные</button><button id="btn-send-queued-notifications" type="button" onclick="sendSelectedQueuedNotifications()" class="admin-tool-button primary">Отправить выбранным</button></footer></div></div>
 
     <div id="modal-confirm-availability" role="dialog" aria-modal="true" aria-hidden="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
@@ -1677,47 +1755,22 @@
     </div>
 
 
-    <div id="modal-create-account" role="dialog" aria-modal="true" aria-labelledby="create-account-title" class="hidden admin-tool-modal fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4">
-        <form onsubmit="event.preventDefault(); submitCreateAccount()" class="bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-3">
-            <div class="flex items-center justify-between gap-2"><h3 id="create-account-title" class="text-white font-bold">Новый аккаунт</h3><button type="button" onclick="closeCreateAccount()" aria-label="Закрыть создание аккаунта" class="min-w-11 min-h-11 text-slate-300">✕</button></div>
-            <label for="create-account-name" class="block text-sm text-slate-300">ФИО</label>
-            <input id="create-account-name" required minlength="2" maxlength="80" autocomplete="off" class="admin-tool-input">
-            <label for="create-account-login" class="block text-sm text-slate-300">Логин</label>
-            <input id="create-account-login" required minlength="3" maxlength="32" autocomplete="off" autocapitalize="none" class="admin-tool-input">
-            <label for="create-account-password" class="block text-sm text-slate-300">Пароль (от 8 символов)</label>
-            <input id="create-account-password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" class="admin-tool-input">
-            <label for="create-account-role" class="block text-sm text-slate-300">Роль</label><select id="create-account-role" class="admin-tool-input"></select>
-            <label class="flex gap-2 items-start text-sm text-slate-300"><input id="create-account-activation" type="checkbox" class="mt-1 w-4 h-4">Требовать привязки Telegram перед началом работы</label>
-            <p class="text-xs text-slate-400">Передайте логин и пароль сотруднику лично. Он сможет подключить свой Telegram в профиле.</p>
-            <p id="create-account-status" role="status" aria-live="polite" class="text-sm text-slate-300"></p>
-            <button id="btn-create-account-submit" type="submit" class="w-full min-h-12 bg-indigo-600 text-white rounded-lg font-bold">Создать аккаунт</button>
-        </form>
-    </div>
-    <div id="modal-permissions" role="dialog" aria-modal="true" aria-labelledby="permissions-title" class="hidden admin-tool-modal fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4">
-        <form onsubmit="event.preventDefault(); savePermissionsEditor()" class="bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-3">
-            <div class="flex items-center justify-between gap-2"><h3 id="permissions-title" class="text-white font-bold">Персональные права</h3><button type="button" onclick="closePermissionsEditor()" aria-label="Закрыть права сотрудника" class="min-w-11 min-h-11 text-slate-300">✕</button></div>
-            <p id="permissions-person" class="text-sm text-slate-300"></p>
-            <p class="text-xs text-slate-400">«По роли» использует стандартный доступ. Явное разрешение или запрет действует независимо от роли. Сотруднику не потребуется выходить из аккаунта.</p>
-            <div id="permissions-options" class="space-y-3"></div>
-            <button type="button" onclick="resetPermissionsToRole()" class="w-full min-h-11 bg-slate-800 text-slate-200 rounded-lg text-sm">Все права — по роли</button>
-            <p id="permissions-status" role="status" aria-live="polite" class="text-sm text-slate-300"></p>
-            <button id="btn-permissions-save" type="submit" class="w-full min-h-12 bg-indigo-600 text-white rounded-lg font-bold">Сохранить права</button>
-        </form>
-    </div>
-    <div id="modal-staff-message" role="dialog" aria-modal="true" aria-labelledby="staff-message-title" class="hidden admin-tool-modal fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4">
-        <form onsubmit="event.preventDefault(); sendStaffMessage()" class="bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-3">
-            <div class="flex items-center justify-between gap-2"><h3 id="staff-message-title" class="text-white font-bold">Сообщение в Telegram</h3><button type="button" onclick="closeStaffMessage()" aria-label="Закрыть сообщение сотрудникам" class="min-w-11 min-h-11 text-slate-300">✕</button></div>
-            <label for="staff-message-search" class="block text-sm text-slate-300">Получатели (до 50)</label>
-            <input id="staff-message-search" type="search" placeholder="Найти сотрудника" oninput="filterStaffMessageRecipients()" class="admin-tool-input">
-            <div id="staff-message-recipients" class="space-y-2 max-h-52 overflow-y-auto"></div>
-            <label for="staff-message-text" class="block text-sm text-slate-300">Текст сообщения</label>
-            <textarea id="staff-message-text" required maxlength="2000" rows="5" placeholder="Например: общее собрание завтра в 10:00…" class="admin-tool-input"></textarea>
-            <p class="text-xs text-slate-400">Сообщение придёт выбранным сотрудникам от бота с вашим именем.</p>
-            <div id="staff-message-status" role="status" aria-live="polite" class="text-sm text-slate-300 whitespace-pre-line"></div>
-            <button id="btn-staff-message-send" type="submit" class="w-full min-h-12 bg-sky-700 text-white rounded-lg font-bold">Отправить выбранным</button>
-            <button type="button" onclick="startNewStaffMessage()" class="w-full min-h-11 bg-slate-800 text-slate-200 rounded-lg text-sm">Новое сообщение</button>
-        </form>
-    </div>
+    <div id="modal-create-account" role="dialog" aria-modal="true" aria-labelledby="create-account-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center"><form class="admin-tool-panel" onsubmit="event.preventDefault(); submitCreateAccount()"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M19 8v6M16 11h6"/><circle cx="9" cy="7" r="4"/></svg></span><div class="admin-tool-heading"><h3 id="create-account-title">Новый аккаунт</h3><p>Доступ к приложению для сотрудника</p></div><button type="button" class="admin-tool-close" onclick="closeCreateAccount()" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body"><div class="admin-tool-field"><label for="create-account-name">ФИО сотрудника</label><input id="create-account-name" required minlength="2" maxlength="80" autocomplete="off" placeholder="Например, Анна Иванова" class="admin-tool-input"></div>
+<div class="admin-tool-grid"><div class="admin-tool-field"><label for="create-account-login">Логин</label><input id="create-account-login" required minlength="3" maxlength="32" autocomplete="off" autocapitalize="none" placeholder="anna.ivanova" class="admin-tool-input"></div>
+<div class="admin-tool-field"><label for="create-account-password">Пароль · от 8 символов</label><input id="create-account-password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" class="admin-tool-input"></div></div>
+<div class="admin-tool-field"><label for="create-account-role">Роль в приложении</label><select id="create-account-role" class="admin-tool-input"></select></div>
+<label class="admin-tool-check"><input id="create-account-activation" type="checkbox"><span><strong>Обязательная привязка Telegram</strong><small>Сотрудник подключит бота перед началом работы.</small></span></label>
+<p class="admin-tool-note">Передайте логин и пароль сотруднику лично. Ваш аккаунт останется открытым.</p><p id="create-account-status" role="status" aria-live="polite" class="admin-tool-status"></p></div>
+<footer class="admin-tool-footer"><button  type="button" onclick="closeCreateAccount()" class="admin-tool-button ">Отмена</button><button id="btn-create-account-submit" type="submit"  class="admin-tool-button primary">Создать аккаунт</button></footer></form></div>
+    <div id="modal-permissions" role="dialog" aria-modal="true" aria-labelledby="permissions-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center"><form class="admin-tool-panel" onsubmit="event.preventDefault(); savePermissionsEditor()"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7l-9-4M8 12l3 3 5-6"/></svg></span><div class="admin-tool-heading"><h3 id="permissions-title">Права сотрудника</h3><p>Персональные исключения из прав роли</p></div><button type="button" class="admin-tool-close" onclick="closePermissionsEditor()" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body"><p id="permissions-person" class="permission-person"></p><p class="admin-tool-note">«По роли» использует её текущие настройки. Персональное разрешение или запрет важнее роли.</p><div id="permissions-options" class="permission-groups"></div><button  type="button" onclick="resetPermissionsToRole()" class="admin-tool-button ">Все права — по роли</button><div class="permission-locked"><strong>Только системный администратор</strong>Настройка прав сотрудников и ролей; изменение данных аккаунта и пароля; завершение чужих сессий; диагностика приложения и восстановление Telegram. Эти системные возможности не делегируются.</div><p id="permissions-status" role="status" aria-live="polite" class="admin-tool-status"></p></div><footer class="admin-tool-footer"><button  type="button" onclick="closePermissionsEditor()" class="admin-tool-button ">Отмена</button><button id="btn-permissions-save" type="submit"  class="admin-tool-button primary">Сохранить права</button></footer></form></div>
+    <div id="modal-role-permissions" role="dialog" aria-modal="true" aria-labelledby="role-permissions-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center"><form class="admin-tool-panel" onsubmit="event.preventDefault(); saveRolePermissionsEditor()"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7l-9-4M8 12l3 3 5-6"/></svg></span><div class="admin-tool-heading"><h3 id="role-permissions-title">Права роли</h3><p>Общий доступ для сотрудников одной роли</p></div><button type="button" class="admin-tool-close" onclick="closeRolePermissionsEditor()" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body"><p id="role-permissions-person" class="permission-person"></p><p class="admin-tool-note">Изменения применятся ко всем сотрудникам этой роли. Их персональные разрешения и запреты сохранятся, вход останется активным.</p><div id="role-permissions-options" class="permission-groups"></div><button  type="button" onclick="resetRolePermissionsEditor()" class="admin-tool-button ">Вернуть стандарт роли</button><div class="permission-locked"><strong>Только системный администратор</strong>Настройка прав сотрудников и ролей; изменение данных аккаунта и пароля; завершение чужих сессий; диагностика приложения и восстановление Telegram. Эти системные возможности не делегируются.</div><p id="role-permissions-status" role="status" aria-live="polite" class="admin-tool-status"></p></div><footer class="admin-tool-footer"><button  type="button" onclick="closeRolePermissionsEditor()" class="admin-tool-button ">Отмена</button><button id="btn-role-permissions-save" type="submit"  class="admin-tool-button primary">Сохранить роль</button></footer></form></div>
+    <div id="modal-staff-message" role="dialog" aria-modal="true" aria-labelledby="staff-message-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center"><form class="admin-tool-panel" onsubmit="event.preventDefault(); sendStaffMessage()"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7M22 2 11 13"/></svg></span><div class="admin-tool-heading"><h3 id="staff-message-title">Сообщение в Telegram</h3><p>От бота · с вашим именем</p></div><button type="button" class="admin-tool-close" onclick="closeStaffMessage()" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body"><div class="admin-tool-field"><label for="staff-message-search">Получатели</label><input id="staff-message-search" type="search" placeholder="Найти сотрудника" oninput="filterStaffMessageRecipients()" class="admin-tool-input"></div>
+<div class="staff-selection-toolbar"><button id="btn-staff-select-all" type="button" onclick="setAllStaffMessageRecipients(true)" class="admin-tool-button ">Выбрать всех</button><button id="btn-staff-clear-selection" type="button" onclick="setAllStaffMessageRecipients(false)" class="admin-tool-button ">Снять выбор</button></div>
+<div class="staff-selection-summary"><strong id="staff-message-selected" role="status" aria-live="polite"></strong><span id="staff-message-limit">До 50 за отправку</span></div>
+<div><div id="staff-message-recipients"></div><div id="staff-message-empty" class="hidden">Сотрудники не найдены.</div></div>
+<div class="admin-tool-field"><label for="staff-message-text">Текст сообщения</label><textarea id="staff-message-text" required maxlength="2000" rows="4" placeholder="Например: общее собрание завтра в 10:00…" oninput="updateStaffMessageSelection()" class="admin-tool-input"></textarea><div class="staff-selection-summary"><span>Получат только выбранные сотрудники</span><span id="staff-message-length">0 / 2000</span></div></div>
+<div id="staff-message-status" role="status" aria-live="polite" class="admin-tool-status"></div></div>
+<footer class="admin-tool-footer"><button  type="button" onclick="startNewStaffMessage()" class="admin-tool-button ">Новое сообщение</button><button id="btn-staff-message-send" type="submit"  class="admin-tool-button primary">Отправить</button></footer></form></div>
 
     <div id="modal-account" role="dialog" aria-modal="true" aria-labelledby="account-title" class="hidden fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4">
         <form onsubmit="event.preventDefault(); saveAccountEditor();" class="w-full max-w-lg max-h-[90dvh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-4">
@@ -1764,7 +1817,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzIidVamJF7DNSybl2hgFbQUBaehPoQybaTKnBaqzJat54l8DQRjYp2cMYoFdSDagbU/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzbpShZ2ejP5I4gXeGeYjqD9o91ye7zkkHMPRLHI0b0ldc39vqPPlq7F4Gsc3AWE0RF/exec";
         // ======================================================================================
 
         function createOperationId() {
@@ -1891,6 +1944,8 @@
             appState.role = normalizeClientRole(profile.role);
             appState.name = String(profile.name);
             appState.permissions = profile.permissions ? {...profile.permissions} : null;
+            appState.rolePermissions = profile.rolePermissions ? {...profile.rolePermissions} : null;
+            appState.rolePermissionOverrides = profile.rolePermissionOverrides || {};
             renderHeaderRole();
         }
 
@@ -1947,6 +2002,7 @@ const CLIENT_PERMISSIONS = {
             const staff = document.getElementById('btn-tab-staff');
             const canStaff = hasPermissionClient('view_staff');
             staff.classList.toggle('hidden',!canStaff); staff.classList.toggle('flex',canStaff);
+            if(!canStaff && isViewVisible('view-staff'))switchTab('tab-schedule');
             document.getElementById('admin-gsheet-box').classList.toggle('hidden',!isSysadminClient());
             document.getElementById('profile-permissions-box').classList.toggle('hidden',!isSysadminClient());
             document.getElementById('profile-tools').classList.toggle('hidden',!isSysadminClient()&&!hasPermissionClient('create_accounts')&&!hasPermissionClient('send_messages'));
@@ -2063,14 +2119,18 @@ const CLIENT_PERMISSIONS = {
             }
         }
 
-        function applyServerUserProfile(profile) {
+        function applyServerUserProfile(profile) { applyServerUserProfiles([profile]); }
+        function applyServerUserProfiles(profiles) {
             for (const state of [appState,cloudBaseline,lastConfirmedCloudState,pendingCloudSaveSnapshot,activeCloudSaveSnapshot]) {
                 if (!state?.users) continue;
-                const index=state.users.findIndex(user=>user.username===profile.username);
-                if (index<0) state.users.push(JSON.parse(JSON.stringify(profile)));
-                else state.users[index]=JSON.parse(JSON.stringify(profile));
+                profiles.forEach(profile=>{
+                    const index=state.users.findIndex(user=>user.username===profile.username);
+                    if (index<0) state.users.push(JSON.parse(JSON.stringify(profile)));
+                    else state.users[index]=JSON.parse(JSON.stringify(profile));
+                });
             }
-            if (profile.username===appState.user) applyAuthProfile(profile);
+            const own=profiles.find(profile=>profile.username===appState.user);
+            if(own)applyAuthProfile(own);
             persistLocalState(); applyPermissionVisibility(); renderVisibleViews();
         }
         function setAdminFormBusy(id, busy) {
@@ -2114,6 +2174,61 @@ const CLIENT_PERMISSIONS = {
             finally {delete payload.password;createAccountBusy=false;setAdminFormBusy('modal-create-account',false);}
         }
 
+
+        const PERMISSION_GROUPS=[["Игры и активности",["manage_games","delete_games","import_games","manage_catalog","respond_games"]],["График и дежурства",["manage_availability","edit_own_availability","manage_duty"]],["Сотрудники",["view_staff","create_accounts","assign_roles","ban_accounts"]],["Уведомления и журналы",["send_notifications","delete_notifications","publish_schedule","send_messages","view_logs","view_account_logs"]]];
+        const PERMISSION_DESCRIPTIONS={"manage_games":"Создание, изменение, состав, отмена игр и ответы за сотрудников.","delete_games":"Полное удаление игр из расписания.","import_games":"Распознавание расписания и добавление игр через ИИ.","manage_availability":"Изменение и подтверждение графика сотрудников.","manage_duty":"Назначение и изменение дежурных.","manage_catalog":"Добавление и удаление названий активностей.","view_staff":"Раздел «Персонал» и статистика сотрудников.","view_logs":"Общий журнал действий; свой журнал доступен всегда.","view_account_logs":"Входы и изменения аккаунтов других сотрудников.","send_notifications":"Рассылка изменений игр из очереди в Telegram.","delete_notifications":"Удаление записей только из очереди отправки.","publish_schedule":"Публикация расписания в общий Telegram-чат.","send_messages":"Сообщения выбранным сотрудникам в Telegram.","ban_accounts":"Блокировка и разблокировка в разделе «Персонал». Защищённые роли исключены.","assign_roles":"Назначение обычных ролей в разделе «Персонал». Директор и системный администратор защищены.","create_accounts":"Создание из профиля. Для роли выше инструктора также нужно право назначения ролей.","respond_games":"Принятие и отказ от своих игр в приложении и Telegram.","edit_own_availability":"Изменение собственного графика до его подтверждения."};
+        function renderPermissionOptions(containerId, overrides, role, inherited, roleEditor=false) {
+            const list=document.getElementById(containerId);list.replaceChildren();
+            PERMISSION_GROUPS.forEach(([title,keys])=>{
+                const group=document.createElement('section');group.className='permission-group';
+                const heading=document.createElement('h4');heading.textContent=title;group.append(heading);
+                keys.forEach(key=>{
+                    const definition=CLIENT_PERMISSIONS[key],label=document.createElement('label');label.className='permission-option';
+                    const text=document.createElement('span');text.textContent=definition.label;
+                    const detail=document.createElement('small');detail.textContent=PERMISSION_DESCRIPTIONS[key];text.append(detail);
+                    const select=document.createElement('select');select.dataset[roleEditor?'rolePermission':'permission']=key;select.className='admin-tool-input';
+                    const allowed=typeof inherited?.[key]==='boolean'?inherited[key]:definition.roles.includes(normalizeClientRole(role));
+                    select.replaceChildren(new Option((roleEditor?'Стандарт: ':'По роли: ')+(allowed?'да':'нет'),'default'),new Option('Разрешить','allow'),new Option('Запретить','deny'));
+                    select.value=overrides?.[key]===true?'allow':overrides?.[key]===false?'deny':'default';
+                    select.dataset.choice=select.value;select.addEventListener('change',()=>select.dataset.choice=select.value);
+                    label.append(text,select);group.append(label);
+                });
+                list.append(group);
+            });
+        }
+        function resetPermissionControls(selector) {
+            document.querySelectorAll(selector).forEach(select=>{select.value='default';select.dataset.choice='default';});
+        }
+        function readPermissionControls(selector, attribute) {
+            const result={};document.querySelectorAll(selector).forEach(select=>{if(select.value!=='default')result[select.dataset[attribute]]=select.value==='allow';});return result;
+        }
+        let rolePermissionsTarget=null,rolePermissionsBusy=false;
+        function openRolePermissionsEditor(role) {
+            if(!ensureSysadmin()||rolePermissionsBusy||!['director','manager','admin','instructor'].includes(role))return;
+            hideToast();rolePermissionsTarget={role,base:JSON.parse(JSON.stringify(appState.rolePermissionOverrides?.[role]||{}))};
+            const count=appState.users.filter(user=>normalizeClientRole(user.role)===role).length;
+            document.getElementById('role-permissions-person').textContent=roleLabel(role)+' · сотрудников: '+count;
+            renderPermissionOptions('role-permissions-options',rolePermissionsTarget.base,role,null,true);
+            document.getElementById('role-permissions-status').textContent='';
+            document.getElementById('modal-role-permissions').classList.remove('hidden');
+        }
+        function closeRolePermissionsEditor(){if(rolePermissionsBusy)return;rolePermissionsTarget=null;document.getElementById('modal-role-permissions').classList.add('hidden');}
+        function resetRolePermissionsEditor(){if(!rolePermissionsBusy)resetPermissionControls('[data-role-permission]');}
+        async function saveRolePermissionsEditor(){
+            if(!ensureSysadmin()||!rolePermissionsTarget||rolePermissionsBusy)return;
+            const target=rolePermissionsTarget,token=authToken,output=document.getElementById('role-permissions-status');
+            const permissions=readPermissionControls('[data-role-permission]','rolePermission');
+            rolePermissionsBusy=true;setAdminFormBusy('modal-role-permissions',true);output.textContent='Сохраняю права роли…';
+            try{
+                const result=await apiPost({action:'set_role_permissions',role:target.role,base:target.base,permissions});
+                if(token!==authToken)return;
+                if(result?.status!=='success'||!result.user||!Array.isArray(result.users))throw Error(result?.message||'Изменение прав роли не подтверждено.');
+                rolePermissionsTarget={role:target.role,base:JSON.parse(JSON.stringify(result.permissions))};
+                applyServerUserProfiles(result.users);applyAuthProfile(result.user);
+                output.textContent='Права роли сохранены. Персональные исключения и вход сотрудников сохранены.';
+            }catch(error){if(token===authToken)output.textContent=error.message;}
+            finally{rolePermissionsBusy=false;setAdminFormBusy('modal-role-permissions',false);}
+        }
         let permissionsTarget=null,permissionsBusy=false;
         function openPermissionsEditor(username) {
             if (!ensureSysadmin() || permissionsBusy) return;
@@ -2122,21 +2237,12 @@ const CLIENT_PERMISSIONS = {
             hideToast();
             permissionsTarget=JSON.parse(JSON.stringify(user));
             document.getElementById('permissions-person').textContent=user.name+' · '+roleLabel(user.role);
-            const list=document.getElementById('permissions-options');list.replaceChildren();
-            Object.entries(CLIENT_PERMISSIONS).forEach(([key,definition])=>{
-                const label=document.createElement('label');label.className='permission-option';
-                const text=document.createElement('span');text.textContent=definition.label;
-                const select=document.createElement('select');select.dataset.permission=key;select.className='admin-tool-input';
-                const roleAllowed=definition.roles.includes(normalizeClientRole(user.role));
-                select.replaceChildren(new Option('По роли: '+(roleAllowed?'да':'нет'),'default'),new Option('Разрешить','allow'),new Option('Запретить','deny'));
-                select.value=user.permissionOverrides?.[key]===true?'allow':user.permissionOverrides?.[key]===false?'deny':'default';
-                label.append(text,select);list.append(label);
-            });
+            renderPermissionOptions('permissions-options',user.permissionOverrides,user.role,user.rolePermissions);
             document.getElementById('permissions-status').textContent='';
             document.getElementById('modal-permissions').classList.remove('hidden');
         }
         function closePermissionsEditor() {if(permissionsBusy)return;permissionsTarget=null;document.getElementById('modal-permissions').classList.add('hidden');}
-        function resetPermissionsToRole() {if(!permissionsBusy)document.querySelectorAll('[data-permission]').forEach(select=>select.value='default');}
+        function resetPermissionsToRole() {if(!permissionsBusy)resetPermissionControls('[data-permission]');}
         async function savePermissionsEditor() {
             if(!ensureSysadmin()||!permissionsTarget||permissionsBusy)return;
             const permissions={};document.querySelectorAll('[data-permission]').forEach(select=>{if(select.value!=='default')permissions[select.dataset.permission]=select.value==='allow';});
@@ -2184,6 +2290,13 @@ const CLIENT_PERMISSIONS = {
 
         let staffMessageBusy=false,staffMessageAttempt=null;
         const STAFF_MESSAGE_DRAFT_KEY='park_v29_staff_message';
+        function staffMessageUnavailableReason(user) {
+            if(checkUserBanStatus(user))return 'Аккаунт заблокирован';
+            if(user.activationRequired)return 'Ожидает активации';
+            if(user.assignable===false)return 'Аккаунт недоступен';
+            if(telegramBindingState(user)!==true)return 'Telegram не подключён';
+            return '';
+        }
         function openStaffMessage() {
             if(!ensurePermissionClient('send_messages')||staffMessageBusy)return;
             hideToast();
@@ -2193,20 +2306,42 @@ const CLIENT_PERMISSIONS = {
             const chosen=new Set(staffMessageAttempt?.recipients||[]);
             const list=document.getElementById('staff-message-recipients');list.replaceChildren();
             appState.users.forEach(user=>{
-                const label=document.createElement('label');label.className='flex items-center gap-3 text-sm text-slate-300 py-2';label.dataset.staffSearch=user.name.toLocaleLowerCase('ru');
-                const input=document.createElement('input');input.type='checkbox';input.value=user.username;input.className='staff-message-recipient w-5 h-5';
-                input.disabled=user.assignable===false||checkUserBanStatus(user)||user.activationRequired||telegramBindingState(user)===false;input.checked=chosen.has(user.username);
-                const name=document.createElement('span');name.textContent=user.name+(input.disabled?' · недоступен для отправки':'');
-                label.append(input,name);list.append(label);
+                const reason=staffMessageUnavailableReason(user),label=document.createElement('label');
+                label.className='staff-recipient';label.dataset.staffSearch=user.name.toLocaleLowerCase('ru');
+                const input=document.createElement('input');input.type='checkbox';input.value=user.username;input.className='staff-message-recipient';
+                input.disabled=!!reason;input.checked=chosen.has(user.username);input.addEventListener('change',updateStaffMessageSelection);
+                const avatar=document.createElement('span');avatar.className='staff-recipient-avatar';avatar.setAttribute('aria-hidden','true');avatar.textContent=user.name.trim().slice(0,1).toLocaleUpperCase('ru');
+                const copy=document.createElement('span');copy.className='staff-recipient-copy';
+                const name=document.createElement('strong');name.textContent=user.name;
+                const detail=document.createElement('small');detail.textContent=reason||roleLabel(user.role)+' · Telegram подключён';
+                copy.append(name,detail);label.append(input,avatar,copy);list.append(label);
             });
             document.getElementById('staff-message-search').value='';
             document.getElementById('staff-message-text').value=staffMessageAttempt?.text||'';
-            document.getElementById('staff-message-status').textContent=staffMessageAttempt?'Сохранена предыдущая отправка. Повтор проверит её результат и отправит только недоставленные сообщения.':'';
+            document.getElementById('staff-message-status').textContent=staffMessageAttempt?'Сохранена предыдущая отправка. Повтор проверит результат и отправит только недоставленные сообщения.':'';
             document.getElementById('modal-staff-message').classList.remove('hidden');
+            filterStaffMessageRecipients();updateStaffMessageSelection();
         }
         function filterStaffMessageRecipients() {
             const value=document.getElementById('staff-message-search').value.toLocaleLowerCase('ru').trim();
-            document.querySelectorAll('[data-staff-search]').forEach(row=>row.classList.toggle('hidden',!row.dataset.staffSearch.includes(value)));
+            const rows=Array.from(document.querySelectorAll('[data-staff-search]'));
+            rows.forEach(row=>row.classList.toggle('hidden',!row.dataset.staffSearch.includes(value)));
+            document.getElementById('staff-message-empty').classList.toggle('hidden',rows.some(row=>!row.classList.contains('hidden')));
+        }
+        function setAllStaffMessageRecipients(checked) {
+            if(staffMessageBusy)return;
+            document.querySelectorAll('.staff-message-recipient').forEach(input=>{input.checked=checked&&!input.disabled;});
+            updateStaffMessageSelection();
+        }
+        function updateStaffMessageSelection() {
+            const inputs=Array.from(document.querySelectorAll('.staff-message-recipient'));
+            const selected=inputs.filter(input=>input.checked).length,available=inputs.filter(input=>!input.disabled);
+            document.getElementById('staff-message-selected').textContent='Выбрано: '+selected+' · доступно: '+available.length;
+            const limit=document.getElementById('staff-message-limit');limit.dataset.overLimit=String(selected>50);
+            limit.textContent=selected>50?'Лимит — 50. Уменьшите выбор.':'До 50 за отправку';
+            document.getElementById('staff-message-length').textContent=document.getElementById('staff-message-text').value.length+' / 2000';
+            document.getElementById('btn-staff-select-all').disabled=staffMessageBusy||!available.length||available.every(input=>input.checked);
+            document.getElementById('btn-staff-clear-selection').disabled=staffMessageBusy||!selected;
         }
         function closeStaffMessage(){if(!staffMessageBusy)document.getElementById('modal-staff-message').classList.add('hidden');}
         function startNewStaffMessage(){
@@ -2233,7 +2368,7 @@ const CLIENT_PERMISSIONS = {
                 if(result.deliveries.some(row=>row.status==='unknown'))output.textContent+='\n\nСообщения без подтверждения повторно не отправляются автоматически.';
                 if(result.deliveries.every(row=>row.status==='sent'))tryLocalStorageWrite(()=>localStorage.removeItem(STAFF_MESSAGE_DRAFT_KEY));
             }catch(error){if(token===authToken)output.textContent=error.message+'\nПовторите отправку с теми же получателями и текстом: уже доставленные сообщения не повторятся.';}
-            finally{staffMessageBusy=false;setAdminFormBusy('modal-staff-message',false);}
+            finally{staffMessageBusy=false;setAdminFormBusy('modal-staff-message',false);updateStaffMessageSelection();}
         }
 
         async function checkSystemHealth() {
@@ -2753,7 +2888,7 @@ const CLIENT_PERMISSIONS = {
 
         function safeBootCore(state) {
             const core = cloneCoreState(state);
-            const fields = ['username', 'name', 'role', 'telegramLinked', 'activationRequired', 'assignable', 'blocked', 'banUntil', 'permissions', 'permissionOverrides'];
+            const fields = ['username', 'name', 'role', 'telegramLinked', 'activationRequired', 'assignable', 'blocked', 'banUntil', 'permissions', 'permissionOverrides', 'rolePermissions', 'rolePermissionOverrides'];
             core.users = core.users.map(user => {
                 const linked = telegramBindingState(user);
                 const safe = Object.fromEntries(fields.filter(key => key in user).map(key => [key, user[key]]));
@@ -2767,7 +2902,7 @@ const CLIENT_PERMISSIONS = {
             if (!authToken || !appState.user || !lastConfirmedCloudState) return;
             return tryLocalStorageWrite(() => {
                 const serialized = JSON.stringify({ token: authToken,
-                    profile: { username: appState.user, name: appState.name, role: appState.role, permissions:appState.permissions },
+                    profile: { username: appState.user, name: appState.name, role: appState.role, permissions:appState.permissions, rolePermissions:appState.rolePermissions, rolePermissionOverrides:appState.rolePermissionOverrides },
                     confirmed: safeBootCore(lastConfirmedCloudState), local: safeBootCore(appState), notifications: appState.notifications });
                 if (localStorage.getItem(BOOT_CACHE_KEY) !== serialized) localStorage.setItem(BOOT_CACHE_KEY, serialized);
             });
@@ -3112,12 +3247,12 @@ const CLIENT_PERMISSIONS = {
                 return;
             }
             container.innerHTML = groups.map(group => `
-                <div class="block bg-slate-950 border border-slate-800 rounded-xl p-3.5 cursor-pointer hover:border-indigo-500/40 active:bg-slate-900 transition select-none">
+                <div class="queue-recipient">
                     <div class="flex items-start gap-3">
                         <input type="checkbox" aria-label="Выбрать уведомления для ${escapeHtmlAttribute(group.targetName)}" class="notification-recipient-cb mt-0.5 w-5 h-5 flex-shrink-0 accent-indigo-400" value="${escapeHtmlAttribute(group.items.map(item => item.id).join(','))}">
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2"><b class="text-[13px] text-white truncate">${escapeTelegramHtml(group.targetName)}</b><span class="text-[9px] bg-indigo-500/15 text-indigo-300 border border-indigo-500/25 px-1.5 py-0.5 rounded font-bold">${group.items.length}</span></div>
-                            <div class="text-[11px] text-slate-400 mt-1.5 leading-relaxed break-words">${group.items.map(item => `<div class="flex items-center justify-between gap-2 py-2"><span>${escapeTelegramHtml(buildQueuedSchedulePreview(group.targetName, item))}</span>${hasPermissionClient('delete_notifications') ? `<button type="button" data-delete-queue="${escapeHtmlAttribute(item.id)}" onclick="deleteSelectedQueuedNotifications(['${escapeJsString(item.id)}'])" aria-label="Удалить уведомление для ${escapeHtmlAttribute(group.targetName)} на ${escapeHtmlAttribute(item.date)}" class="min-h-11 text-rose-300 text-xs px-2">Удалить</button>` : ''}</div>`).join('')}</div>
+                            <div class="text-[11px] text-slate-400 mt-1.5 leading-relaxed break-words">${group.items.map(item => `<div class="queue-event"><span>${escapeTelegramHtml(buildQueuedSchedulePreview(group.targetName, item))}</span>${hasPermissionClient('delete_notifications') ? `<button type="button" data-delete-queue="${escapeHtmlAttribute(item.id)}" onclick="deleteSelectedQueuedNotifications(['${escapeJsString(item.id)}'])" aria-label="Удалить уведомление для ${escapeHtmlAttribute(group.targetName)} на ${escapeHtmlAttribute(item.date)}" class="min-h-11 text-rose-300 text-xs px-2">Удалить</button>` : ''}</div>`).join('')}</div>
                         </div>
                     </div>
                 </div>`).join('');
@@ -4344,10 +4479,8 @@ const CLIENT_PERMISSIONS = {
                 if (gamesChanged) {
                     updateGlobalGameSelects();
                 }
-                if (canOperateClient()) {
-                    if (gamesChanged && isViewVisible('view-settings')) renderGameManager();
-                    if ((usersChanged || shiftsChanged) && isViewVisible('view-staff')) renderStaffManager();
-                }
+                if (hasPermissionClient('manage_catalog') && gamesChanged && isViewVisible('view-settings')) renderGameManager();
+                if (hasPermissionClient('view_staff') && (usersChanged || shiftsChanged) && isViewVisible('view-staff')) renderStaffManager();
                 cloudRefreshFailureCount = 0;
                 lastCloudRefreshError = null;
                 applyPermissionVisibility();
@@ -4764,7 +4897,7 @@ const CLIENT_PERMISSIONS = {
                 saveAuthSession(login.token, login.expiresAt);
                 if (keepDrafts) {
                     previousCache.token = login.token;
-                    previousCache.profile = {username:login.user.username, name:login.user.name, role:login.user.role, permissions:login.user.permissions};
+                    previousCache.profile = {username:login.user.username, name:login.user.name, role:login.user.role, permissions:login.user.permissions, rolePermissions:login.user.rolePermissions, rolePermissionOverrides:login.user.rolePermissionOverrides};
                     try { localStorage.setItem(BOOT_CACHE_KEY, JSON.stringify(previousCache)); } catch (error) {}
                 }
                 document.getElementById('login-pass').value = '';
