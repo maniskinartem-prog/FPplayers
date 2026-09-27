@@ -2,7 +2,7 @@
 <html lang="ru" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="application-version" content="import-audit-20260918-v26">
+    <meta name="application-version" content="staff-audit-20260927-v30">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.googleusercontent.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
     <title>Family-Park-Координатор PRO</title>
@@ -689,6 +689,17 @@
         #session-recovery button { min-height: 44px; padding: 8px 12px; border: 1px solid #475569; border-radius: 9px; color: #e2e8f0; background: #1e293b; font-size: 12px; }
         #session-recovery #btn-session-retry { background: #047857; color: white; border-color: #059669; font-weight: bold; }
         #session-recovery button:focus-visible { outline: 2px solid #fcd34d; outline-offset: 2px; }
+
+        .admin-tool-modal { z-index: 121; }
+        .admin-tool-modal form { width:100%; max-width:36rem; max-height:calc(100dvh - 32px); overflow-y:auto; overscroll-behavior:contain; }
+        .admin-tool-input { display:block; width:100%; color:#f1f5f9; background:#020617; border:1px solid #334155; border-radius:10px; padding:12px; font-size:16px; }
+        .admin-tool-modal button[type=submit] { background:#4f46e5; color:white; min-height:48px; padding:12px; border-radius:10px; font-size:14px; font-weight:700; }
+        .admin-tool-modal p, .admin-tool-modal label, .admin-tool-modal label span { font-size:13px; line-height:1.5; }
+        #staff-message-status { white-space:pre-line; overflow-wrap:anywhere; }
+        #btn-create-account, #btn-staff-message { background:#334155; padding:12px; border-radius:10px; font-size:14px; color:white; }
+        .admin-tool-modal button:disabled { opacity:.5; cursor:wait; }
+        .permission-option { display:grid; grid-template-columns:minmax(0,1fr) 155px; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid #334155; color:#cbd5e1; font-size:13px; }
+        @media(max-width:380px) { .permission-option {grid-template-columns:1fr;} }
     </style>
     <style>
         /* Keep the account dialog above the fixed navigation; these new styles
@@ -1249,6 +1260,18 @@
 
         <div id="view-settings" class="flex flex-col h-full space-y-4 hidden">
 
+            <div id="profile-tools" class="hidden bg-slate-900 border border-indigo-500/30 rounded-xl p-4 space-y-3 flex-shrink-0">
+                <h3 class="text-white font-bold">Управление сотрудниками</h3>
+                <button id="btn-create-account" type="button" onclick="openCreateAccount()" class="w-full min-h-12 bg-indigo-600 text-white rounded-lg font-bold text-sm">Создать аккаунт</button>
+                <button id="btn-staff-message" type="button" onclick="openStaffMessage()" class="w-full min-h-12 bg-sky-700 text-white rounded-lg font-bold text-sm">Сообщение сотрудникам в Telegram</button>
+                <div id="profile-permissions-box" class="hidden space-y-2">
+                    <label for="profile-permissions-user" class="block text-sm text-slate-300">Персональные права сотрудника</label>
+                    <select id="profile-permissions-user" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-base text-white"></select>
+                    <button type="button" onclick="openPermissionsEditor(document.getElementById('profile-permissions-user').value)" class="w-full min-h-12 bg-slate-800 text-indigo-200 rounded-lg font-bold text-sm">Настроить права</button>
+                </div>
+            </div>
+
+
             <div id="telegram-binding-box" class="space-y-3 flex-shrink-0">
                 <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-brands fa-telegram text-sky-400 mr-1"></i> Telegram</h3>
                 <div class="bg-slate-900 border border-sky-500/30 rounded-xl p-3 shadow-md space-y-2">
@@ -1410,6 +1433,7 @@
             <div id="notification-queue-list" class="flex-grow min-h-0 overflow-y-auto ios-scroll space-y-2 pr-1"></div>
             <div class="flex space-x-2 pt-2 border-t border-slate-800">
                 <button onclick="closeNotificationQueueModal()" class="flex-1 min-h-12 bg-slate-800 text-slate-300 font-bold px-3 py-3 rounded-xl text-xs">Позже</button>
+                <button id="btn-delete-queued-notifications" type="button" onclick="deleteSelectedQueuedNotifications()" class="hidden min-h-12 bg-rose-950 text-rose-200 rounded-xl p-3 text-xs font-bold">Удалить выбранные</button>
                 <button id="btn-send-queued-notifications" onclick="sendSelectedQueuedNotifications()" class="flex-[1.4] min-h-12 bg-indigo-600 hover:bg-indigo-500 text-white font-brand font-black px-3 py-3 rounded-xl text-[11px] uppercase leading-tight"><i class="fa-solid fa-paper-plane mr-1"></i> Отправить выбранным</button>
             </div>
         </div>
@@ -1652,6 +1676,49 @@
         </div>
     </div>
 
+
+    <div id="modal-create-account" role="dialog" aria-modal="true" aria-labelledby="create-account-title" class="hidden admin-tool-modal fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4">
+        <form onsubmit="event.preventDefault(); submitCreateAccount()" class="bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between gap-2"><h3 id="create-account-title" class="text-white font-bold">Новый аккаунт</h3><button type="button" onclick="closeCreateAccount()" aria-label="Закрыть создание аккаунта" class="min-w-11 min-h-11 text-slate-300">✕</button></div>
+            <label for="create-account-name" class="block text-sm text-slate-300">ФИО</label>
+            <input id="create-account-name" required minlength="2" maxlength="80" autocomplete="off" class="admin-tool-input">
+            <label for="create-account-login" class="block text-sm text-slate-300">Логин</label>
+            <input id="create-account-login" required minlength="3" maxlength="32" autocomplete="off" autocapitalize="none" class="admin-tool-input">
+            <label for="create-account-password" class="block text-sm text-slate-300">Пароль (от 8 символов)</label>
+            <input id="create-account-password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" class="admin-tool-input">
+            <label for="create-account-role" class="block text-sm text-slate-300">Роль</label><select id="create-account-role" class="admin-tool-input"></select>
+            <label class="flex gap-2 items-start text-sm text-slate-300"><input id="create-account-activation" type="checkbox" class="mt-1 w-4 h-4">Требовать привязки Telegram перед началом работы</label>
+            <p class="text-xs text-slate-400">Передайте логин и пароль сотруднику лично. Он сможет подключить свой Telegram в профиле.</p>
+            <p id="create-account-status" role="status" aria-live="polite" class="text-sm text-slate-300"></p>
+            <button id="btn-create-account-submit" type="submit" class="w-full min-h-12 bg-indigo-600 text-white rounded-lg font-bold">Создать аккаунт</button>
+        </form>
+    </div>
+    <div id="modal-permissions" role="dialog" aria-modal="true" aria-labelledby="permissions-title" class="hidden admin-tool-modal fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4">
+        <form onsubmit="event.preventDefault(); savePermissionsEditor()" class="bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between gap-2"><h3 id="permissions-title" class="text-white font-bold">Персональные права</h3><button type="button" onclick="closePermissionsEditor()" aria-label="Закрыть права сотрудника" class="min-w-11 min-h-11 text-slate-300">✕</button></div>
+            <p id="permissions-person" class="text-sm text-slate-300"></p>
+            <p class="text-xs text-slate-400">«По роли» использует стандартный доступ. Явное разрешение или запрет действует независимо от роли. Сотруднику не потребуется выходить из аккаунта.</p>
+            <div id="permissions-options" class="space-y-3"></div>
+            <button type="button" onclick="resetPermissionsToRole()" class="w-full min-h-11 bg-slate-800 text-slate-200 rounded-lg text-sm">Все права — по роли</button>
+            <p id="permissions-status" role="status" aria-live="polite" class="text-sm text-slate-300"></p>
+            <button id="btn-permissions-save" type="submit" class="w-full min-h-12 bg-indigo-600 text-white rounded-lg font-bold">Сохранить права</button>
+        </form>
+    </div>
+    <div id="modal-staff-message" role="dialog" aria-modal="true" aria-labelledby="staff-message-title" class="hidden admin-tool-modal fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4">
+        <form onsubmit="event.preventDefault(); sendStaffMessage()" class="bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between gap-2"><h3 id="staff-message-title" class="text-white font-bold">Сообщение в Telegram</h3><button type="button" onclick="closeStaffMessage()" aria-label="Закрыть сообщение сотрудникам" class="min-w-11 min-h-11 text-slate-300">✕</button></div>
+            <label for="staff-message-search" class="block text-sm text-slate-300">Получатели (до 50)</label>
+            <input id="staff-message-search" type="search" placeholder="Найти сотрудника" oninput="filterStaffMessageRecipients()" class="admin-tool-input">
+            <div id="staff-message-recipients" class="space-y-2 max-h-52 overflow-y-auto"></div>
+            <label for="staff-message-text" class="block text-sm text-slate-300">Текст сообщения</label>
+            <textarea id="staff-message-text" required maxlength="2000" rows="5" placeholder="Например: общее собрание завтра в 10:00…" class="admin-tool-input"></textarea>
+            <p class="text-xs text-slate-400">Сообщение придёт выбранным сотрудникам от бота с вашим именем.</p>
+            <div id="staff-message-status" role="status" aria-live="polite" class="text-sm text-slate-300 whitespace-pre-line"></div>
+            <button id="btn-staff-message-send" type="submit" class="w-full min-h-12 bg-sky-700 text-white rounded-lg font-bold">Отправить выбранным</button>
+            <button type="button" onclick="startNewStaffMessage()" class="w-full min-h-11 bg-slate-800 text-slate-200 rounded-lg text-sm">Новое сообщение</button>
+        </form>
+    </div>
+
     <div id="modal-account" role="dialog" aria-modal="true" aria-labelledby="account-title" class="hidden fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4">
         <form onsubmit="event.preventDefault(); saveAccountEditor();" class="w-full max-w-lg max-h-[90dvh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-4">
             <div class="flex items-center justify-between gap-3">
@@ -1697,7 +1764,7 @@
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw75d0417OBzjtDEjMZc3E-FinwSuEjMwIQs2JtPFB_Ptqaytb_PjxN9Ot1aXvULIon/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzIidVamJF7DNSybl2hgFbQUBaehPoQybaTKnBaqzJat54l8DQRjYp2cMYoFdSDagbU/exec";
         // ======================================================================================
 
         function createOperationId() {
@@ -1711,34 +1778,44 @@
         // Короткий GET-таймаут давал ложную ошибку именно после уже успешной
         // записи. Эти пределы покрывают реальную скорость опубликованного сервера,
         // но каждая операция всё равно гарантированно завершается, а не висит вечно.
-        const CLOUD_POST_TIMEOUT_MS = 20000;
+        const CLOUD_POST_TIMEOUT_MS = 45000;
         const CLOUD_AUTH_TIMEOUT_MS = 45000;
-        const CLOUD_GET_TIMEOUT_MS = 30000;
+        const CLOUD_GET_TIMEOUT_MS = 45000;
         const CLOUD_CONFIRM_TIMEOUT_MS = 30000;
         const CLOUD_SYNC_WAIT_TIMEOUT_MS = 35000;
+        const CLOUD_REFRESH_INTERVAL_MS = 30000;
         const AUTH_STORAGE_KEY = 'park_v6_auth_session';
         const BOOT_CACHE_KEY = 'park_v11_session_cache';
         const MAX_LOCAL_LOGS = 500;
         let authToken = '';
         let authStorageReadFailed = false;
 
-        async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_GET_TIMEOUT_MS) {
+        async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_GET_TIMEOUT_MS, readResponse = response => response) {
             const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            const timeout = new Error(`Сервер не ответил за ${Math.ceil(timeoutMs / 1000)} сек. Повторим подключение.`);
+            timeout.code = 'request_timeout'; timeout.retryable = true;
+            let timer;
             try {
-                return await fetch(url, { ...options, signal: controller.signal });
+                // The deadline covers headers AND the body. Mobile WebViews can
+                // receive headers and then stop delivering JSON indefinitely.
+                return await Promise.race([
+                    (async () => readResponse(await fetch(url, { ...options, signal: controller.signal })))(),
+                    new Promise((resolve, reject) => { timer = setTimeout(() => { controller.abort(); reject(timeout); }, timeoutMs); })
+                ]);
             } catch (error) {
-                if (controller.signal.aborted) {
-                    const timeout = new Error(`Сервер не ответил за ${Math.ceil(timeoutMs / 1000)} сек. Повторите обновление.`);
-                    timeout.code = 'request_timeout';
-                    throw timeout;
-                }
+                if (controller.signal.aborted) throw timeout;
+                if (error && typeof error.code === 'string') throw error;
                 const networkError = new Error('Не удалось связаться с сервером приложения. Повторите обновление.');
-                networkError.code = 'network_error';
+                networkError.code = 'network_error'; networkError.retryable = true;
                 throw networkError;
             } finally {
                 clearTimeout(timer);
             }
+        }
+
+        function isRetryableCloudError(error) {
+            if (!error || error.authRequired || error.code === 'conflict' || error.code === 'rollback_failed') return false;
+            return error.retryable === true || ['request_timeout', 'network_error', 'invalid_response', 'confirmation_unknown', 'server_busy', 'storage_unavailable', 'rate_limited'].includes(error.code);
         }
 
         function readLocalJson(key, fallback) {
@@ -1813,6 +1890,7 @@
             appState.user = String(profile.username);
             appState.role = normalizeClientRole(profile.role);
             appState.name = String(profile.name);
+            appState.permissions = profile.permissions ? {...profile.permissions} : null;
             renderHeaderRole();
         }
 
@@ -1827,8 +1905,60 @@
             badge.dataset.role = role;
             document.querySelector('.header-profile').dataset.role = role;
         }
-        function canOperateClient(role = appState.role) { return ['sysadmin', 'director', 'manager', 'admin'].includes(normalizeClientRole(role)); }
-        function canDeleteGamesClient() { return ['sysadmin', 'director'].includes(normalizeClientRole(appState.role)); }
+const CLIENT_PERMISSIONS = {
+  manage_games: {label:'Создание и изменение игр', roles:['director','manager','admin']},
+  delete_games: {label:'Удаление игр', roles:['director']},
+  import_games: {label:'ИИ-импорт игр', roles:['director','manager','admin']},
+  manage_availability: {label:'График сотрудников', roles:['director','manager','admin']},
+  manage_duty: {label:'Назначение дежурных', roles:['director','manager','admin']},
+  manage_catalog: {label:'Каталог активностей', roles:['director','manager','admin']},
+  view_staff: {label:'Персонал и статистика', roles:['director','manager','admin']},
+  view_logs: {label:'Общий журнал действий', roles:['director','manager','admin']},
+  view_account_logs: {label:'Журнал аккаунтов сотрудников', roles:['director']},
+  send_notifications: {label:'Отправка уведомлений об играх', roles:['director','manager','admin']},
+  delete_notifications: {label:'Удаление уведомлений из очереди', roles:[]},
+  publish_schedule: {label:'Публикация расписания в чат', roles:['director','manager','admin']},
+  send_messages: {label:'Сообщения выбранным сотрудникам', roles:['director']},
+  ban_accounts: {label:'Блокировка сотрудников', roles:['director','manager','admin']},
+  assign_roles: {label:'Назначение ролей сотрудников', roles:['director']},
+  create_accounts: {label:'Создание аккаунтов', roles:[]},
+  respond_games: {label:'Ответ на свои игры', roles:['director','manager','admin','instructor']},
+  edit_own_availability: {label:'Изменение своего графика', roles:['director','manager','admin','instructor']}
+};
+
+        function hasPermissionClient(key) {
+            if (normalizeClientRole(appState.role) === 'sysadmin') return Boolean(CLIENT_PERMISSIONS[key]);
+            if (appState.permissions && typeof appState.permissions[key] === 'boolean') return appState.permissions[key];
+            return Boolean(CLIENT_PERMISSIONS[key]?.roles.includes(normalizeClientRole(appState.role)));
+        }
+        function ensurePermissionClient(key) {
+            if (hasPermissionClient(key)) return true;
+            showToast('Недостаточно прав: ' + (CLIENT_PERMISSIONS[key]?.label || 'это действие') + '.', true);
+            return false;
+        }
+        function canAccessQueueClient() {
+            return ['send_notifications','delete_notifications','manage_games','manage_availability','manage_duty'].some(hasPermissionClient);
+        }
+        function applyPermissionVisibility() {
+            const controls = {'btn-admin-add-game':'manage_games','btn-admin-publish':'publish_schedule','admin-games-box':'manage_catalog','avail-admin-summary':'manage_availability','ai-parser-box':'import_games','btn-create-account':'create_accounts','btn-staff-message':'send_messages','btn-send-queued-notifications':'send_notifications','btn-delete-queued-notifications':'delete_notifications'};
+            Object.entries(controls).forEach(([id,key])=>document.getElementById(id)?.classList.toggle('hidden',!hasPermissionClient(key)));
+            document.getElementById('btn-admin-notification-queue').classList.toggle('hidden',!canAccessQueueClient());
+            document.querySelectorAll('[onclick^="setMyAvailabilityRange"]').forEach(button=>button.disabled=!hasPermissionClient('edit_own_availability'));
+            const staff = document.getElementById('btn-tab-staff');
+            const canStaff = hasPermissionClient('view_staff');
+            staff.classList.toggle('hidden',!canStaff); staff.classList.toggle('flex',canStaff);
+            document.getElementById('admin-gsheet-box').classList.toggle('hidden',!isSysadminClient());
+            document.getElementById('profile-permissions-box').classList.toggle('hidden',!isSysadminClient());
+            document.getElementById('profile-tools').classList.toggle('hidden',!isSysadminClient()&&!hasPermissionClient('create_accounts')&&!hasPermissionClient('send_messages'));
+            if (isSysadminClient()) {
+                const select=document.getElementById('profile-permissions-user'), selected=select.value;
+                select.replaceChildren(...appState.users.filter(user=>user.role!=='sysadmin').map(user=>new Option(user.name+' · '+roleLabel(user.role),user.username)));
+                if ([...select.options].some(option=>option.value===selected)) select.value=selected;
+            }
+        }
+
+        function canOperateClient(role) { return role === undefined ? hasPermissionClient('manage_games') : ['sysadmin','director','manager','admin'].includes(normalizeClientRole(role)); }
+        function canDeleteGamesClient() { return hasPermissionClient('delete_games'); }
         function isSysadminClient() { return appState.role === 'sysadmin'; }
         function ensureSysadmin() {
             if (isSysadminClient()) return true;
@@ -1836,12 +1966,12 @@
             return false;
         }
         function canBanClient(target) {
-            return Boolean(canOperateClient() && target && target.username !== appState.user && !['sysadmin', 'director'].includes(normalizeClientRole(target.role)));
+            return Boolean(hasPermissionClient('ban_accounts') && target && target.username !== appState.user && !['sysadmin', 'director'].includes(normalizeClientRole(target.role)));
         }
         function editableRoles(target) {
             if (!target || target.role === 'sysadmin') return [];
             if (isSysadminClient()) return ['director', 'manager', 'admin', 'instructor'];
-            if (appState.role === 'director' && target.role !== 'director') return ['manager', 'admin', 'instructor'];
+            if (hasPermissionClient('assign_roles') && target.role !== 'director') return ['manager', 'admin', 'instructor'];
             return [];
         }
         function accountButtonHtml(target) {
@@ -1932,6 +2062,180 @@
                 ['btn-account-save','btn-account-revoke'].forEach(id => { document.getElementById(id).disabled = false; });
             }
         }
+
+        function applyServerUserProfile(profile) {
+            for (const state of [appState,cloudBaseline,lastConfirmedCloudState,pendingCloudSaveSnapshot,activeCloudSaveSnapshot]) {
+                if (!state?.users) continue;
+                const index=state.users.findIndex(user=>user.username===profile.username);
+                if (index<0) state.users.push(JSON.parse(JSON.stringify(profile)));
+                else state.users[index]=JSON.parse(JSON.stringify(profile));
+            }
+            if (profile.username===appState.user) applyAuthProfile(profile);
+            persistLocalState(); applyPermissionVisibility(); renderVisibleViews();
+        }
+        function setAdminFormBusy(id, busy) {
+            document.querySelectorAll('#'+id+' input, #'+id+' select, #'+id+' textarea, #'+id+' button').forEach(control=>{
+                if (busy) {control.dataset.previouslyDisabled=String(control.disabled);control.disabled=true;}
+                else {control.disabled=control.dataset.previouslyDisabled==='true';delete control.dataset.previouslyDisabled;}
+            });
+        }
+        let createAccountBusy=false, createAccountAttempt=null;
+        function openCreateAccount() {
+            if (!ensurePermissionClient('create_accounts') || createAccountBusy) return;
+            const roles=isSysadminClient()?['instructor','admin','manager','director']:hasPermissionClient('assign_roles')?['instructor','admin','manager']:['instructor'];
+            document.getElementById('create-account-role').replaceChildren(...roles.map(role=>new Option(roleLabel(role),role)));
+            document.getElementById('create-account-status').textContent='';
+            document.getElementById('modal-create-account').classList.remove('hidden');
+            document.getElementById('create-account-name').focus();
+        }
+        function closeCreateAccount() {
+            if (createAccountBusy) return;
+            document.getElementById('modal-create-account').classList.add('hidden');
+            document.getElementById('create-account-password').value='';
+            createAccountAttempt=null;
+        }
+        async function submitCreateAccount() {
+            if (!ensurePermissionClient('create_accounts') || createAccountBusy) return;
+            const payload={action:'create_account',name:document.getElementById('create-account-name').value.trim(),username:document.getElementById('create-account-login').value.trim().toLowerCase(),password:document.getElementById('create-account-password').value,role:document.getElementById('create-account-role').value,activationRequired:document.getElementById('create-account-activation').checked};
+            const token=authToken,key=JSON.stringify(payload),output=document.getElementById('create-account-status');
+            if (!createAccountAttempt || createAccountAttempt.key!==key || createAccountAttempt.token!==token) createAccountAttempt={key,token,operationId:createOperationId()};
+            payload.operationId=createAccountAttempt.operationId;
+            createAccountBusy=true;setAdminFormBusy('modal-create-account',true);output.textContent='Создаю аккаунт…';
+            try {
+                const result=await apiPost(payload,90000);
+                if(token!==authToken)return;
+                if(result?.status!=='success'||!result.user)throw Error(result?.message||'Создание не подтверждено.');
+                applyServerUserProfile(result.user);
+                document.getElementById('create-account-password').value='';
+                output.textContent='Аккаунт «'+result.user.username+'» создан. Ваш вход сохранён.';
+                createAccountAttempt=null;
+                showToast('Создан аккаунт: '+result.user.name);
+            } catch(error) {if(token===authToken)output.textContent=error.message+' При обрыве связи можно повторить с теми же данными.';}
+            finally {delete payload.password;createAccountBusy=false;setAdminFormBusy('modal-create-account',false);}
+        }
+
+        let permissionsTarget=null,permissionsBusy=false;
+        function openPermissionsEditor(username) {
+            if (!ensureSysadmin() || permissionsBusy) return;
+            const user=appState.users.find(item=>item.username===username);
+            if(!user||user.role==='sysadmin')return showToast('Выберите сотрудника.',true);
+            hideToast();
+            permissionsTarget=JSON.parse(JSON.stringify(user));
+            document.getElementById('permissions-person').textContent=user.name+' · '+roleLabel(user.role);
+            const list=document.getElementById('permissions-options');list.replaceChildren();
+            Object.entries(CLIENT_PERMISSIONS).forEach(([key,definition])=>{
+                const label=document.createElement('label');label.className='permission-option';
+                const text=document.createElement('span');text.textContent=definition.label;
+                const select=document.createElement('select');select.dataset.permission=key;select.className='admin-tool-input';
+                const roleAllowed=definition.roles.includes(normalizeClientRole(user.role));
+                select.replaceChildren(new Option('По роли: '+(roleAllowed?'да':'нет'),'default'),new Option('Разрешить','allow'),new Option('Запретить','deny'));
+                select.value=user.permissionOverrides?.[key]===true?'allow':user.permissionOverrides?.[key]===false?'deny':'default';
+                label.append(text,select);list.append(label);
+            });
+            document.getElementById('permissions-status').textContent='';
+            document.getElementById('modal-permissions').classList.remove('hidden');
+        }
+        function closePermissionsEditor() {if(permissionsBusy)return;permissionsTarget=null;document.getElementById('modal-permissions').classList.add('hidden');}
+        function resetPermissionsToRole() {if(!permissionsBusy)document.querySelectorAll('[data-permission]').forEach(select=>select.value='default');}
+        async function savePermissionsEditor() {
+            if(!ensureSysadmin()||!permissionsTarget||permissionsBusy)return;
+            const permissions={};document.querySelectorAll('[data-permission]').forEach(select=>{if(select.value!=='default')permissions[select.dataset.permission]=select.value==='allow';});
+            const target=permissionsTarget,token=authToken,output=document.getElementById('permissions-status');
+            permissionsBusy=true;setAdminFormBusy('modal-permissions',true);output.textContent='Сохраняю права…';
+            try {
+                const result=await apiPost({action:'set_permissions',username:target.username,base:target.permissionOverrides||{},permissions});
+                if(token!==authToken)return;
+                if(result?.status!=='success'||!result.user)throw Error(result?.message||'Изменение прав не подтверждено.');
+                permissionsTarget=JSON.parse(JSON.stringify(result.user));applyServerUserProfile(result.user);
+                output.textContent='Права сохранены. Вход сотрудника остаётся активным.';
+            } catch(error){if(token===authToken)output.textContent=error.message;}
+            finally {permissionsBusy=false;setAdminFormBusy('modal-permissions',false);}
+        }
+
+        let queueDeleteInProgress=false;
+        async function deleteSelectedQueuedNotifications(selectedIds = null) {
+            if(!ensurePermissionClient('delete_notifications')||queueDeleteInProgress||notificationSendInProgress)return;
+            const ids=new Set(Array.isArray(selectedIds) ? selectedIds : Array.from(document.querySelectorAll('.notification-recipient-cb:checked')).flatMap(box=>box.value.split(',').filter(Boolean)));
+            if(!ids.size)return showToast('Выберите уведомления для удаления.',true);
+            const token=authToken;
+            queueDeleteInProgress=true;document.getElementById('btn-delete-queued-notifications').disabled=true;
+            try {
+                if(!await flushNotificationQueueSave()||!await latestStateSaveRequest)throw Error('Сначала сохраните текущие изменения.');
+                if(token!==authToken)return;
+                const items=appState.notificationQueue.filter(row=>ids.has(String(row.id))).map(row=>({id:String(row.id),base:JSON.parse(JSON.stringify(row))}));
+                const result=await apiPost({action:'delete_queued_notifications',items});
+                if(token!==authToken)return;
+                if(result?.status!=='success')throw Error(result?.message||'Удаление не подтверждено.');
+                const eventKey=event=>{const value={...event};delete value.createdAt;return JSON.stringify(value);};
+                for(const state of [appState,cloudBaseline,lastConfirmedCloudState,pendingCloudSaveSnapshot,activeCloudSaveSnapshot]){
+                    if(!state?.notificationQueue)continue;
+                    state.notificationQueue=state.notificationQueue.flatMap(row=>{
+                        const item=items.find(item=>item.id===String(row.id));if(!item)return [row];
+                        const oldEvents=new Set((item.base.events||[]).map(eventKey));
+                        const events=(row.events||[]).filter(event=>!oldEvents.has(eventKey(event)));
+                        return events.length?[{...row,events,sentKeys:[]}]:[];
+                    });
+                }
+                persistLocalState();renderNotificationQueue();
+                showToast('Удалено из очереди: '+Number(result.deleted||0)+'.');
+            }catch(error){if(token===authToken)showToast(error.message+' Уведомления на экране сохранены до подтверждения.',true);}
+            finally {queueDeleteInProgress=false;document.getElementById('btn-delete-queued-notifications').disabled=false;}
+        }
+
+        let staffMessageBusy=false,staffMessageAttempt=null;
+        const STAFF_MESSAGE_DRAFT_KEY='park_v29_staff_message';
+        function openStaffMessage() {
+            if(!ensurePermissionClient('send_messages')||staffMessageBusy)return;
+            hideToast();
+            const saved=readLocalJson(STAFF_MESSAGE_DRAFT_KEY,null);
+            if(saved?.token===authToken)staffMessageAttempt=saved;
+            else if(staffMessageAttempt?.token!==authToken)staffMessageAttempt=null;
+            const chosen=new Set(staffMessageAttempt?.recipients||[]);
+            const list=document.getElementById('staff-message-recipients');list.replaceChildren();
+            appState.users.forEach(user=>{
+                const label=document.createElement('label');label.className='flex items-center gap-3 text-sm text-slate-300 py-2';label.dataset.staffSearch=user.name.toLocaleLowerCase('ru');
+                const input=document.createElement('input');input.type='checkbox';input.value=user.username;input.className='staff-message-recipient w-5 h-5';
+                input.disabled=user.assignable===false||checkUserBanStatus(user)||user.activationRequired||telegramBindingState(user)===false;input.checked=chosen.has(user.username);
+                const name=document.createElement('span');name.textContent=user.name+(input.disabled?' · недоступен для отправки':'');
+                label.append(input,name);list.append(label);
+            });
+            document.getElementById('staff-message-search').value='';
+            document.getElementById('staff-message-text').value=staffMessageAttempt?.text||'';
+            document.getElementById('staff-message-status').textContent=staffMessageAttempt?'Сохранена предыдущая отправка. Повтор проверит её результат и отправит только недоставленные сообщения.':'';
+            document.getElementById('modal-staff-message').classList.remove('hidden');
+        }
+        function filterStaffMessageRecipients() {
+            const value=document.getElementById('staff-message-search').value.toLocaleLowerCase('ru').trim();
+            document.querySelectorAll('[data-staff-search]').forEach(row=>row.classList.toggle('hidden',!row.dataset.staffSearch.includes(value)));
+        }
+        function closeStaffMessage(){if(!staffMessageBusy)document.getElementById('modal-staff-message').classList.add('hidden');}
+        function startNewStaffMessage(){
+            if(staffMessageBusy)return;
+            staffMessageAttempt=null;tryLocalStorageWrite(()=>localStorage.removeItem(STAFF_MESSAGE_DRAFT_KEY));
+            openStaffMessage();
+        }
+        async function sendStaffMessage(){
+            if(!ensurePermissionClient('send_messages')||staffMessageBusy)return;
+            const recipients=Array.from(document.querySelectorAll('.staff-message-recipient:checked')).map(input=>input.value).sort();
+            const text=document.getElementById('staff-message-text').value.trim();
+            if(!recipients.length||recipients.length>50||!text)return showToast('Выберите от 1 до 50 сотрудников и напишите сообщение.',true);
+            const token=authToken,key=JSON.stringify([recipients,text]),output=document.getElementById('staff-message-status');
+            if(!staffMessageAttempt||staffMessageAttempt.key!==key||staffMessageAttempt.token!==token)staffMessageAttempt={token,key,operationId:createOperationId(),recipients,text};
+            tryLocalStorageWrite(()=>localStorage.setItem(STAFF_MESSAGE_DRAFT_KEY,JSON.stringify(staffMessageAttempt)));
+            staffMessageBusy=true;setAdminFormBusy('modal-staff-message',true);output.textContent='Отправляю сообщения…';
+            try {
+                const result=await apiPost({action:'send_staff_message',operationId:staffMessageAttempt.operationId,recipients,text},90000);
+                if(token!==authToken)return;
+                if(result?.status!=='success'||!Array.isArray(result.deliveries))throw Error(result?.message||'Отправка не подтверждена.');
+                const labels={sent:'доставлено',pending:'ожидает отправки',failed:'Telegram отклонил отправку',unavailable:'Telegram недоступен',unknown:'результат неизвестен — проверьте у получателя'};
+                output.textContent=result.deliveries.map(row=>row.name+': '+(labels[row.status]||'требуется проверка')).join('\n');
+                if(result.deliveries.some(row=>['pending','failed','unavailable'].includes(row.status)))output.textContent+='\n\nПовтор отправит только недоставленные сообщения.';
+                if(result.deliveries.some(row=>row.status==='unknown'))output.textContent+='\n\nСообщения без подтверждения повторно не отправляются автоматически.';
+                if(result.deliveries.every(row=>row.status==='sent'))tryLocalStorageWrite(()=>localStorage.removeItem(STAFF_MESSAGE_DRAFT_KEY));
+            }catch(error){if(token===authToken)output.textContent=error.message+'\nПовторите отправку с теми же получателями и текстом: уже доставленные сообщения не повторятся.';}
+            finally{staffMessageBusy=false;setAdminFormBusy('modal-staff-message',false);}
+        }
+
         async function checkSystemHealth() {
             if (!ensureSysadmin()) return;
             const button = document.getElementById('btn-system-diagnostics');
@@ -1963,9 +2267,7 @@
         }
 
         function ensureAdmin() {
-            if (canOperateClient()) return true;
-            showToast('Это действие доступно руководителю, менеджеру или администратору.', true);
-            return false;
+            return ensurePermissionClient('manage_games');
         }
 
         const ACCOUNT_NOTICE_KEY = 'park_account_access_notice';
@@ -2039,24 +2341,28 @@
         async function apiPost(payload, timeoutMs = CLOUD_GET_TIMEOUT_MS, allowErrorStatus = false) {
             const body = { ...(payload || {}) };
             if (authToken && !['login', 'register', 'request_password_reset', 'complete_password_reset'].includes(body.action)) body.token = authToken;
-            const response = await fetchWithTimeout(BACKEND_URL, {
+            const result = await fetchWithTimeout(BACKEND_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
                 body: JSON.stringify(body),
                 cache: 'no-store'
-            }, timeoutMs);
-            if (!response.ok) {
-                const error = new Error(`Сервер приложения временно недоступен (HTTP ${response.status}). Повторите обновление.`);
-                error.code = 'http_error';
-                throw error;
-            }
-            let result;
-            try { result = await response.json(); }
-            catch (cause) {
-                const error = new Error('Сервер вернул некорректный ответ. Повторите обновление.');
-                error.code = 'invalid_response';
-                throw error;
-            }
+            }, timeoutMs, async response => {
+                if (!response.ok) {
+                    const error = new Error(`Сервер приложения временно недоступен (HTTP ${response.status}). Повторите обновление.`);
+                    error.code = 'http_error'; error.retryable = [408, 429, 500, 502, 503, 504].includes(response.status);
+                    if (response.status === 429) error.retryAfterMs = 60000;
+                    throw error;
+                }
+                try {
+                    const data = await response.json();
+                    if (!isPlainObject(data)) throw new Error('Empty response');
+                    return data;
+                } catch (cause) {
+                    const error = new Error('Сервер вернул некорректный ответ. Повторите обновление.');
+                    error.code = 'invalid_response'; error.retryable = true;
+                    throw error;
+                }
+            });
             if (body.token && body.token !== authToken) throw new Error('Сессия изменилась. Войдите снова.');
             const accessCodes = ['session_expired', 'session_missing', 'session_revoked', 'account_changed', 'account_blocked', 'account_unblocked', 'role_changed', 'password_changed'];
             // Older deployments returned only these exact expiry messages.
@@ -2077,7 +2383,7 @@
             }
             if (!allowErrorStatus && result && result.status === 'error') {
                 const message = String(result.message || 'Сервер отклонил запрос.').replace(/^Error:\s*/i, '');
-                const error = new Error(message); error.code = result.code;
+                const error = new Error(message); error.code = result.code; error.retryable = result.retryable === true;
                 throw error;
             }
             if (body.token && result?._session?.expiresAt) updateAuthSessionExpiry(body.token, result._session.expiresAt);
@@ -2112,8 +2418,8 @@
                     return data;
                 } catch (error) {
                     lastError = error;
-                    if (attempt >= retryCount || error.authRequired || token !== authToken) break;
-                    await new Promise(resolve => setTimeout(resolve, 800));
+                    if (attempt >= retryCount || !isRetryableCloudError(error) || error.code === 'rate_limited' || error.retryAfterMs || token !== authToken) break;
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1) + Math.floor(Math.random() * 400)));
                 }
             }
             throw lastError || new Error('Не удалось загрузить данные сервера.');
@@ -2261,31 +2567,44 @@
 
         function operationResultError(result) {
             const error = new Error(String(result.message || 'Сервер отклонил сохранение.').replace(/^Error:\s*/i, ''));
-            error.operationRejected = true;
             error.code = result.code || (/КОНФЛИКТ/i.test(error.message) ? 'conflict' : 'rejected');
+            error.retryable = result.retryable === true;
+            error.operationRejected = !isRetryableCloudError(error);
             error.conflict = result.conflict;
             return error;
         }
 
-        async function waitForOperationResult(operationId, changes, protocolMode, timeoutMs = CLOUD_CONFIRM_TIMEOUT_MS) {
+        async function waitForOperationResult(operationId, changes, protocolMode, timeoutMs = CLOUD_CONFIRM_TIMEOUT_MS, retryUnreceivedWrite = false) {
             const requestToken = authToken;
             const deadline = Date.now() + timeoutMs;
+            let resent = false, attempt = 0;
             while (Date.now() < deadline) {
                 if (requestToken !== authToken) throw new Error('Сессия изменилась. Войдите снова.');
                 try {
-                    const result = await apiPost({ action: 'operation_status', operationId }, CLOUD_GET_TIMEOUT_MS, true);
+                    const result = await apiPost({ action: 'operation_status', operationId }, Math.max(1, Math.min(CLOUD_GET_TIMEOUT_MS, deadline - Date.now())), true);
                     if (result && result.status === 'success') return result;
                     if (result && result.status === 'error') {
                         throw operationResultError(result);
                     }
+                    if (result?.status === 'pending' && retryUnreceivedWrite && !resent && Date.now() < deadline) {
+                        // A dropped POST may never have reached Apps Script. Reuse
+                        // its operation ID so a committed write cannot run twice.
+                        resent = true;
+                        const saved = await apiPost({action:'patch_state', changes:prepareChangesForBackend(changes, protocolMode), operationId}, Math.max(1, Math.min(CLOUD_POST_TIMEOUT_MS, deadline - Date.now())), true);
+                        if (saved?.status === 'success') return saved;
+                        if (saved?.status === 'error') throw operationResultError(saved);
+                    }
                 } catch (error) {
-                    if (error && error.operationRejected) throw error;
+                    if ((error && (error.operationRejected || error.authRequired || error.code === 'rate_limited' || error.retryAfterMs)) || requestToken !== authToken) throw error;
                     if (/КОНФЛИКТ|ДУБЛЬ|отклонил/i.test(String(error && error.message || error))) throw error;
                     console.log('Ожидание подтверждения сохранения:', error);
                 }
-                await new Promise(resolve => setTimeout(resolve, 500));
+                const delay = Math.min(4000, 800 * Math.pow(2, attempt++));
+                if (Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, Math.min(delay, deadline - Date.now())));
             }
-            throw new Error('Сервер не подтвердил сохранение. Изменения не считаются записанными.');
+            const error = new Error('Сервер пока не подтвердил сохранение. ' + unsavedChangesLocation() + ' Повторим отправку автоматически.');
+            error.code = 'confirmation_unknown'; error.retryable = true;
+            throw error;
         }
 
         async function postStateChangesAndConfirm(changes) {
@@ -2307,18 +2626,18 @@
             } catch (error) {
                 // A definitive rejection is already the final result. Polling it
                 // again cannot turn it into a network failure or a success.
-                if (error.operationRejected || requestToken !== authToken) throw error;
+                if (error.operationRejected || error.authRequired || error.code === 'rate_limited' || error.retryAfterMs || requestToken !== authToken) throw error;
                 // Abort на клиенте не означает, что Apps Script прекратил запись.
                 // Всё равно проверяем operationId, чтобы не объявлять ошибку после
                 // фактически успешного сохранения на сервере.
                 postError = error;
             }
             try {
-                return await waitForOperationResult(operationId, changes, protocolMode);
+                return await waitForOperationResult(operationId, changes, protocolMode, CLOUD_CONFIRM_TIMEOUT_MS, Boolean(postError));
             } catch (confirmationError) {
-                if (confirmationError.operationRejected || requestToken !== authToken) throw confirmationError;
+                if (confirmationError.operationRejected || confirmationError.authRequired || requestToken !== authToken) throw confirmationError;
                 if (postError) {
-                    throw new Error(`${postError.message} Сервер также не подтвердил операцию.`);
+                    confirmationError.message = `${postError.message} Сервер также не подтвердил операцию. ${unsavedChangesLocation()}`;
                 }
                 throw confirmationError;
             }
@@ -2344,7 +2663,7 @@
         let pendingAvailabilityChange = null;
         let notificationQueueSaveTimer = null;
         let latestStateSaveRequest = Promise.resolve(true);
-        let lastCloudSaveError = null;
+        let lastCloudSaveError = readLocalJson('park_v27_sync_error', null);
         let pendingCloudSaveSnapshot = null;
         let cloudSaveWorkerPromise = null;
         let activeCloudSaveSnapshot = null;
@@ -2361,7 +2680,7 @@
         let lastCloudReadAt = 0;
         let lastBackgroundAttemptAt = 0;
         let cloudWriteInProgress = false;
-        let cloudSaveBlocked = localStorage.getItem('park_v5_cloud_save_blocked') === '1';
+        let cloudSaveBlocked = readLocalJson('park_v5_cloud_save_blocked', 0) === 1;
         let cloudBlockedNoticeShown = false;
         // A session-bound cache stores only scheduling fields, never account secrets/audit.
         let lastConfirmedCloudState = null;
@@ -2370,11 +2689,20 @@
 
         function setCloudSaveBlocked(value) {
             cloudSaveBlocked = Boolean(value);
-            if (cloudSaveBlocked) localStorage.setItem('park_v5_cloud_save_blocked', '1');
-            else {
-                localStorage.removeItem('park_v5_cloud_save_blocked');
-                cloudBlockedNoticeShown = false;
+            if (!cloudSaveBlocked) cloudBlockedNoticeShown = false;
+            if (cloudSaveBlocked && lastCloudSaveError && (lastCloudSaveError.code === 'rate_limited' || lastCloudSaveError.retryAfterMs)) {
+                lastCloudSaveError.retryAt = Date.now() + Math.max(60000, lastCloudSaveError.retryAfterMs || 0);
             }
+            tryLocalStorageWrite(() => {
+                if (cloudSaveBlocked) {
+                    localStorage.setItem('park_v5_cloud_save_blocked', '1');
+                    if (lastCloudSaveError) localStorage.setItem('park_v27_sync_error', JSON.stringify({code:lastCloudSaveError.code || 'rejected', retryable:isRetryableCloudError(lastCloudSaveError), authRequired:lastCloudSaveError.authRequired === true, retryAt:lastCloudSaveError.retryAt || 0}));
+                    else localStorage.removeItem('park_v27_sync_error');
+                } else {
+                    localStorage.removeItem('park_v5_cloud_save_blocked');
+                    localStorage.removeItem('park_v27_sync_error');
+                }
+            });
         }
 
         function closeSyncConflict() { document.getElementById('modal-sync-conflict').classList.add('hidden'); }
@@ -2419,13 +2747,13 @@
 
         function setLastConfirmedCloudState(state) {
             lastConfirmedCloudState = state ? JSON.parse(JSON.stringify(state)) : null;
-            localStorage.removeItem('park_v5_cloud_confirmed_state');
+            tryLocalStorageWrite(() => localStorage.removeItem('park_v5_cloud_confirmed_state'));
             persistBootCache();
         }
 
         function safeBootCore(state) {
             const core = cloneCoreState(state);
-            const fields = ['username', 'name', 'role', 'telegramLinked', 'activationRequired', 'assignable', 'blocked', 'banUntil'];
+            const fields = ['username', 'name', 'role', 'telegramLinked', 'activationRequired', 'assignable', 'blocked', 'banUntil', 'permissions', 'permissionOverrides'];
             core.users = core.users.map(user => {
                 const linked = telegramBindingState(user);
                 const safe = Object.fromEntries(fields.filter(key => key in user).map(key => [key, user[key]]));
@@ -2437,11 +2765,12 @@
 
         function persistBootCache() {
             if (!authToken || !appState.user || !lastConfirmedCloudState) return;
-            try {
-                localStorage.setItem(BOOT_CACHE_KEY, JSON.stringify({ token: authToken,
-                    profile: { username: appState.user, name: appState.name, role: appState.role },
-                    confirmed: safeBootCore(lastConfirmedCloudState), local: safeBootCore(appState), notifications: appState.notifications }));
-            } catch (error) { console.log('Быстрый запуск недоступен: не удалось сохранить копию сеанса.'); }
+            return tryLocalStorageWrite(() => {
+                const serialized = JSON.stringify({ token: authToken,
+                    profile: { username: appState.user, name: appState.name, role: appState.role, permissions:appState.permissions },
+                    confirmed: safeBootCore(lastConfirmedCloudState), local: safeBootCore(appState), notifications: appState.notifications });
+                if (localStorage.getItem(BOOT_CACHE_KEY) !== serialized) localStorage.setItem(BOOT_CACHE_KEY, serialized);
+            });
         }
 
         function restoreBootCache(token) {
@@ -2503,6 +2832,7 @@
 
         function setSyncStatus(state, text) {
             if (sessionVerificationIssue && state !== 'syncing') { state = 'error'; text = 'Проверить вход'; }
+            else if (localStorageWarningShown && state === 'offline') { state = 'error'; text = 'Не закрывайте окно'; }
             const status = document.getElementById('sync-status');
             const icon = document.getElementById('sync-status-icon');
             const label = document.getElementById('sync-status-text');
@@ -2772,7 +3102,7 @@
                 countEl.textContent = total;
                 countEl.classList.toggle('hidden', total === 0);
             }
-            if (!button || !canOperateClient()) return;
+            if (!button || !canAccessQueueClient()) return;
 
             const container = document.getElementById('notification-queue-list');
             if (!container) return;
@@ -2782,24 +3112,25 @@
                 return;
             }
             container.innerHTML = groups.map(group => `
-                <label class="block bg-slate-950 border border-slate-800 rounded-xl p-3.5 cursor-pointer hover:border-indigo-500/40 active:bg-slate-900 transition select-none">
+                <div class="block bg-slate-950 border border-slate-800 rounded-xl p-3.5 cursor-pointer hover:border-indigo-500/40 active:bg-slate-900 transition select-none">
                     <div class="flex items-start gap-3">
                         <input type="checkbox" aria-label="Выбрать уведомления для ${escapeHtmlAttribute(group.targetName)}" class="notification-recipient-cb mt-0.5 w-5 h-5 flex-shrink-0 accent-indigo-400" value="${escapeHtmlAttribute(group.items.map(item => item.id).join(','))}">
                         <div class="min-w-0">
                             <div class="flex items-center gap-2"><b class="text-[13px] text-white truncate">${escapeTelegramHtml(group.targetName)}</b><span class="text-[9px] bg-indigo-500/15 text-indigo-300 border border-indigo-500/25 px-1.5 py-0.5 rounded font-bold">${group.items.length}</span></div>
-                            <p class="text-[11px] text-slate-400 mt-1.5 leading-relaxed break-words">${group.items.map(item => escapeTelegramHtml(buildQueuedSchedulePreview(group.targetName, item))).join('<div class="h-2"></div>')}</p>
+                            <div class="text-[11px] text-slate-400 mt-1.5 leading-relaxed break-words">${group.items.map(item => `<div class="flex items-center justify-between gap-2 py-2"><span>${escapeTelegramHtml(buildQueuedSchedulePreview(group.targetName, item))}</span>${hasPermissionClient('delete_notifications') ? `<button type="button" data-delete-queue="${escapeHtmlAttribute(item.id)}" onclick="deleteSelectedQueuedNotifications(['${escapeJsString(item.id)}'])" aria-label="Удалить уведомление для ${escapeHtmlAttribute(group.targetName)} на ${escapeHtmlAttribute(item.date)}" class="min-h-11 text-rose-300 text-xs px-2">Удалить</button>` : ''}</div>`).join('')}</div>
                         </div>
                     </div>
-                </label>`).join('');
+                </div>`).join('');
         }
 
         function openNotificationQueueModal() {
-            if (!canOperateClient()) return;
+            if (!canAccessQueueClient()) return;
             renderNotificationQueue();
             document.getElementById('modal-notification-queue').classList.remove('hidden');
         }
 
         function closeNotificationQueueModal() {
+            if (queueDeleteInProgress) return;
             document.getElementById('modal-notification-queue').classList.add('hidden');
         }
 
@@ -2843,7 +3174,7 @@
         }
 
         async function sendSelectedQueuedNotifications() {
-            if (!ensureAdmin()) return;
+            if (!ensurePermissionClient('send_notifications')) return;
             if (notificationSendInProgress) return;
             const ids = Array.from(document.querySelectorAll('.notification-recipient-cb:checked'))
                 .flatMap(box => box.value.split(',').filter(Boolean));
@@ -3026,7 +3357,7 @@
         }
 
         async function publishScheduleToChat() {
-            if (!ensureAdmin()) return;
+            if (!ensurePermissionClient('publish_schedule')) return;
             const selectedDate = document.getElementById('schedule-date').value;
             const button = document.getElementById('btn-admin-publish');
             if (button.disabled) return;
@@ -3226,8 +3557,25 @@
                 isPlainObject(data.availability) && isPlainObject(data.duty);
         }
 
+        let localStorageWarningShown = false;
+        function unsavedChangesLocation() {
+            return localStorageWarningShown
+                ? 'Правки остаются только в открытом окне. Не закрывайте приложение до сохранения.'
+                : 'Локальные правки сохранены.';
+        }
+        function tryLocalStorageWrite(write) {
+            try { write(); return true; }
+            catch (error) {
+                if (!localStorageWarningShown) {
+                    localStorageWarningShown = true;
+                    showToast('Не удалось записать копию на устройство. Не закрывайте приложение до подтверждения сохранения на сервере.', true);
+                }
+                return false;
+            }
+        }
+
         function persistLocalState() {
-            localStorage.removeItem('park_v5_users');
+            let persisted = tryLocalStorageWrite(() => localStorage.removeItem('park_v5_users'));
             appState.logs = Array.isArray(appState.logs) ? appState.logs.slice(0, MAX_LOCAL_LOGS) : [];
             const entries = {
                 shifts: appState.shifts, logs: appState.logs, games: appState.games,
@@ -3237,9 +3585,9 @@
             Object.entries(entries).forEach(([name, value]) => {
                 const key = 'park_v5_' + name;
                 const serialized = JSON.stringify(value);
-                if (localStorage.getItem(key) !== serialized) localStorage.setItem(key, serialized);
+                persisted = tryLocalStorageWrite(() => { if (localStorage.getItem(key) !== serialized) localStorage.setItem(key, serialized); }) && persisted;
             });
-            persistBootCache();
+            if (persistBootCache() !== false && persisted) localStorageWarningShown = false;
         }
 
         function applyCloudState(data) {
@@ -3337,8 +3685,9 @@
         function buildStateChanges(before, after) {
             const changes = {};
             const users = buildRecordPatches(before.users, after.users, 'username');
+            const previousShifts = new Map(before.shifts.map(shift => [String(shift.id), shift]));
             const shifts = buildShiftRecordPatches(before.shifts, after.shifts).filter(change => {
-                const previous = before.shifts.find(shift => String(shift.id) === String(change.key));
+                const previous = previousShifts.get(String(change.key));
                 if (!previous || change.delete) return true;
                 change.lifecycle = previous.status === 'cancelled' ? 'cancelled' : 'active';
                 if (change.patch.status !== 'cancelled' && previous.status !== 'cancelled') {
@@ -3410,21 +3759,57 @@
         }
 
         async function recoverBlockedCloudSaveWithoutBaseline(cloudData) {
+            const token = authToken;
+            const targetState = cloneCoreState(appState);
             const additiveChanges = buildSafeAdditiveRecoveryChanges(cloudData);
-            if (Object.keys(additiveChanges).length) {
-                await postStateChangesAndConfirm(additiveChanges);
-                const refreshed = await fetchAuthenticatedState();
-                if (!isCloudState(refreshed) || !isCloudStateReflectingChanges(refreshed, additiveChanges)) {
-                    throw new Error('Сервер не подтвердил восстановленные локальные игры.');
-                }
-                applyCloudState(refreshed);
-                showToast('Связь восстановлена. Локально созданные игры отправлены на сервер!');
-            } else {
-                applyCloudState(cloudData);
-                showToast('Связь с сервером восстановлена!');
+            const editing = () => document.querySelector('[role="dialog"][id^="modal-"]:not(#modal-sync-conflict):not(.hidden)');
+            if (editing()) {
+                showToast('Закройте форму после завершения редактирования и повторите синхронизацию.', true);
+                return false;
             }
-            latestStateSaveRequest = Promise.resolve(true);
-            return true;
+            cloudPendingWrites++;
+            cloudWriteInProgress = true;
+            try {
+                let refreshed = cloudData;
+                if (Object.keys(additiveChanges).length) {
+                    await postStateChangesAndConfirm(additiveChanges);
+                    if (token !== authToken) return false;
+                    refreshed = await fetchAuthenticatedState();
+                    if (token !== authToken) return false;
+                    if (!isCloudState(refreshed) || !isCloudStateReflectingChanges(refreshed, additiveChanges)) {
+                        throw new Error('Сервер не подтвердил восстановленные локальные игры.');
+                    }
+                }
+                const changedDuringRecovery = JSON.stringify(targetState) !== JSON.stringify(cloneCoreState(appState));
+                const cloudCore = cloneCoreState(refreshed);
+                cloudCore.shifts = cloudCore.shifts.map(normalizeShiftRecord);
+                const unresolved = getUnreflectedStateChanges(refreshed, buildStateChanges(cloudCore, targetState));
+                delete unresolved.users;
+                // Missing cloud rows in a legacy cache are not evidence of a
+                // requested deletion. Existing local differences need review.
+                for (const section of ['shifts', 'notificationQueue']) {
+                    if (!unresolved[section]) continue;
+                    unresolved[section] = unresolved[section].filter(change => !change.delete);
+                    if (!unresolved[section].length) delete unresolved[section];
+                }
+                if (unresolved.games) {
+                    unresolved.games.remove = [];
+                    if (!unresolved.games.add.length) delete unresolved.games;
+                }
+                if (changedDuringRecovery || editing() || Object.keys(unresolved).length) {
+                    const error = new Error('Остались локальные правки без исходной серверной версии. Они сохранены в приложении. Проверьте и при необходимости скачайте их копию перед загрузкой актуальных данных.');
+                    error.code = 'conflict';
+                    throw error;
+                }
+                lastCloudSaveError = null;
+                applyCloudState(refreshed);
+                showToast('Связь с сервером восстановлена!');
+                latestStateSaveRequest = Promise.resolve(true);
+                return true;
+            } finally {
+                cloudPendingWrites--;
+                cloudWriteInProgress = cloudPendingWrites > 0;
+            }
         }
 
         function isQueueOnlySyncConflict(error) {
@@ -3437,17 +3822,27 @@
                 conflict.fields.every(path => ['events', 'sentKeys'].includes(path[0]));
         }
 
-        async function retryBlockedCloudSave(cloudData) {
+        async function retryBlockedCloudSave(cloudData, background = false) {
             if (!cloudSaveBlocked || !isCloudState(cloudData)) return false;
+            const token = authToken;
+            if (lastCloudSaveError?.code === 'rollback_failed') {
+                showSyncConflict(new Error('Сервер не смог полностью восстановить таблицу после сбоя записи. Повторная отправка остановлена. Скачайте локальные правки и обратитесь к системному администратору для проверки таблицы.'));
+                setSyncStatus('error', 'Нужна проверка таблицы');
+                return false;
+            }
             if (!lastConfirmedCloudState) {
                 try { return await recoverBlockedCloudSaveWithoutBaseline(cloudData); }
                 catch (error) {
+                    if (token !== authToken) return false;
+                    lastCloudSaveError = error;
                     setCloudSaveBlocked(true);
-                    showToast((error.message || 'Не удалось восстановить синхронизацию.') + ' Локальные игры не удалены.', true);
+                    persistLocalState();
+                    setSyncStatus('error', 'Нужна проверка');
+                    if (error.code === 'conflict') showSyncConflict(error);
+                    else showToast((error.message || 'Не удалось восстановить синхронизацию.') + ' ' + unsavedChangesLocation(), true);
                     return false;
                 }
             }
-            const token = authToken;
             const targetState = cloneCoreState(appState);
             const pendingChanges = getUnreflectedStateChanges(cloudData, buildStateChanges(lastConfirmedCloudState, targetState));
             if (lastCloudSaveError?.code === 'conflict' && !isQueueOnlySyncConflict(lastCloudSaveError) && Object.keys(pendingChanges).length) {
@@ -3496,7 +3891,7 @@
                 setCloudSaveBlocked(true);
                 setSyncStatus(error.code === 'conflict' ? 'error' : 'offline', error.code === 'conflict' ? 'Нужна проверка' : 'Сохранено локально');
                 if (error.code === 'conflict') showSyncConflict(error);
-                else showToast((error.message || 'Повторное сохранение не удалось.') + ' Локальные правки сохранены.', true);
+                else if (!background || !isRetryableCloudError(error)) showToast((error.message || 'Повторное сохранение не удалось.') + ' ' + unsavedChangesLocation(), true);
                 return false;
             } finally {
                 cloudPendingWrites--;
@@ -3567,7 +3962,7 @@
             return false;
         }
 
-        async function recoverCloudStateManually() {
+        async function recoverCloudStateManually(background = false) {
             if (cloudRecoveryPromise) return cloudRecoveryPromise;
             const token = authToken;
             setSyncStatus('syncing', 'Восстанавливаем связь…');
@@ -3575,12 +3970,19 @@
                 try {
                     const cloudData = await fetchAuthenticatedState();
                     if (token !== authToken) return false;
-                    return await retryBlockedCloudSave(cloudData);
+                    const saved = await retryBlockedCloudSave(cloudData, background);
+                    if (token !== authToken) return false;
+                    if (saved) cloudRefreshFailureCount = 0;
+                    else cloudRefreshFailureCount++;
+                    return saved;
                 } catch (error) {
                     if (token !== authToken) return false;
-                    lastCloudSaveError = error;
+                    // A temporary read failure must not erase a known conflict
+                    // or turn a rejected draft into an automatic write on reload.
+                    if (!lastCloudSaveError || isRetryableCloudError(lastCloudSaveError)) lastCloudSaveError = error;
+                    cloudRefreshFailureCount++;
                     setSyncStatus('offline', 'Сохранено локально');
-                    showToast('Не удалось обновить данные: ' + error.message + '. Локальные правки сохранены.', true);
+                    if (!background) showToast('Не удалось обновить данные: ' + error.message + '. ' + unsavedChangesLocation(), true);
                     return false;
                 }
             })().finally(() => { cloudRecoveryPromise = null; });
@@ -3685,9 +4087,11 @@
             }
 
             initializeAccessibility();
-            localStorage.removeItem('park_v5_users');
-            localStorage.removeItem('park_v5_session');
-            localStorage.removeItem('park_v5_cloud_confirmed_state');
+            tryLocalStorageWrite(() => {
+                localStorage.removeItem('park_v5_users');
+                localStorage.removeItem('park_v5_session');
+                localStorage.removeItem('park_v5_cloud_confirmed_state');
+            });
             appState.users = [];
             appState.shifts = readLocalJson('park_v5_shifts', []);
             if (!Array.isArray(appState.shifts)) appState.shifts = [];
@@ -3757,7 +4161,7 @@
                     setSyncStatus(err.code === 'conflict' ? 'error' : 'offline', err.code === 'conflict' ? 'Нужна проверка' : 'Сохранено локально');
                     console.log('Ошибка фоновой отправки данных:', err);
                     if (err.code === 'conflict') showSyncConflict(err);
-                    else showToast((err.message || 'Не удалось сохранить изменения на сервере.') + ' Данные оставлены на этом устройстве.', true);
+                    else showToast((err.message || 'Не удалось сохранить изменения на сервере.') + ' ' + unsavedChangesLocation(), true);
                     return false;
                 } finally {
                     cloudPendingWrites--;
@@ -3788,7 +4192,7 @@
             ]);
             if (outcome === 'timeout') {
                 setSyncStatus('offline', 'Сохранено локально');
-                showToast('Сервер отвечает слишком долго. Игры сохранены на устройстве; фоновая отправка продолжается.', true);
+                showToast('Сервер отвечает слишком долго. ' + unsavedChangesLocation() + ' Фоновая отправка продолжается.', true);
                 return false;
             }
             return true;
@@ -3802,7 +4206,7 @@
                 if (!cloudBlockedNoticeShown) {
                     cloudBlockedNoticeShown = true;
                     setSyncStatus('offline', 'Сохранено локально');
-                    showToast('Изменение сохранено локально. Восстанавливаю связь при ближайшей синхронизации.', true);
+                    showToast(unsavedChangesLocation() + ' Восстанавливаю связь при ближайшей синхронизации.', true);
                 }
                 return Promise.resolve(false);
             }
@@ -3811,7 +4215,7 @@
                 console.warn("Изменения сохранены локально: серверные данные ещё не загружены.");
                 setCloudSaveBlocked(true);
                 setSyncStatus('offline', 'Сохранено локально');
-                showToast('Изменение сохранено на устройстве, но сервер пока недоступен. Автообновление приостановлено.', true);
+                showToast(unsavedChangesLocation() + ' Повторим отправку, когда сервер станет доступен.', true);
                 return Promise.resolve(false);
             }
 
@@ -3874,11 +4278,17 @@
         async function refreshCloudStateOnce(force) {
             if (document.hidden) return;
             if (!appState.user || cloudWriteInProgress || notificationSendInProgress || cloudRefreshInProgress) return;
-            const minInterval = Math.min(60000, 12000 * Math.pow(2, cloudRefreshFailureCount));
+            const minInterval = Math.min(120000, CLOUD_REFRESH_INTERVAL_MS * Math.pow(2, cloudRefreshFailureCount));
             if (!force && Date.now() - Math.max(lastCloudReadAt, lastBackgroundAttemptAt) < minInterval) return;
             // После неуспешной записи локальное состояние важнее серверного.
             // Фоновый GET не имеет права стирать игры, которые ещё не удалось отправить.
-            if (cloudSaveBlocked) return;
+            if (cloudSaveBlocked) {
+                if (lastCloudSaveError && !isRetryableCloudError(lastCloudSaveError)) return;
+                if (!lastConfirmedCloudState || Date.now() < (lastCloudSaveError?.retryAt || 0)) return;
+                if (sessionVerificationIssue || document.querySelector('[role="dialog"][id^="modal-"]:not(.hidden)')) return;
+                lastBackgroundAttemptAt = Date.now();
+                return recoverCloudStateManually(true);
+            }
             // Пока открыта форма редактирования, её значения являются источником истины
             // для текущего действия. Фоновый GET не должен заменить объект игры под формой.
             if (document.querySelector('[role="dialog"][id^="modal-"]:not(.hidden)')) return;
@@ -3889,7 +4299,7 @@
             lastBackgroundAttemptAt = Date.now();
             let applied = false;
             try {
-                const cloudData = await fetchAuthenticatedState(0);
+                const cloudData = await fetchAuthenticatedState(1);
                 if (!isCloudState(cloudData)) return;
                 // Ответ мог быть сформирован до локального изменения игры.
                 // Не даём устаревшему GET перезаписать свежие данные в интерфейсе.
@@ -3940,6 +4350,7 @@
                 }
                 cloudRefreshFailureCount = 0;
                 lastCloudRefreshError = null;
+                applyPermissionVisibility();
                 const nextAnchor = anchorId && [...main.querySelectorAll('[data-shift-id]')].find(el => el.dataset.shiftId === anchorId);
                 main.scrollTop = nextAnchor ? main.scrollTop + nextAnchor.getBoundingClientRect().top - anchorTop : scrollTop;
                 setSyncStatus('synced', 'Данные актуальны');
@@ -3958,25 +4369,33 @@
 
         function startCloudRefresh() {
             if (cloudRefreshTimer) clearInterval(cloudRefreshTimer);
-            // Google Apps Script не рассчитан на запросы каждые 3 секунды.
-            // 15 секунд + обновление при возврате во вкладку заметно снижают
-            // число холодных стартов и случайных сетевых ошибок.
-            cloudRefreshTimer = setInterval(refreshCloudStateSilently, 15000);
+            // Poll at most twice a minute per visible client; failures back off
+            // to two minutes. Saves and explicit refreshes remain immediate.
+            cloudRefreshTimer = setInterval(refreshCloudStateSilently, CLOUD_REFRESH_INTERVAL_MS);
             setSyncStatus('synced', 'Данные актуальны');
         }
 
+        let lastCloudWakeAt = 0;
+        function refreshCloudStateOnWake() {
+            if (document.hidden || !authToken || !appState.user) return;
+            // Resume promptly, while coalescing the pageshow/visibility/online
+            // burst generated by a single return to a mobile WebView.
+            if (Date.now() - lastCloudWakeAt < 3000) return cloudRefreshPromise;
+            lastCloudWakeAt = Date.now();
+            return refreshCloudStateSilently(true);
+        }
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) refreshCloudStateSilently(true);
+            if (!document.hidden) refreshCloudStateOnWake();
         });
         window.addEventListener('focus', () => refreshCloudStateSilently());
-        window.addEventListener('pageshow', () => refreshCloudStateSilently(true));
-        window.addEventListener('online', () => refreshCloudStateSilently(true));
+        window.addEventListener('pageshow', () => refreshCloudStateOnWake());
+        window.addEventListener('online', () => refreshCloudStateOnWake());
 
         // Start a background read after idle, but let the original click run
         // immediately. Saves use their own queue; stale reads are discarded.
         document.addEventListener('click', event => {
             const button = event.target.closest?.('#app-main button[onclick], #app-nav button[onclick]');
-            if (button && Date.now() - lastCloudReadAt >= 15000) refreshCloudStateSilently();
+            if (button && Date.now() - lastCloudReadAt >= CLOUD_REFRESH_INTERVAL_MS) refreshCloudStateSilently();
         }, true);
 
         function saveGSheetUrl() {
@@ -4224,6 +4643,7 @@
         }
 
         function setShiftResponse(shift, status, targetName = appState.name) {
+            if (normalizePersonName(targetName) === normalizePersonName(appState.name) && !hasPermissionClient('respond_games')) return false;
             const key = findShiftInstructorKey(shift, targetName);
             if (!key || shift.status === 'cancelled' || !['accepted', 'declined'].includes(status) || getShiftResponse(shift, targetName) === status) return false;
             if (!shift.responses || typeof shift.responses !== 'object') shift.responses = {};
@@ -4344,7 +4764,7 @@
                 saveAuthSession(login.token, login.expiresAt);
                 if (keepDrafts) {
                     previousCache.token = login.token;
-                    previousCache.profile = {username:login.user.username, name:login.user.name, role:login.user.role};
+                    previousCache.profile = {username:login.user.username, name:login.user.name, role:login.user.role, permissions:login.user.permissions};
                     try { localStorage.setItem(BOOT_CACHE_KEY, JSON.stringify(previousCache)); } catch (error) {}
                 }
                 document.getElementById('login-pass').value = '';
@@ -4415,6 +4835,7 @@
                 document.getElementById('ai-parser-box').classList.add('hidden');
             }
 
+            applyPermissionVisibility();
             populateInstructorDropdowns(); updateGlobalGameSelects();
             renderNotificationQueue();
             if (appState.users.find(user => user.username === appState.user)?.activationRequired) switchTab('tab-settings');
@@ -4435,13 +4856,13 @@
             if (isViewVisible('view-settings')) {
                 renderLogs();
                 renderTelegramBinding();
-                if (canOperateClient()) renderGameManager();
+                if (hasPermissionClient('manage_catalog')) renderGameManager();
             }
         }
 
         function switchTab(tabId) {
             if (appState.users.find(user => user.username === appState.user)?.activationRequired) tabId = 'tab-settings';
-            if (tabId === 'tab-staff' && !canOperateClient()) return; 
+            if (tabId === 'tab-staff' && !hasPermissionClient('view_staff')) return; 
             
             ['view-schedule', 'view-availability', 'view-staff', 'view-settings', 'view-logs'].forEach(id => {
                 const el = document.getElementById(id);
@@ -4500,7 +4921,7 @@
                 myAvailList.innerHTML = myDatesHtml || '<div class="text-[10px] text-slate-500 italic text-center py-4 bg-slate-950 rounded-lg border border-slate-800/50">График на будущие дни не заполнен</div>';
             }
 
-            if (canOperateClient()) {
+            if (hasPermissionClient('manage_availability')) {
                 const adminDateInput = document.getElementById('admin-summary-date');
                 if(!adminDateInput) return;
                 
@@ -4561,6 +4982,7 @@
         }
 
         function setMyAvailabilityRange(baseStatus) {
+            if (!ensurePermissionClient('edit_own_availability')) return;
             const startStr = document.getElementById('avail-date-start').value;
             const endStr = document.getElementById('avail-date-end').value;
             const timeUntilEl = document.getElementById('avail-time-until');
@@ -4647,6 +5069,7 @@
         // (может менять статус и снимать/ставить блокировку в обход инструктора)
         // ========================================================
         function openEditAvailabilityModal(dateStr, name) {
+            if (!ensurePermissionClient('manage_availability')) return;
             document.getElementById('edit-avail-date').value = dateStr;
             document.getElementById('edit-avail-user').value = name;
             document.getElementById('edit-avail-name-label').textContent = name;
@@ -4673,7 +5096,7 @@
         }
 
         function saveEditedAvailability() {
-            if (!ensureAdmin()) return;
+            if (!ensurePermissionClient('manage_availability')) return;
             const dateStr = document.getElementById('edit-avail-date').value;
             const name = document.getElementById('edit-avail-user').value;
             const statusBase = document.getElementById('edit-avail-status').value;
@@ -4777,7 +5200,7 @@
             }
 
             let actionsHtml = '';
-            if (isShiftAssignedTo(shift) && shift.status !== 'cancelled') {
+            if (hasPermissionClient('respond_games') && isShiftAssignedTo(shift) && shift.status !== 'cancelled') {
                 const myResponse = getShiftResponse(shift);
                 if (myResponse === 'pending') {
                     actionsHtml = `
@@ -4892,7 +5315,7 @@
                     s.status !== 'cancelled' && 
                     getShiftResponse(s) === 'pending'
                 );
-                if (pendingForMe.length > 1) {
+                if (hasPermissionClient('respond_games') && pendingForMe.length > 1) {
                     btnAcceptAll.classList.remove('hidden');
                 } else {
                     btnAcceptAll.classList.add('hidden');
@@ -4974,7 +5397,7 @@
                 const saved = await (logText ? logAction(appState.name, logText) : saveState());
                 if (ownerToken !== authToken) return false;
                 if (!saved) {
-                    showToast('Ответ пока не подтверждён сервером. Изменения остались на устройстве — нажмите «Обновить», чтобы повторить сохранение.', true, {duration:10000});
+                    showToast('Ответ пока не подтверждён сервером. ' + unsavedChangesLocation() + ' Нажмите «Обновить», чтобы повторить сохранение.', true, {duration:10000});
                     return false;
                 }
                 showToast(successText);
@@ -4986,6 +5409,7 @@
         }
 
         async function acceptAllPendingGames() {
+            if (!ensurePermissionClient('respond_games')) return;
             if (responseSaveInProgress) return;
             const selectedDate = document.getElementById('schedule-date').value;
             let pendingShifts = appState.shifts.filter(s => 
@@ -5010,6 +5434,7 @@
         }
 
         function openInstructorStatusModal(id) {
+            if (!ensurePermissionClient('respond_games')) return;
             const shift = appState.shifts.find(s => s.id === id); if(!shift) return;
             document.getElementById('inst-shift-id').value = id;
             document.getElementById('inst-status-reason').value = '';
@@ -5025,6 +5450,7 @@
         function closeInstructorStatusModal() { document.getElementById('modal-instructor-status').classList.add('hidden'); }
 
         async function saveInstructorStatus() {
+            if (!ensurePermissionClient('respond_games')) return;
             if (responseSaveInProgress) return;
             const id = document.getElementById('inst-shift-id').value;
             const newStatus = document.getElementById('inst-status-select').value;
@@ -5045,7 +5471,7 @@
         }
 
         function openDeleteGameModal(id) {
-            if (!canDeleteGamesClient()) return showToast('Удалять игры могут только директор и системный администратор.', true);
+            if (!canDeleteGamesClient()) return showToast('У вас нет права удалять игры.', true);
             const shift = appState.shifts.find(s => String(s.id) === String(id));
             if (!shift) return;
             document.getElementById('delete-shift-id').value = shift.id;
@@ -5317,7 +5743,7 @@
         // ДЕЖУРНЫЙ ИНСТРУКТОР (ручное назначение админом на день)
         // ========================================================
         function openAssignDutyModal(dateOverride) {
-            if (!ensureAdmin()) return;
+            if (!ensurePermissionClient('manage_duty')) return;
             currentDutyModalDate = dateOverride || document.getElementById('schedule-date').value;
             document.getElementById('duty-modal-date-label').textContent = formatDateRus(currentDutyModalDate);
             document.getElementById('mass-duty-container').innerHTML = ''; dutyRowCounter = 0;
@@ -5359,7 +5785,7 @@
         }
 
         function saveDutyForDate() {
-            if (!ensureAdmin()) return;
+            if (!ensurePermissionClient('manage_duty')) return;
             const date = currentDutyModalDate;
             const selects = Array.from(document.querySelectorAll('.row-duty-instructor'));
             const names = [...new Set(selects.map(s => s.value).filter(v => v))];
@@ -5390,7 +5816,7 @@
             const namesEl = document.getElementById('duty-banner-names');
             const editBtn = document.getElementById('btn-admin-edit-duty');
             const dutyNames = appState.duty[selectedDate] || [];
-            const isAdmin = canOperateClient();
+            const isAdmin = hasPermissionClient('manage_duty');
 
             if (isAdmin) editBtn.classList.remove('hidden'); else editBtn.classList.add('hidden');
 
@@ -5409,7 +5835,7 @@
         }
 
         function removeDutyPerson(date, name) {
-            if (!ensureAdmin()) return;
+            if (!ensurePermissionClient('manage_duty')) return;
             const current = appState.duty[date] || [];
             const updated = current.filter(n => n !== name);
             if (updated.length > 0) appState.duty[date] = updated;
@@ -5427,7 +5853,7 @@
         function renderDutyRoster() {
             const list = document.getElementById('duty-roster-list');
             if (!list) return;
-            const isAdmin = canOperateClient();
+            const isAdmin = hasPermissionClient('manage_duty');
             const totalDays = 14;
             let html = '';
             let cursor = new Date();
@@ -5792,7 +6218,7 @@
 
         function renderStaffManager() {
             const container = document.getElementById('staff-list-container');
-            if (!container || !canOperateClient()) return;
+            if (!container || !hasPermissionClient('view_staff')) return;
             const expandedUsers = new Set([...container.querySelectorAll('details[open][data-username]')].map(details => details.dataset.username));
             staffHistoryByUser = new Map();
             const summaryContainer = document.getElementById('staff-stats-summary');
@@ -5882,7 +6308,7 @@
         }
 
         function openBanModal(username) {
-            if (!ensureAdmin()) return;
+            if (!ensurePermissionClient('ban_accounts')) return;
             const found = appState.users.find(u => u.username === username);
             if (!canBanClient(found)) return showToast('Этот аккаунт нельзя блокировать.', true);
             document.getElementById('ban-target-username').value = username;
@@ -5897,7 +6323,7 @@
 
         let banRequestInProgress = false;
         async function saveUserBan() {
-            if (!ensureAdmin() || banRequestInProgress) return;
+            if (!ensurePermissionClient('ban_accounts') || banRequestInProgress) return;
             const username = document.getElementById('ban-target-username').value;
             const reason = document.getElementById('ban-reason-text').value.trim();
             if (!reason) return showToast('Укажите причину блокировки.', true);
@@ -5905,7 +6331,7 @@
         }
 
         async function unblockUserQuick(username) {
-            if (!ensureAdmin() || banRequestInProgress) return;
+            if (!ensurePermissionClient('ban_accounts') || banRequestInProgress) return;
             await updateAccountBan(username, false);
         }
 
@@ -6022,7 +6448,7 @@
             return timestamp ? logDateTimeFormatter.format(timestamp) : String(value || '');
         }
 
-        function canViewStaffAudit() { return ['sysadmin', 'director'].includes(normalizeClientRole(appState.role)); }
+        function canViewStaffAudit() { return hasPermissionClient('view_account_logs'); }
 
         function renderLogs(preservePosition = true) {
             const container = document.getElementById('logs-timeline-container'); if(!container) return;
@@ -6038,7 +6464,7 @@
             const accountLogs = (appState.accountLogs || []).filter(log => log.targetUsername === appState.user).map(log => ({...log, kind:'account'}));
             const staffLogs = canViewStaffAudit() ? (appState.staffAccountLogs || []).map(log => ({...log, kind:'account'})) : [];
             const allAccountLogs = Array.from(new Map(staffLogs.concat(accountLogs).map(log => [JSON.stringify([log.timestamp, log.user, log.text, log.targetUsername]), log])).values());
-            const ordinaryLogs = appState.logs.filter(log => canOperateClient() || normalizePersonName(log.user) === normalizePersonName(appState.name) || log.user === 'Система').map(log => ({...log, kind:'activity'}));
+            const ordinaryLogs = appState.logs.filter(log => hasPermissionClient('view_logs') || normalizePersonName(log.user) === normalizePersonName(appState.name) || log.user === 'Система').map(log => ({...log, kind:'activity'}));
             const query = normalizePersonName(document.getElementById('log-search').value).toLocaleLowerCase('ru-RU').replace(/ё/g, 'е');
             const queryWords = query ? query.split(/\s+/) : [];
             const period = document.getElementById('log-period').value;
@@ -6062,7 +6488,7 @@
             document.getElementById('log-filter-account').setAttribute('aria-pressed', String(accountOnly));
             document.getElementById('log-filter-staff').setAttribute('aria-pressed', String(staffOnly));
             document.getElementById('log-filter-staff').classList.toggle('hidden', !canViewStaffAudit());
-            document.getElementById('log-type-badge').textContent = accountOnly ? 'Мой аккаунт' : staffOnly ? 'Аккаунты сотрудников' : (canOperateClient() ? 'Общий журнал' : 'Личный журнал');
+            document.getElementById('log-type-badge').textContent = accountOnly ? 'Мой аккаунт' : staffOnly ? 'Аккаунты сотрудников' : (hasPermissionClient('view_logs') ? 'Общий журнал' : 'Личный журнал');
             document.getElementById('log-clear-search').classList.toggle('hidden', !query);
             document.getElementById('log-date').classList.toggle('hidden', period !== 'date');
             if (anchorKey) logViewState.limit = Math.max(logViewState.limit, logsToShow.findIndex(log => log.key === anchorKey) + 1);
@@ -6116,7 +6542,7 @@
         }
 
         function addNewGameType() {
-            if (!ensureAdmin()) return;
+            if (!ensurePermissionClient('manage_catalog')) return;
             const input = document.getElementById('new-game-input'); const newGame = input.value.trim();
             if(!newGame) return showToast("Введите название!", true);
             if(appState.games.includes(newGame)) return showToast("Уже существует!", true);
@@ -6125,7 +6551,7 @@
         }
 
         function removeGameType(index) {
-            if (!ensureAdmin()) return;
+            if (!ensurePermissionClient('manage_catalog')) return;
             const removedGame = appState.games[index];
             appState.games.splice(index, 1);
             logAction(appState.name, `🗑 Удалил активность: ${removedGame}`);
@@ -6222,7 +6648,7 @@
         document.getElementById('toast').addEventListener('pointercancel', () => { toastSwipe = null; });
 
         async function importFromAI() {
-            if (!ensureAdmin()) return;
+            if (!ensurePermissionClient('import_games')) return;
             if (scheduleImportInProgress) return;
             const urlInput = document.getElementById('daily-sheet-url').value.trim();
             const selectedDate = document.getElementById('schedule-date').value;
@@ -6243,7 +6669,7 @@
             });
             try {
                 const result = await apiPost({ action: 'parse_schedule', url: urlInput, date: selectedDate }, 180000);
-                if (authToken !== importToken || !canOperateClient()) return;
+                if (authToken !== importToken || !hasPermissionClient('import_games')) return;
 
                 if (result.status === true && Array.isArray(result.data)) {
                     const importBatchId = createOperationId();
