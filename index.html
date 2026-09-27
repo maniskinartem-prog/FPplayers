@@ -2,7 +2,7 @@
 <html lang="ru" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="application-version" content="roles-design-20260927-v31">
+    <meta name="application-version" content="iphone-layout-20260927-v34">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.googleusercontent.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
     <title>Family-Park-Координатор PRO</title>
@@ -985,9 +985,9 @@
         .journal-account-label { color: #bba4eb; font-size: 10px; margin-bottom: 5px; }
         .journal-details summary { list-style: none; cursor: pointer; min-height: 44px; }
         .journal-details summary::-webkit-details-marker { display: none; }
-        .journal-details:not([open]) .journal-message { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .journal-details .journal-message { display: block; }
         .journal-expand { display: block; margin-top: 6px; color: #b4abf2; font-size: 11px; }
-        .journal-expand::after { content: 'Подробнее'; }
+        .journal-expand::after { content: 'Подробности'; }
         .journal-details[open] .journal-expand::after { content: 'Свернуть'; }
         .journal-id { margin-top: 8px; padding-top: 8px; border-top: 1px solid #2b3548; color: #94a3b8; font-size: 11px; overflow-wrap: anywhere; user-select: text; }
         #app-main .journal-more { width: 100%; min-height: 44px; margin-top: 14px; padding: 10px; border: 1px solid #3d4264; border-radius: 10px; background: #1d2137; color: #c4b5fd; font-size: 13px; }
@@ -1006,12 +1006,17 @@
     </style>
 
     <style id="staff-tools-design">
-        .admin-tool-modal { z-index:121; padding:16px; }
+        [role="dialog"].admin-tool-modal {
+            z-index:121; --dialog-gap:16px;
+            --dialog-safe-top:max(var(--dialog-gap), env(safe-area-inset-top, 0px));
+            --dialog-safe-bottom:max(var(--dialog-gap), env(safe-area-inset-bottom, 0px));
+            padding:var(--dialog-safe-top) max(var(--dialog-gap), env(safe-area-inset-right, 0px)) var(--dialog-safe-bottom) max(var(--dialog-gap), env(safe-area-inset-left, 0px));
+        }
         [role="dialog"].admin-tool-modal > .admin-tool-panel {
             display:flex; flex-direction:column; width:100%; max-width:580px; min-height:0;
-            max-height:calc(100vh - 32px); max-height:calc(100dvh - 32px); overflow:hidden;
+            max-height:calc(100vh - var(--dialog-safe-top) - var(--dialog-safe-bottom)) !important; max-height:calc(100dvh - var(--dialog-safe-top) - var(--dialog-safe-bottom)) !important; overflow:hidden !important;
             padding:0 !important; margin:0; border:1px solid #304056 !important; border-radius:24px !important;
-            background:#101a29 !important; box-shadow:0 24px 80px #0008; color:#e5edf5;
+            background:#101a29 !important; box-shadow:0 24px 80px #0008 !important; color:#e5edf5; animation:modal-in .18s ease both;
         }
         .admin-tool-header { display:flex; align-items:center; gap:12px; padding:20px; border-bottom:1px solid #27364b; flex-shrink:0; }
         .admin-tool-icon { display:grid; place-items:center; width:44px; height:44px; flex-shrink:0; border:1px solid #237567; border-radius:14px; background:#10332f; color:#60dbc0; }
@@ -1082,19 +1087,94 @@
         #btn-send-queued-notifications { grid-column:1/-1; }
         #notification-queue-list { display:flex; flex-direction:column; gap:12px; }
         @media(max-width:540px) {
-            [role="dialog"].admin-tool-modal { padding:10px; }
-            [role="dialog"].admin-tool-modal > .admin-tool-panel { border-radius:20px !important; max-height:calc(100dvh - 20px) !important; padding:0 !important; }
+            [role="dialog"].admin-tool-modal { --dialog-gap:10px; }
+            [role="dialog"].admin-tool-modal > .admin-tool-panel { border-radius:20px !important; padding:0 !important; }
             .admin-tool-header { padding:16px; gap:10px; }
             .admin-tool-heading h3 { font-size:17px !important; }
             .admin-tool-icon { width:38px; height:38px; border-radius:12px; }
             .admin-tool-body { padding:16px; gap:16px; }
-            .admin-tool-footer { padding:12px 16px max(12px, env(safe-area-inset-bottom)); }
+            .admin-tool-footer { padding:12px 16px; }
             .admin-tool-grid { grid-template-columns:1fr; }
             .admin-tool-modal .permission-option { grid-template-columns:1fr; gap:8px; }
             .permission-option select { width:100%; }
         }
         @media(max-height:500px) { .admin-tool-header { padding:10px 14px; } .admin-tool-heading p { display:none; } .admin-tool-footer { padding:10px 14px; } }
     </style>
+
+    <style id="concise-journal">
+        .journal-full-message { margin:12px 0 0; padding-top:12px; border-top:1px solid #2b394c; color:#a7b8cc; font-size:13px; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; }
+    </style>
+
+    <style id="unified-dialogs-catalog">
+        @media(prefers-reduced-motion:reduce) { [role="dialog"].admin-tool-modal > .admin-tool-panel { animation:none !important; transition:none !important; } }
+        .admin-tool-modal .admin-tool-heading h3 { text-transform:none; letter-spacing:normal; }
+        .admin-tool-modal[data-tone="danger"] .admin-tool-icon { color:#f9a9b8; background:#341e2b; border-color:#603344; }
+        .admin-tool-footer.dialog-footer-extra { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+        .dialog-footer-extra .dialog-add-another { grid-column:1/-1; border-style:dashed; }
+        .admin-tool-footer.dialog-footer-stack { flex-direction:column; }
+        .admin-tool-modal .admin-tool-footer > button { min-width:0; white-space:normal; overflow-wrap:anywhere; }
+        .admin-tool-modal :is(button,input,select,textarea,summary):focus-visible { outline:2px solid #60dbc0; outline-offset:3px; }
+        .legacy-dialog .admin-tool-body { font-size:13px; line-height:1.55; }
+        .legacy-dialog .admin-tool-body > * { flex-shrink:0; }
+        .legacy-dialog .admin-tool-body label { text-transform:none; letter-spacing:normal; font-size:12px !important; line-height:1.5; }
+        .legacy-dialog .admin-tool-body > p:not(.admin-tool-status) { font-size:13px !important; line-height:1.6; }
+        .legacy-dialog .admin-tool-input { padding:11px 12px !important; font-size:16px !important; font-weight:400; min-height:46px; border-radius:12px !important; background:#0a1220 !important; border-color:#35465e !important; }
+        .legacy-dialog .admin-tool-body > div > label:not(.admin-tool-check) { display:block; margin-bottom:7px; }
+        .legacy-dialog .admin-tool-check { margin:0; gap:10px; align-items:flex-start; font-size:13px !important; }
+        .legacy-dialog .admin-tool-check > * + * { margin-left:0 !important; }
+        .legacy-dialog .admin-tool-check span { font-size:12px; font-weight:500; }
+        .legacy-dialog .admin-tool-body .grid-cols-2 { min-width:0; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; }
+        .legacy-dialog .admin-tool-body .grid-cols-2 > div { min-width:0; }
+        .legacy-dialog #mass-shifts-container, .legacy-dialog #mass-duty-container { overflow:visible; flex:none; padding:0; display:flex; flex-direction:column; gap:14px; }
+        .legacy-dialog #mass-shifts-container > div, .legacy-dialog #mass-duty-container > div { margin:0; padding:14px; border-radius:16px; background:#0c1625; border:1px solid #2e4056; }
+        .legacy-dialog #mass-duty-container > div > div { min-width:0; flex:1; }
+        .dialog-row-delete { display:grid; place-items:center; width:44px; height:44px; flex-shrink:0; border:1px solid #603344; border-radius:11px; background:#341e2b; color:#fda4af; padding:0; }
+        .dialog-row-delete svg { width:19px; height:19px; }
+        .legacy-dialog .instructor-picker { background:#0a1220; border:1px solid #35465e; border-radius:12px; }
+        .admin-tool-modal .instructor-picker .instructor-picker-search { width:calc(100% - 16px); }
+        .legacy-dialog .instructor-picker summary { padding:12px; font-size:13px; min-height:46px; }
+        .legacy-dialog #btn-disband-team-building { min-height:44px; font-size:12px; text-transform:none; border-radius:12px; padding:10px; }
+        .admin-tool-modal select.admin-tool-input {
+            -webkit-appearance:none; appearance:none; padding-right:38px !important;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239badc2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+            background-repeat:no-repeat !important; background-position:right 12px center !important; background-size:16px !important;
+        }
+        #modal-password:has(#password-code-step.hidden) #btn-password-save { display:none; }
+        #account-description, #delete-game-details { background:#132336; border:1px solid #304259; border-radius:12px; padding:12px 14px; }
+        #admin-games-box { border:1px solid #304056; border-radius:20px; background:#101a29; overflow:hidden; }
+        .catalog-header { display:flex; align-items:center; gap:12px; padding:18px; border-bottom:1px solid #27364b; }
+        .catalog-symbol { display:grid; place-items:center; flex-shrink:0; width:40px; height:40px; border-radius:13px; color:#60dbc0; background:#10332f; border:1px solid #237567; }
+        .catalog-symbol svg { width:22px; height:22px; }
+        .catalog-heading { flex:1; min-width:0; }
+        #admin-games-box h3 { font-size:17px !important; margin:0; color:#f1f5f9; text-transform:none; font-weight:700; }
+        .catalog-heading p { margin:4px 0 0; color:#9aacc1; font-size:12px; line-height:1.5; }
+        #catalog-total { flex-shrink:0; min-width:30px; padding:4px 8px; border:1px solid #304259; border-radius:9px; color:#a8edd9; font-size:12px; text-align:center; }
+        .catalog-search { position:relative; margin:16px 16px 10px; }
+        .catalog-search svg { position:absolute; left:13px; top:14px; width:18px; height:18px; color:#849ab3; pointer-events:none; }
+        #admin-games-box :is(input,button) { min-height:46px; }
+        #admin-games-box input { width:100%; min-width:0; padding:11px 12px; border:1px solid #35465e; border-radius:12px; background:#0a1220; color:#edf4fc; font-size:16px; }
+        #admin-games-box #catalog-search { padding-left:40px; }
+        #admin-games-box input::placeholder { color:#71859e; }
+        #admin-games-box :is(input,button):focus-visible { outline:2px solid #60dbc0; outline-offset:2px; }
+        #catalog-results { margin:0 18px 10px; color:#8ea4bc; font-size:11px; }
+        #games-list-container { max-height:280px; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:#45576f transparent; margin:0 16px 16px; border:1px solid #2e4056; border-radius:13px; background:#0a1423; }
+        .catalog-row { display:flex; align-items:center; gap:10px; min-height:60px; padding:7px 10px 7px 14px; border-bottom:1px solid #24354a; }
+        .catalog-row:last-child { border-bottom:0; }
+        .catalog-row[hidden] { display:none; }
+        .catalog-row-name { min-width:0; flex:1; color:#dce6f3; font-size:14px; line-height:1.5; overflow-wrap:anywhere; }
+        #admin-games-box .catalog-remove { display:grid; place-items:center; flex-shrink:0; width:44px; min-height:44px; padding:0; border:1px solid transparent; border-radius:11px; color:#dc8a9c; background:transparent; }
+        #admin-games-box .catalog-remove:hover { color:#fda4af; background:#341e2b; border-color:#603344; }
+        .catalog-remove svg { width:19px; height:19px; }
+        #catalog-empty { margin:0 16px 16px; padding:20px 14px; color:#9badc2; font-size:13px; text-align:center; border:1px dashed #35465e; border-radius:13px; line-height:1.6; }
+        .catalog-add { padding:16px; border-top:1px solid #27364b; background:#132030; }
+        .catalog-add label { display:block; margin-bottom:8px; font-size:12px; font-weight:600; color:#ccd7e5; }
+        .catalog-add-controls { display:flex; gap:10px; }
+        #admin-games-box .catalog-add button { flex-shrink:0; padding:11px 16px; border:1px solid #36cfad; border-radius:12px; background:#36cfad; color:#06251f; font-size:13px; font-weight:700; }
+        .catalog-add p { margin:9px 0 0; font-size:11px; line-height:1.5; color:#8ea4bc; }
+        @media(max-width:360px) { .catalog-header { padding:16px; gap:10px; } .catalog-add-controls { flex-direction:column; } }
+        @media(max-height:500px) { .admin-tool-icon { width:34px; height:34px; } .admin-tool-footer.dialog-footer-extra { padding:8px 14px; gap:6px; } }
+    </style>
+
 </head>
 <body class="bg-[#0b0f19] text-slate-100 h-[100dvh] flex flex-col justify-between max-w-md mx-auto relative overflow-hidden border-x border-slate-900 shadow-2xl">
 
@@ -1407,16 +1487,22 @@
                 </div>
             </div>
 
-            <div id="admin-games-box" class="hidden space-y-3 flex-shrink-0">
-                <h3 class="font-brand font-bold text-white text-xs uppercase"><i class="fa-solid fa-gamepad text-park-gold mr-1"></i> База активностей</h3>
-                <div class="bg-slate-900 border border-park-gold/30 rounded-xl p-3 shadow-md space-y-3">
-                    <div id="games-list-container" class="space-y-1.5 max-h-32 overflow-y-auto pr-1"></div>
-                    <div class="game-add-row flex space-x-2 pt-2 border-t border-slate-800">
-                        <input type="text" id="new-game-input" aria-label="Название новой активности" maxlength="100" placeholder="Пейнтбол🎯" class="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-3 text-[16px] text-white focus:outline-none">
-                        <button onclick="addNewGameType()" class="bg-park-gold text-slate-950 font-bold px-3 py-1.5 rounded-lg text-[11px] whitespace-nowrap">Добавить</button>
-                    </div>
-                </div>
-            </div>
+            <section id="admin-games-box" class="hidden flex-shrink-0" aria-labelledby="catalog-title">
+                <header class="catalog-header">
+                    <span class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10a4 4 0 0 1 4 4l1 6a3 3 0 0 1-5 2l-3-3h-4l-3 3a3 3 0 0 1-5-2l1-6a4 4 0 0 1 4-4zM6 10v4M4 12h4M16 11h.01M18 13h.01"/></svg></span>
+                    <div class="catalog-heading"><h3 id="catalog-title">База активностей</h3><p>Названия для расписания игр</p></div>
+                    <span id="catalog-total" aria-label="Всего активностей">0</span>
+                </header>
+                <div class="catalog-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="catalog-search" type="search" aria-label="Найти активность" placeholder="Найти активность" oninput="filterGameCatalog()"></div>
+                <p id="catalog-results" role="status" aria-live="polite"></p>
+                <div id="games-list-container" role="list" aria-label="Активности"></div>
+                <p id="catalog-empty" class="hidden"></p>
+                <form class="catalog-add" onsubmit="event.preventDefault(); addNewGameType()">
+                    <label for="new-game-input">Новая активность</label>
+                    <div class="catalog-add-controls"><input type="text" id="new-game-input" maxlength="100" required placeholder="Например, лучный тир" autocomplete="off"><button type="submit">Добавить</button></div>
+                    <p>После добавления появится в списке при создании игры.</p>
+                </form>
+            </section>
 
             <div id="admin-activity-log" class="hidden">
                 <button id="btn-open-logs" type="button" class="journal-launch" onclick="openActivityLog()">
@@ -1474,9 +1560,9 @@
         </button>
     </nav>
 
-    <div id="modal-add-shift" role="dialog" aria-modal="true" aria-hidden="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl flex flex-col max-h-[85dvh]">
-            <h3 class="font-brand font-bold text-white text-xs uppercase flex-shrink-0"><i class="fa-solid fa-square-plus text-park-accent mr-1"></i> Массовое планирование</h3>
+    <div id="modal-add-shift" role="dialog" aria-modal="true" aria-hidden="true" class="hidden admin-tool-modal legacy-dialog fixed inset-0 flex items-center justify-center" aria-labelledby="modal-add-shift-title">
+        <div class="admin-tool-panel"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M16 3v4M8 3v4M3 11h18M8 16h3"></path></svg></span><div class="admin-tool-heading"><h3 class="" id="modal-add-shift-title">Массовое планирование</h3><p>Игры, время и состав команды</p></div><button type="button" class="admin-tool-close" onclick="closeAddShiftModal();" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body">
+            
             <div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-[9px] text-slate-400 flex-shrink-0 -mt-2">
                 <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1 flex-shrink-0"></span>Работает</span>
                 <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-rose-500 mr-1 flex-shrink-0"></span>Точно выходной</span>
@@ -1484,31 +1570,25 @@
             </div>
 
             <div class="bg-indigo-950/30 border border-indigo-500/25 rounded-xl p-3 space-y-2 flex-shrink-0">
-                <label class="flex items-center gap-2 text-[11px] font-bold text-indigo-200 cursor-pointer">
+                <label class="flex items-center gap-2 text-[11px] font-bold text-indigo-200 cursor-pointer admin-tool-check">
                     <input type="checkbox" id="team-building-enabled" aria-label="Объединить игры в тимбилдинг" onchange="toggleTeamBuildingFields()" class="accent-indigo-400 w-4 h-4">
                     <i class="fa-solid fa-people-group text-indigo-300"></i> Это тимбилдинг
                 </label>
                 <div id="team-building-details" class="hidden">
                     <label class="block text-[8px] font-bold text-indigo-200/70 uppercase mb-1">Добавить в существующий или создать новый</label>
-                    <select id="team-building-existing" aria-label="Существующий тимбилдинг" onchange="handleCreateTeamBuildingSelection()" class="w-full bg-slate-950 border border-indigo-500/30 rounded-lg py-1.5 px-2 text-[14px] text-white focus:outline-none focus:border-indigo-400 mb-2"></select>
+                    <select id="team-building-existing" aria-label="Существующий тимбилдинг" onchange="handleCreateTeamBuildingSelection()" class="w-full bg-slate-950 border border-indigo-500/30 rounded-lg py-1.5 px-2 text-[14px] text-white focus:outline-none focus:border-indigo-400 mb-2 admin-tool-input"></select>
                     <label class="block text-[8px] font-bold text-indigo-200/70 uppercase mb-1">Компания / название тимбилдинга</label>
-                    <input type="text" id="team-building-name" aria-label="Название тимбилдинга" maxlength="80" placeholder="Например: ООО «Альфа»" class="w-full bg-slate-950 border border-indigo-500/30 rounded-lg py-1.5 px-2 text-[14px] text-white focus:outline-none focus:border-indigo-400">
+                    <input type="text" id="team-building-name" aria-label="Название тимбилдинга" maxlength="80" placeholder="Например: ООО «Альфа»" class="w-full bg-slate-950 border border-indigo-500/30 rounded-lg py-1.5 px-2 text-[14px] text-white focus:outline-none focus:border-indigo-400 admin-tool-input">
                     <p id="team-building-create-hint" class="text-[8px] text-slate-400 mt-1">Все игры в этой форме будут объединены в один блок в расписании и Telegram.</p>
                 </div>
             </div>
             
             <div id="mass-shifts-container" class="flex-grow overflow-y-auto pr-1 space-y-3 py-1 ios-scroll"></div>
             
-            <div class="flex-shrink-0 pt-2 space-y-2 border-t border-slate-800/80">
-                <button type="button" onclick="addGameRowToModal()" class="w-full bg-slate-950 border border-dashed border-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs hover:border-park-accent/50 transition">
+            
+        </div><footer class="admin-tool-footer dialog-footer-extra"><button type="button" onclick="addGameRowToModal()" class="admin-tool-button dialog-add-another">
                     <i class="fa-solid fa-plus mr-1 text-park-accent"></i> + Добавить еще одну игру
-                </button>
-                <div class="flex space-x-2">
-                    <button onclick="closeAddShiftModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
-                    <button onclick="saveCreatedShiftsMassive()" class="flex-1 bg-park-accent text-slate-950 font-brand font-black py-2.5 rounded-xl text-xs uppercase">Добавить всё</button>
-                </div>
-            </div>
-        </div>
+                </button><button onclick="closeAddShiftModal()" class="admin-tool-button " type="button">Отмена</button><button onclick="saveCreatedShiftsMassive()" class="admin-tool-button primary" type="button">Добавить всё</button></footer></div>
     </div>
 
     <div id="modal-notification-queue" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="notification-queue-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center"><div class="admin-tool-panel">
@@ -1517,9 +1597,9 @@
 <div class="staff-selection-toolbar"><button  type="button" onclick="setAllQueuedRecipients(true)" class="admin-tool-button ">Выбрать всех</button><button  type="button" onclick="setAllQueuedRecipients(false)" class="admin-tool-button ">Снять выбор</button></div><div id="notification-queue-list"></div></div>
 <footer class="admin-tool-footer"><button  type="button" onclick="closeNotificationQueueModal()" class="admin-tool-button ">Позже</button><button id="btn-delete-queued-notifications" type="button" onclick="deleteSelectedQueuedNotifications()" class="admin-tool-button danger hidden">Удалить выбранные</button><button id="btn-send-queued-notifications" type="button" onclick="sendSelectedQueuedNotifications()" class="admin-tool-button primary">Отправить выбранным</button></footer></div></div>
 
-    <div id="modal-confirm-availability" role="dialog" aria-modal="true" aria-hidden="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
-            <h3 class="font-brand font-bold text-white text-xs uppercase flex items-center"><i class="fa-solid fa-lock text-park-accent mr-1.5"></i> Подтвердите график</h3>
+    <div id="modal-confirm-availability" role="dialog" aria-modal="true" aria-hidden="true" class="hidden admin-tool-modal legacy-dialog fixed inset-0 flex items-center justify-center" aria-labelledby="modal-confirm-availability-title">
+        <div class="admin-tool-panel"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M16 3v4M8 3v4M3 11h18M8 16h3"></path></svg></span><div class="admin-tool-heading"><h3 class="" id="modal-confirm-availability-title">Подтвердите график</h3><p>Рабочие дни и часы</p></div><button type="button" class="admin-tool-close" onclick="closeConfirmAvailabilityModal();" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body">
+            
             <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-1.5 text-[11px] text-slate-300">
                 <div class="flex justify-between"><span class="text-slate-500">Период:</span> <span id="confirm-avail-range" class="font-bold text-white"></span></div>
                 <div class="flex justify-between"><span class="text-slate-500">Статус:</span> <span id="confirm-avail-status" class="font-bold text-white"></span></div>
@@ -1530,16 +1610,13 @@
             <p id="confirm-avail-weekend-warning" class="hidden text-[10px] text-purple-300 bg-purple-500/10 border border-purple-500/30 rounded-lg p-2.5 leading-snug">
                 <i class="fa-solid fa-circle-exclamation mr-1"></i> В выбранном периоде есть суббота и/или воскресенье — это основные рабочие дни парка. Пожалуйста, старайтесь не брать выходной именно в эти дни.
             </p>
-            <div class="flex space-x-2">
-                <button onclick="closeConfirmAvailabilityModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
-                <button onclick="confirmSaveMyAvailability()" class="flex-1 bg-park-accent text-slate-950 font-brand font-black py-2.5 rounded-xl text-xs uppercase">Подтвердить</button>
-            </div>
-        </div>
+            
+        </div><footer class="admin-tool-footer"><button onclick="closeConfirmAvailabilityModal()" class="admin-tool-button " type="button">Отмена</button><button onclick="confirmSaveMyAvailability()" class="admin-tool-button primary" type="button">Подтвердить</button></footer></div>
     </div>
 
-    <div id="modal-edit-availability" role="dialog" aria-modal="true" aria-hidden="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
-            <h3 class="font-brand font-bold text-white text-xs uppercase flex items-center"><i class="fa-solid fa-user-pen text-indigo-400 mr-1.5"></i> График сотрудника</h3>
+    <div id="modal-edit-availability" role="dialog" aria-modal="true" aria-hidden="true" class="hidden admin-tool-modal legacy-dialog fixed inset-0 flex items-center justify-center" aria-labelledby="modal-edit-availability-title">
+        <div class="admin-tool-panel"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M16 3v4M8 3v4M3 11h18M8 16h3"></path></svg></span><div class="admin-tool-heading"><h3 class="" id="modal-edit-availability-title">График сотрудника</h3><p>Доступность и подтверждение</p></div><button type="button" class="admin-tool-close" onclick="closeEditAvailabilityModal();" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body">
+            
             <div class="text-[10px] text-slate-400">
                 <span id="edit-avail-name-label" class="font-bold text-white"></span> — <span id="edit-avail-date-label" class="font-bold text-white"></span>
             </div>
@@ -1548,7 +1625,7 @@
 
             <div>
                 <label class="block text-[8px] font-bold text-slate-500 uppercase mb-1">Статус</label>
-                <select id="edit-avail-status" aria-label="Статус доступности" onchange="toggleEditAvailTimeField()" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white font-bold focus:outline-none">
+                <select id="edit-avail-status" aria-label="Статус доступности" onchange="toggleEditAvailTimeField()" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white font-bold focus:outline-none admin-tool-input">
                     <option value="yes">🟢 Готов работать</option>
                     <option value="no">🔴 Выходной</option>
                     <option value="">⚪ Сбросить (не отмечался)</option>
@@ -1557,55 +1634,44 @@
 
             <div id="edit-avail-time-wrap">
                 <div class="availability-hours-grid">
-                    <label for="edit-avail-from">Работает с<input type="time" id="edit-avail-from" aria-label="Доступен с"></label>
-                    <label for="edit-avail-time">До<input type="time" id="edit-avail-time" aria-label="Доступен до"></label>
+                    <label for="edit-avail-from">Работает с<input type="time" id="edit-avail-from" aria-label="Доступен с" class="admin-tool-input"></label>
+                    <label for="edit-avail-time">До<input type="time" id="edit-avail-time" aria-label="Доступен до" class="admin-tool-input"></label>
                 </div>
                 <p class="text-[10px] text-slate-400 mt-1">Пустое поле — без ограничения.</p>
             </div>
 
-            <label class="flex items-center space-x-2.5 bg-slate-950 border border-slate-800 rounded-xl p-3 cursor-pointer">
+            <label class="flex items-center space-x-2.5 bg-slate-950 border border-slate-800 rounded-xl p-3 cursor-pointer admin-tool-check">
                 <input type="checkbox" id="edit-avail-lock" aria-label="Запретить сотруднику менять статус" class="rounded bg-slate-900 border-slate-700 accent-park-gold w-4 h-4 flex-shrink-0">
                 <span class="text-[10.5px] font-bold text-slate-300 leading-snug"><i class="fa-solid fa-lock text-park-gold mr-1"></i> Заблокировать (сотрудник не сможет изменить сам)</span>
             </label>
 
-            <div class="flex space-x-2 pt-1">
-                <button onclick="closeEditAvailabilityModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
-                <button onclick="saveEditedAvailability()" class="flex-1 bg-indigo-500 text-white font-brand font-black py-2.5 rounded-xl text-xs uppercase">Сохранить</button>
-            </div>
-        </div>
+            
+        </div><footer class="admin-tool-footer"><button onclick="closeEditAvailabilityModal()" class="admin-tool-button " type="button">Отмена</button><button onclick="saveEditedAvailability()" class="admin-tool-button primary" type="button">Сохранить</button></footer></div>
     </div>
 
-    <div id="modal-assign-duty" role="dialog" aria-modal="true" aria-hidden="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl flex flex-col max-h-[85dvh]">
-            <h3 class="font-brand font-bold text-white text-xs uppercase flex-shrink-0"><i class="fa-solid fa-shield-halved text-park-gold mr-1"></i> Дежурный инструктор</h3>
+    <div id="modal-assign-duty" role="dialog" aria-modal="true" aria-hidden="true" class="hidden admin-tool-modal legacy-dialog fixed inset-0 flex items-center justify-center" aria-labelledby="modal-assign-duty-title">
+        <div class="admin-tool-panel"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 4v5c0 5-9 9-9 9s-9-4-9-9V7zM8 12l3 3 5-6"></path></svg></span><div class="admin-tool-heading"><h3 class="" id="modal-assign-duty-title">Дежурный инструктор</h3><p>Назначения на выбранный день</p></div><button type="button" class="admin-tool-close" onclick="closeAssignDutyModal();" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body">
+            
             <div class="text-[10px] text-slate-400 flex-shrink-0">Дата: <span id="duty-modal-date-label" class="font-bold text-white"></span></div>
 
             <div id="mass-duty-container" class="flex-grow overflow-y-auto pr-1 space-y-3 py-1 ios-scroll"></div>
 
-            <div class="flex-shrink-0 pt-2 space-y-2 border-t border-slate-800">
-                <button type="button" onclick="addDutyRowToModal()" class="w-full bg-slate-950 border border-dashed border-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs hover:border-park-gold/50 transition">
+            
+        </div><footer class="admin-tool-footer dialog-footer-extra"><button type="button" onclick="addDutyRowToModal()" class="admin-tool-button dialog-add-another">
                     <i class="fa-solid fa-plus mr-1 text-park-gold"></i> + Добавить еще одного дежурного
-                </button>
-                <div class="flex space-x-2">
-                    <button onclick="closeAssignDutyModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
-                    <button onclick="saveDutyForDate()" class="flex-1 bg-park-gold text-slate-950 font-brand font-black py-2.5 rounded-xl text-xs uppercase">Сохранить</button>
-                </div>
-            </div>
-        </div>
+                </button><button onclick="closeAssignDutyModal()" class="admin-tool-button " type="button">Отмена</button><button onclick="saveDutyForDate()" class="admin-tool-button primary" type="button">Сохранить</button></footer></div>
     </div>
 
-    <div id="modal-edit-game" role="dialog" aria-modal="true" aria-hidden="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl max-h-[90dvh] overflow-y-auto ios-scroll">
-            <h3 class="font-brand font-bold text-white text-xs uppercase flex items-center text-park-accent">
-                <i class="fa-solid fa-pen-to-square mr-1.5"></i> Изменение игры
-            </h3>
+    <div id="modal-edit-game" role="dialog" aria-modal="true" aria-hidden="true" class="hidden admin-tool-modal legacy-dialog fixed inset-0 flex items-center justify-center" aria-labelledby="modal-edit-game-title">
+        <div class="admin-tool-panel"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m14 4 6 6M4 20l5-1L21 7l-5-5L4 14z"></path></svg></span><div class="admin-tool-heading"><h3 class="" id="modal-edit-game-title">Изменение игры</h3><p>Параметры и ведущие</p></div><button type="button" class="admin-tool-close" onclick="closeEditGameModal();" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body">
+            
             <input type="hidden" id="edit-shift-id" aria-label="Идентификатор игры">
             <div>
                 <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Активность</label>
-                <select id="edit-game-select" aria-label="Активность" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white global-games-select"></select>
+                <select id="edit-game-select" aria-label="Активность" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white global-games-select admin-tool-input"></select>
             </div>
             <div>
-                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Инструктора (можно несколько)</label>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Инструкторы (можно несколько)</label>
                 <div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-[9px] text-slate-400 mb-1.5">
                     <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1 flex-shrink-0"></span>Работает</span>
                     <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-rose-500 mr-1 flex-shrink-0"></span>Точно выходной</span>
@@ -1613,7 +1679,7 @@
                 </div>
                 <details class="instructor-picker" onchange="updateInstructorPicker(this)">
                     <summary>Выбрать инструкторов</summary>
-                    <input type="search" class="instructor-picker-search" aria-label="Найти инструктора" placeholder="Поиск по имени" oninput="filterInstructorPicker(this)">
+                    <input type="search" class="instructor-picker-search admin-tool-input" aria-label="Найти инструктора" placeholder="Поиск по имени" oninput="filterInstructorPicker(this)">
                     <div id="edit-instructor-select-list" class="picker-options grid grid-cols-2 gap-1.5 ios-scroll"></div>
                     <p class="picker-empty hidden text-xs text-slate-400 px-3 pb-3">Никого не найдено</p>
                 </details>
@@ -1621,119 +1687,102 @@
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Старт</label>
-                    <input type="time" id="edit-start-time" aria-label="Время начала" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white">
+                    <input type="time" id="edit-start-time" aria-label="Время начала" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white admin-tool-input">
                 </div>
                 <div>
                     <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Конец</label>
-                    <input type="time" id="edit-end-time" aria-label="Время окончания" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white">
+                    <input type="time" id="edit-end-time" aria-label="Время окончания" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white admin-tool-input">
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Гости</label>
-                    <input type="number" id="edit-guests" aria-label="Количество гостей" min="1" max="10000" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white">
+                    <input type="number" id="edit-guests" aria-label="Количество гостей" min="1" max="10000" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white admin-tool-input">
                 </div>
                 <div>
                     <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Беседка: </label>
-                    <input type="text" id="edit-gazebo" aria-label="Беседка" maxlength="100" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white">
+                    <input type="text" id="edit-gazebo" aria-label="Беседка" maxlength="100" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white admin-tool-input">
                 </div>
             </div>
             <div>
                 <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Тимбилдинг</label>
-                <select id="edit-team-building-select" aria-label="Тимбилдинг" onchange="handleEditTeamBuildingSelection()" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[14px] text-white mb-2"></select>
-                <input type="text" id="edit-team-building-name" aria-label="Название тимбилдинга" maxlength="80" placeholder="Оставьте пустым для обычной игры" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white">
+                <select id="edit-team-building-select" aria-label="Тимбилдинг" onchange="handleEditTeamBuildingSelection()" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[14px] text-white mb-2 admin-tool-input"></select>
+                <input type="text" id="edit-team-building-name" aria-label="Название тимбилдинга" maxlength="80" placeholder="Оставьте пустым для обычной игры" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white admin-tool-input">
                 <p id="edit-team-building-hint" class="text-[8px] text-slate-500 mt-1">Можно переместить игру в другую группу или создать новый тимбилдинг.</p>
                 <button id="btn-disband-team-building" onclick="disbandCurrentTeamBuilding()" class="hidden mt-2 w-full text-rose-300 bg-rose-950/30 hover:bg-rose-950/50 border border-rose-500/30 font-bold py-1.5 rounded-lg text-[9px] uppercase transition"><i class="fa-solid fa-link-slash mr-1"></i> Расформировать весь тимбилдинг</button>
             </div>
-            <div class="flex space-x-2 pt-2 border-t border-slate-800">
-                <button onclick="closeEditGameModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
-                <button onclick="saveEditedGame()" class="flex-1 bg-park-accent text-slate-950 font-brand font-black py-2.5 rounded-xl text-xs uppercase">Сохранить</button>
-            </div>
-        </div>
+            
+        </div><footer class="admin-tool-footer"><button onclick="closeEditGameModal()" class="admin-tool-button " type="button">Отмена</button><button onclick="saveEditedGame()" class="admin-tool-button primary" type="button">Сохранить</button></footer></div>
     </div>
 
-    <div id="modal-delete-game" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="delete-game-title" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl animate-fade-in">
-            <h3 id="delete-game-title" class="font-brand font-bold text-rose-400">Удалить игру навсегда?</h3>
+    <div id="modal-delete-game" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="delete-game-title" class="hidden admin-tool-modal legacy-dialog fixed inset-0 flex items-center justify-center" data-tone="danger">
+        <div class="admin-tool-panel"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"></path></svg></span><div class="admin-tool-heading"><h3 id="delete-game-title" class="">Удалить игру навсегда?</h3><p>Удаление из расписания</p></div><button type="button" class="admin-tool-close" onclick="closeDeleteGameModal();" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body">
+            
             <input type="hidden" id="delete-shift-id">
             <p id="delete-game-details" class="text-sm text-slate-200 break-words"></p>
             <p class="text-sm text-slate-400">Игра исчезнет из расписания и статистики. Восстановить её в приложении нельзя. Запись об удалении останется в журнале.</p>
-            <div class="flex gap-3">
-                <button type="button" onclick="closeDeleteGameModal()" class="flex-1 bg-slate-800 text-slate-200 rounded-xl p-3 font-bold">Оставить</button>
-                <button type="button" id="btn-confirm-delete-game" onclick="saveDeleteGame()" class="flex-1 bg-rose-600 text-white rounded-xl p-3 font-bold">Удалить</button>
-            </div>
-        </div>
+            
+        </div><footer class="admin-tool-footer"><button type="button" onclick="closeDeleteGameModal()" class="admin-tool-button ">Оставить</button><button type="button" id="btn-confirm-delete-game" onclick="saveDeleteGame()" class="admin-tool-button danger">Удалить</button></footer></div>
     </div>
 
-    <div id="modal-cancel-game" role="dialog" aria-modal="true" aria-hidden="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl animate-fade-in">
-            <h3 class="font-brand font-bold text-rose-400 text-xs uppercase flex items-center">
-                <i class="fa-solid fa-ban mr-1.5"></i> Отмена игры
-            </h3>
+    <div id="modal-cancel-game" role="dialog" aria-modal="true" aria-hidden="true" class="hidden admin-tool-modal legacy-dialog fixed inset-0 flex items-center justify-center" data-tone="danger" aria-labelledby="modal-cancel-game-title">
+        <div class="admin-tool-panel"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="m6 6 12 12"></path></svg></span><div class="admin-tool-heading"><h3 class="" id="modal-cancel-game-title">Отмена игры</h3><p>Причина отмены проведения</p></div><button type="button" class="admin-tool-close" onclick="closeCancelGameModal();" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body">
+            
             <input type="hidden" id="cancel-shift-id" aria-label="Идентификатор отменяемой игры">
             <div>
                 <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Причина отмены (Обязательно)</label>
-                <textarea id="cancel-reason-text" aria-label="Причина отмены" maxlength="500" rows="3" placeholder="Например: Клиенты не приехали / Форс-мажор..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[14px] text-white focus:outline-none focus:border-rose-500/50"></textarea>
+                <textarea id="cancel-reason-text" aria-label="Причина отмены" maxlength="500" rows="3" placeholder="Например: Клиенты не приехали / Форс-мажор..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[14px] text-white focus:outline-none focus:border-rose-500/50 admin-tool-input"></textarea>
             </div>
-            <div class="flex space-x-2 pt-1 border-t border-slate-800">
-                <button onclick="closeCancelGameModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Закрыть</button>
-                <button onclick="saveCancelGame()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-brand font-black py-2.5 rounded-xl text-xs uppercase transition">Отменить игру</button>
-            </div>
-        </div>
+            
+        </div><footer class="admin-tool-footer"><button onclick="closeCancelGameModal()" class="admin-tool-button " type="button">Закрыть</button><button onclick="saveCancelGame()" class="admin-tool-button danger" type="button">Отменить игру</button></footer></div>
     </div>
 
-    <div id="modal-instructor-status" role="dialog" aria-modal="true" aria-hidden="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
-            <h3 class="font-brand font-bold text-white text-xs uppercase flex items-center text-park-accent">
-                <i class="fa-solid fa-reply mr-1.5"></i> Ответ по игре
-            </h3>
+    <div id="modal-instructor-status" role="dialog" aria-modal="true" aria-hidden="true" class="hidden admin-tool-modal legacy-dialog fixed inset-0 flex items-center justify-center" aria-labelledby="modal-instructor-status-title">
+        <div class="admin-tool-panel"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m8 5-6 6 6 6M2 11h12a7 7 0 0 1 7 7"></path></svg></span><div class="admin-tool-heading"><h3 class="" id="modal-instructor-status-title">Ответ по игре</h3><p>Подтверждение или отказ</p></div><button type="button" class="admin-tool-close" onclick="closeInstructorStatusModal();" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body">
+            
             <input type="hidden" id="inst-shift-id" aria-label="Идентификатор игры">
             <div>
                 <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Ваше решение</label>
-                <select id="inst-status-select" aria-label="Решение по игре" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white font-bold focus:border-park-accent/50 focus:outline-none">
+                <select id="inst-status-select" aria-label="Решение по игре" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white font-bold focus:border-park-accent/50 focus:outline-none admin-tool-input">
                     <option value="accepted">🟢 Готов провести (Буду)</option>
                     <option value="declined">🔴 Отказаться (Не смогу)</option>
                 </select>
             </div>
             <div>
                 <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Причина / Комментарий (Обязательно при отказе)</label>
-                <textarea id="inst-status-reason" aria-label="Причина решения" maxlength="500" rows="3" placeholder="Укажите причину вашего решения..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[14px] text-white focus:outline-none focus:border-park-accent/50"></textarea>
+                <textarea id="inst-status-reason" aria-label="Причина решения" maxlength="500" rows="3" placeholder="Укажите причину вашего решения..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[14px] text-white focus:outline-none focus:border-park-accent/50 admin-tool-input"></textarea>
             </div>
-            <div class="flex space-x-2 pt-1 border-t border-slate-800">
-                <button onclick="closeInstructorStatusModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
-                <button onclick="saveInstructorStatus()" class="flex-1 bg-park-accent text-slate-950 font-brand font-black py-2.5 rounded-xl text-xs uppercase">Отправить</button>
-            </div>
-        </div>
+            
+        </div><footer class="admin-tool-footer"><button onclick="closeInstructorStatusModal()" class="admin-tool-button " type="button">Отмена</button><button onclick="saveInstructorStatus()" class="admin-tool-button primary" type="button">Отправить</button></footer></div>
     </div>
 
-    <div id="modal-password" role="dialog" aria-modal="true" aria-labelledby="password-title" aria-hidden="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <form onsubmit="finishPasswordRecovery(); return false;" class="bg-slate-900 border border-sky-500/30 rounded-2xl p-5 w-full max-w-sm space-y-3 shadow-2xl">
-            <div class="flex justify-between items-center gap-3"><h3 id="password-title" class="font-bold text-white">Пароль через Telegram</h3><button type="button" onclick="closePasswordRecovery()" aria-label="Закрыть" class="min-h-12 min-w-12 text-slate-300 text-xl">×</button></div>
+    <div id="modal-password" role="dialog" aria-modal="true" aria-labelledby="password-title" aria-hidden="true" class="hidden admin-tool-modal legacy-dialog fixed inset-0 flex items-center justify-center">
+        <form onsubmit="finishPasswordRecovery(); return false;" class="admin-tool-panel"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="3"></rect><path d="M8 10V6a4 4 0 0 1 8 0v4M12 14v3"></path></svg></span><div class="admin-tool-heading"><h3 id="password-title" class="">Пароль через Telegram</h3><p>Подтверждение через привязанного бота</p></div><button type="button" class="admin-tool-close" onclick="closePasswordRecovery();" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body">
+            
             <p class="text-xs leading-relaxed text-slate-400">Нужен Telegram, уже привязанный к вашему аккаунту. Код придёт только в него. Без привязки обратитесь к администратору.</p>
-            <label class="block text-xs text-slate-300" for="password-username">Логин</label>
-            <input id="password-username" maxlength="32" autocomplete="username" required class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-[16px]">
-            <button type="button" id="btn-password-code" onclick="requestPasswordCode()" class="w-full min-h-12 bg-blue-600 text-white rounded-xl font-bold text-sm">Получить код в Telegram</button>
+            <div class="admin-tool-field"><label class="block text-xs text-slate-300" for="password-username">Логин</label><input id="password-username" maxlength="32" autocomplete="username" required="" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-[16px] admin-tool-input"></div>
+            
+            <button type="button" id="btn-password-code" onclick="requestPasswordCode()" class="admin-tool-button ">Получить код в Telegram</button>
             <div id="password-code-step" class="hidden space-y-3">
-                <label class="block text-xs text-slate-300" for="password-code">Код из бота</label>
-                <input id="password-code" maxlength="32" autocomplete="one-time-code" autocapitalize="characters" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-[16px]">
-                <label class="block text-xs text-slate-300" for="password-new">Новый пароль — минимум 8 символов</label>
-                <input id="password-new" type="password" minlength="8" maxlength="128" autocomplete="new-password" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-[16px]">
-                <label class="block text-xs text-slate-300" for="password-repeat">Повторите пароль</label>
-                <input id="password-repeat" type="password" minlength="8" maxlength="128" autocomplete="new-password" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-[16px]">
-                <button id="btn-password-save" type="submit" class="w-full min-h-12 bg-emerald-500 text-slate-950 rounded-xl font-bold text-sm">Сохранить пароль и завершить старые сессии</button>
-            </div>
-            <p id="password-status" role="status" aria-live="polite" class="text-sm leading-relaxed text-slate-300"></p>
-        </form>
+                <div class="admin-tool-field"><label class="block text-xs text-slate-300" for="password-code">Код из бота</label><input id="password-code" maxlength="32" autocomplete="one-time-code" autocapitalize="characters" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-[16px] admin-tool-input"></div>
+                
+                <div class="admin-tool-field"><label class="block text-xs text-slate-300" for="password-new">Новый пароль — минимум 8 символов</label><input id="password-new" type="password" minlength="8" maxlength="128" autocomplete="new-password" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-[16px] admin-tool-input"></div>
+                
+                <div class="admin-tool-field"><label class="block text-xs text-slate-300" for="password-repeat">Повторите пароль</label><input id="password-repeat" type="password" minlength="8" maxlength="128" autocomplete="new-password" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-[16px] admin-tool-input"></div>
+                
+                
+            <p class="admin-tool-note">После смены пароля потребуется войти заново.</p></div>
+            <p id="password-status" role="status" aria-live="polite" class="text-sm leading-relaxed text-slate-300 admin-tool-status"></p>
+        </div><footer class="admin-tool-footer"><button type="button" class="admin-tool-button " onclick="closePasswordRecovery();">Закрыть</button><button id="btn-password-save" type="submit" class="admin-tool-button primary">Сохранить пароль</button></footer></form>
     </div>
-    <div id="modal-ban-user" role="dialog" aria-modal="true" aria-hidden="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl animate-fade-in">
-            <h3 class="font-brand font-bold text-rose-400 text-xs uppercase flex items-center">
-                <i class="fa-solid fa-user-slash mr-1.5"></i> Блокировка доступа
-            </h3>
+
+    <div id="modal-ban-user" role="dialog" aria-modal="true" aria-hidden="true" class="hidden admin-tool-modal legacy-dialog fixed inset-0 flex items-center justify-center" data-tone="danger" aria-labelledby="modal-ban-user-title">
+        <div class="admin-tool-panel"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="3"></rect><path d="M8 10V6a4 4 0 0 1 8 0v4M12 14v3"></path></svg></span><div class="admin-tool-heading"><h3 class="" id="modal-ban-user-title">Блокировка доступа</h3><p>Срок и причина ограничения</p></div><button type="button" class="admin-tool-close" onclick="closeBanModal();" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body">
+            
             <input type="hidden" id="ban-target-username" aria-label="Логин блокируемого сотрудника">
             <div>
                 <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Срок блокировки</label>
-                <select id="ban-duration-select" aria-label="Срок блокировки" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white font-bold focus:outline-none focus:border-rose-500/50">
+                <select id="ban-duration-select" aria-label="Срок блокировки" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[16px] text-white font-bold focus:outline-none focus:border-rose-500/50 admin-tool-input">
                     <option value="3600000">1 час</option>
                     <option value="10800000">3 часа</option>
                     <option value="43200000">12 часов</option>
@@ -1745,15 +1794,11 @@
             </div>
             <div>
                 <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Причина блокировки (Обязательно)</label>
-                <textarea id="ban-reason-text" aria-label="Причина блокировки" maxlength="500" rows="3" placeholder="Введите причину ограничения..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[14px] text-white focus:outline-none focus:border-rose-500/50"></textarea>
+                <textarea id="ban-reason-text" aria-label="Причина блокировки" maxlength="500" rows="3" placeholder="Введите причину ограничения..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-[14px] text-white focus:outline-none focus:border-rose-500/50 admin-tool-input"></textarea>
             </div>
-            <div class="flex space-x-2 pt-1 border-t border-slate-800">
-                <button onclick="closeBanModal()" class="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">Отмена</button>
-                <button onclick="saveUserBan()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-brand font-black py-2.5 rounded-xl text-xs uppercase transition">Заблокировать</button>
-            </div>
-        </div>
+            
+        </div><footer class="admin-tool-footer"><button onclick="closeBanModal()" class="admin-tool-button " type="button">Отмена</button><button onclick="saveUserBan()" class="admin-tool-button danger" type="button">Заблокировать</button></footer></div>
     </div>
-
 
     <div id="modal-create-account" role="dialog" aria-modal="true" aria-labelledby="create-account-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center"><form class="admin-tool-panel" onsubmit="event.preventDefault(); submitCreateAccount()"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M19 8v6M16 11h6"/><circle cx="9" cy="7" r="4"/></svg></span><div class="admin-tool-heading"><h3 id="create-account-title">Новый аккаунт</h3><p>Доступ к приложению для сотрудника</p></div><button type="button" class="admin-tool-close" onclick="closeCreateAccount()" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body"><div class="admin-tool-field"><label for="create-account-name">ФИО сотрудника</label><input id="create-account-name" required minlength="2" maxlength="80" autocomplete="off" placeholder="Например, Анна Иванова" class="admin-tool-input"></div>
 <div class="admin-tool-grid"><div class="admin-tool-field"><label for="create-account-login">Логин</label><input id="create-account-login" required minlength="3" maxlength="32" autocomplete="off" autocapitalize="none" placeholder="anna.ivanova" class="admin-tool-input"></div>
@@ -1762,8 +1807,8 @@
 <label class="admin-tool-check"><input id="create-account-activation" type="checkbox"><span><strong>Обязательная привязка Telegram</strong><small>Сотрудник подключит бота перед началом работы.</small></span></label>
 <p class="admin-tool-note">Передайте логин и пароль сотруднику лично. Ваш аккаунт останется открытым.</p><p id="create-account-status" role="status" aria-live="polite" class="admin-tool-status"></p></div>
 <footer class="admin-tool-footer"><button  type="button" onclick="closeCreateAccount()" class="admin-tool-button ">Отмена</button><button id="btn-create-account-submit" type="submit"  class="admin-tool-button primary">Создать аккаунт</button></footer></form></div>
-    <div id="modal-permissions" role="dialog" aria-modal="true" aria-labelledby="permissions-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center"><form class="admin-tool-panel" onsubmit="event.preventDefault(); savePermissionsEditor()"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7l-9-4M8 12l3 3 5-6"/></svg></span><div class="admin-tool-heading"><h3 id="permissions-title">Права сотрудника</h3><p>Персональные исключения из прав роли</p></div><button type="button" class="admin-tool-close" onclick="closePermissionsEditor()" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body"><p id="permissions-person" class="permission-person"></p><p class="admin-tool-note">«По роли» использует её текущие настройки. Персональное разрешение или запрет важнее роли.</p><div id="permissions-options" class="permission-groups"></div><button  type="button" onclick="resetPermissionsToRole()" class="admin-tool-button ">Все права — по роли</button><div class="permission-locked"><strong>Только системный администратор</strong>Настройка прав сотрудников и ролей; изменение данных аккаунта</div><p id="permissions-status" role="status" aria-live="polite" class="admin-tool-status"></p></div><footer class="admin-tool-footer"><button  type="button" onclick="closePermissionsEditor()" class="admin-tool-button ">Отмена</button><button id="btn-permissions-save" type="submit"  class="admin-tool-button primary">Сохранить права</button></footer></form></div>
-    <div id="modal-role-permissions" role="dialog" aria-modal="true" aria-labelledby="role-permissions-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center"><form class="admin-tool-panel" onsubmit="event.preventDefault(); saveRolePermissionsEditor()"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7l-9-4M8 12l3 3 5-6"/></svg></span><div class="admin-tool-heading"><h3 id="role-permissions-title">Права роли</h3><p>Общий доступ для сотрудников одной роли</p></div><button type="button" class="admin-tool-close" onclick="closeRolePermissionsEditor()" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body"><p id="role-permissions-person" class="permission-person"></p><p class="admin-tool-note">Изменения применятся ко всем сотрудникам этой роли. Их персональные разрешения и запреты сохранятся, вход останется активным.</p><div id="role-permissions-options" class="permission-groups"></div><button  type="button" onclick="resetRolePermissionsEditor()" class="admin-tool-button ">Вернуть стандарт роли</button><div class="permission-locked"><strong>Только системный администратор</strong>Настройка прав сотрудников и ролей</div><p id="role-permissions-status" role="status" aria-live="polite" class="admin-tool-status"></p></div><footer class="admin-tool-footer"><button  type="button" onclick="closeRolePermissionsEditor()" class="admin-tool-button ">Отмена</button><button id="btn-role-permissions-save" type="submit"  class="admin-tool-button primary">Сохранить роль</button></footer></form></div>
+    <div id="modal-permissions" role="dialog" aria-modal="true" aria-labelledby="permissions-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center"><form class="admin-tool-panel" onsubmit="event.preventDefault(); savePermissionsEditor()"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7l-9-4M8 12l3 3 5-6"/></svg></span><div class="admin-tool-heading"><h3 id="permissions-title">Права сотрудника</h3><p>Персональные исключения из прав роли</p></div><button type="button" class="admin-tool-close" onclick="closePermissionsEditor()" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body"><p id="permissions-person" class="permission-person"></p><p class="admin-tool-note">«По роли» использует её текущие настройки. Персональное разрешение или запрет важнее роли.</p><div id="permissions-options" class="permission-groups"></div><button  type="button" onclick="resetPermissionsToRole()" class="admin-tool-button ">Все права — по роли</button><div class="permission-locked"><strong>Только системный администратор</strong>Настройка прав сотрудников и ролей; изменение данных аккаунта и пароля; завершение чужих сессий; диагностика приложения и восстановление Telegram. Эти системные возможности не делегируются.</div><p id="permissions-status" role="status" aria-live="polite" class="admin-tool-status"></p></div><footer class="admin-tool-footer"><button  type="button" onclick="closePermissionsEditor()" class="admin-tool-button ">Отмена</button><button id="btn-permissions-save" type="submit"  class="admin-tool-button primary">Сохранить права</button></footer></form></div>
+    <div id="modal-role-permissions" role="dialog" aria-modal="true" aria-labelledby="role-permissions-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center"><form class="admin-tool-panel" onsubmit="event.preventDefault(); saveRolePermissionsEditor()"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7l-9-4M8 12l3 3 5-6"/></svg></span><div class="admin-tool-heading"><h3 id="role-permissions-title">Права роли</h3><p>Общий доступ для сотрудников одной роли</p></div><button type="button" class="admin-tool-close" onclick="closeRolePermissionsEditor()" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body"><p id="role-permissions-person" class="permission-person"></p><p class="admin-tool-note">Изменения применятся ко всем сотрудникам этой роли. Их персональные разрешения и запреты сохранятся, вход останется активным.</p><div id="role-permissions-options" class="permission-groups"></div><button  type="button" onclick="resetRolePermissionsEditor()" class="admin-tool-button ">Вернуть стандарт роли</button><div class="permission-locked"><strong>Только системный администратор</strong>Настройка прав сотрудников и ролей; изменение данных аккаунта и пароля; завершение чужих сессий; диагностика приложения и восстановление Telegram. Эти системные возможности не делегируются.</div><p id="role-permissions-status" role="status" aria-live="polite" class="admin-tool-status"></p></div><footer class="admin-tool-footer"><button  type="button" onclick="closeRolePermissionsEditor()" class="admin-tool-button ">Отмена</button><button id="btn-role-permissions-save" type="submit"  class="admin-tool-button primary">Сохранить роль</button></footer></form></div>
     <div id="modal-staff-message" role="dialog" aria-modal="true" aria-labelledby="staff-message-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center"><form class="admin-tool-panel" onsubmit="event.preventDefault(); sendStaffMessage()"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7M22 2 11 13"/></svg></span><div class="admin-tool-heading"><h3 id="staff-message-title">Сообщение в Telegram</h3><p>От бота · с вашим именем</p></div><button type="button" class="admin-tool-close" onclick="closeStaffMessage()" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body"><div class="admin-tool-field"><label for="staff-message-search">Получатели</label><input id="staff-message-search" type="search" placeholder="Найти сотрудника" oninput="filterStaffMessageRecipients()" class="admin-tool-input"></div>
 <div class="staff-selection-toolbar"><button id="btn-staff-select-all" type="button" onclick="setAllStaffMessageRecipients(true)" class="admin-tool-button ">Выбрать всех</button><button id="btn-staff-clear-selection" type="button" onclick="setAllStaffMessageRecipients(false)" class="admin-tool-button ">Снять выбор</button></div>
 <div class="staff-selection-summary"><strong id="staff-message-selected" role="status" aria-live="polite"></strong><span id="staff-message-limit">До 50 за отправку</span></div>
@@ -1772,52 +1817,58 @@
 <div id="staff-message-status" role="status" aria-live="polite" class="admin-tool-status"></div></div>
 <footer class="admin-tool-footer"><button  type="button" onclick="startNewStaffMessage()" class="admin-tool-button ">Новое сообщение</button><button id="btn-staff-message-send" type="submit"  class="admin-tool-button primary">Отправить</button></footer></form></div>
 
-    <div id="modal-account" role="dialog" aria-modal="true" aria-labelledby="account-title" class="hidden fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4">
-        <form onsubmit="event.preventDefault(); saveAccountEditor();" class="w-full max-w-lg max-h-[90dvh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-4">
-            <div class="flex items-center justify-between gap-3">
-                <h3 id="account-title" class="text-white font-bold">Управление аккаунтом</h3>
-                <button type="button" onclick="closeAccountEditor()" aria-label="Закрыть управление аккаунтом" class="text-slate-300 min-h-10 min-w-10">✕</button>
-            </div>
+    <div id="modal-account" role="dialog" aria-modal="true" aria-labelledby="account-title" class="hidden admin-tool-modal legacy-dialog fixed inset-0 flex items-center justify-center">
+        <form onsubmit="event.preventDefault(); saveAccountEditor();" class="admin-tool-panel"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M4 21v-2a8 8 0 0 1 16 0v2"></path></svg></span><div class="admin-tool-heading"><h3 id="account-title" class="">Управление аккаунтом</h3><p>Роль и данные сотрудника</p></div><button type="button" class="admin-tool-close" onclick="closeAccountEditor();" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body">
+            
             <p id="account-description" class="text-sm text-slate-300 break-words"></p>
             <div id="account-role-box" class="space-y-1">
-                <label for="account-role" class="text-xs text-slate-400">Роль сотрудника</label>
-                <select id="account-role" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-base"></select>
+                <div class="admin-tool-field"><label for="account-role" class="text-xs text-slate-400">Роль сотрудника</label><select id="account-role" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-base admin-tool-input"></select></div>
+                
             </div>
             <div id="account-private-fields" class="space-y-3 hidden">
-                <label class="block text-xs text-slate-400" for="account-name">ФИО</label>
-                <input id="account-name" type="text" minlength="2" maxlength="80" autocomplete="off" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-base">
-                <label class="block text-xs text-slate-400" for="account-login">Логин</label>
-                <input id="account-login" type="text" minlength="3" maxlength="32" autocomplete="off" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-base">
-                <label class="block text-xs text-slate-400" for="account-telegram">Telegram ID (пустое поле отключит привязку)</label>
-                <input id="account-telegram" type="text" inputmode="numeric" maxlength="16" autocomplete="off" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-base">
-                <label class="flex gap-2 items-center text-xs text-slate-300"><input id="account-activation" type="checkbox" class="w-4 h-4">Требовать подключения Telegram для входа в рабочие разделы</label>
-                <label class="block text-xs text-slate-400" for="account-password">Новый пароль (не заполняйте, чтобы сохранить прежний)</label>
-                <input id="account-password" type="password" minlength="8" maxlength="128" autocomplete="new-password" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-base">
-                <label class="flex gap-2 items-center text-xs text-slate-400"><input id="account-show-password" type="checkbox" onchange="document.getElementById('account-password').type = this.checked ? 'text' : 'password'">Показать новый пароль</label>
+                <div class="admin-tool-field"><label class="block text-xs text-slate-400" for="account-name">ФИО</label><input id="account-name" type="text" minlength="2" maxlength="80" autocomplete="off" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-base admin-tool-input"></div>
+                
+                <div class="admin-tool-field"><label class="block text-xs text-slate-400" for="account-login">Логин</label><input id="account-login" type="text" minlength="3" maxlength="32" autocomplete="off" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-base admin-tool-input"></div>
+                
+                <div class="admin-tool-field"><label class="block text-xs text-slate-400" for="account-telegram">Telegram ID (пустое поле отключит привязку)</label><input id="account-telegram" type="text" inputmode="numeric" maxlength="16" autocomplete="off" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-base admin-tool-input"></div>
+                
+                <label class="flex gap-2 items-center text-xs text-slate-300 admin-tool-check"><input id="account-activation" type="checkbox" class="w-4 h-4">Требовать подключения Telegram для входа в рабочие разделы</label>
+                <div class="admin-tool-field"><label class="block text-xs text-slate-400" for="account-password">Новый пароль (не заполняйте, чтобы сохранить прежний)</label><input id="account-password" type="password" minlength="8" maxlength="128" autocomplete="new-password" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-base admin-tool-input"></div>
+                
+                <label class="flex gap-2 items-center text-xs text-slate-400 admin-tool-check"><input id="account-show-password" type="checkbox" onchange="document.getElementById('account-password').type = this.checked ? 'text' : 'password'">Показать новый пароль</label>
                 <p class="text-xs text-slate-400">Действующий пароль хранится в виде хеша. Можно установить новый пароль. ФИО обновится также в расписании, дежурствах и статистике.</p>
-                <button id="btn-account-revoke" type="button" onclick="saveAccountEditor(true)" class="w-full min-h-12 bg-slate-800 text-amber-300 rounded-lg text-sm">Завершить все сессии аккаунта</button>
+                <button id="btn-account-revoke" type="button" onclick="saveAccountEditor(true)" class="admin-tool-button danger">Завершить все сессии аккаунта</button>
             </div>
             <p class="text-xs text-amber-300">После сохранения сотруднику потребуется войти заново. Изменение собственного аккаунта завершит и вашу сессию.</p>
-            <p id="account-status" role="status" aria-live="polite" class="text-sm text-slate-300 whitespace-pre-line"></p>
-            <button id="btn-account-save" type="submit" class="w-full min-h-12 bg-indigo-600 text-white rounded-lg font-bold text-sm">Сохранить изменения</button>
-        </form>
+            <p id="account-status" role="status" aria-live="polite" class="text-sm text-slate-300 whitespace-pre-line admin-tool-status"></p>
+            
+        </div><footer class="admin-tool-footer"><button type="button" class="admin-tool-button " onclick="closeAccountEditor();">Отмена</button><button id="btn-account-save" type="submit" class="admin-tool-button primary">Сохранить изменения</button></footer></form>
     </div>
 
-    <div id="modal-sync-conflict" role="dialog" aria-modal="true" aria-labelledby="sync-conflict-title" class="hidden fixed inset-0 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-4">
-            <h3 id="sync-conflict-title" class="text-white font-bold">Данные изменились на другом аккаунте</h3>
+    <div id="modal-sync-conflict" role="dialog" aria-modal="true" aria-labelledby="sync-conflict-title" class="hidden admin-tool-modal legacy-dialog fixed inset-0 flex items-center justify-center">
+        <div class="admin-tool-panel"><header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m20 4 1 6h-6M4 20l-1-6h6M21 10A9 9 0 0 0 5 5M3 14a9 9 0 0 0 16 5"></path></svg></span><div class="admin-tool-heading"><h3 id="sync-conflict-title" class="">Данные изменились на другом аккаунте</h3><p>Сохраните копию перед обновлением</p></div><button type="button" class="admin-tool-close" onclick="closeSyncConflict();" aria-label="Закрыть окно">×</button></header><div class="admin-tool-body">
+            
             <p id="sync-conflict-description" class="text-sm text-slate-300 whitespace-pre-line break-words"></p>
             <p class="text-xs text-slate-400">Автоматически заменить разные правки одного поля нельзя. Ваши несохранённые изменения пока остаются на этом устройстве.</p>
-            <button type="button" onclick="downloadUnsavedChanges()" class="w-full min-h-12 bg-slate-800 text-indigo-300 rounded-lg text-xs font-bold">Скачать мои несохранённые правки</button>
+            <button type="button" onclick="downloadUnsavedChanges()" class="admin-tool-button ">Скачать мои несохранённые правки</button>
             <p class="text-xs text-amber-300">Кнопка ниже загрузит актуальные данные сервера и отменит все несохранённые правки на этом устройстве. Сначала скачайте их, если хотите сохранить копию.</p>
-            <button id="btn-resolve-sync-conflict" type="button" onclick="loadLatestAfterConflict()" class="w-full min-h-12 bg-indigo-600 text-white rounded-lg text-xs font-bold">Отменить мои правки и обновить</button>
-            <button type="button" onclick="closeSyncConflict()" class="w-full min-h-12 text-slate-300 rounded-lg text-xs">Закрыть и оставить правки на устройстве</button>
+            
+            
+        </div><footer class="admin-tool-footer dialog-footer-stack"><button id="btn-resolve-sync-conflict" type="button" onclick="loadLatestAfterConflict()" class="admin-tool-button danger">Отменить мои правки и обновить</button><button type="button" onclick="closeSyncConflict()" class="admin-tool-button ">Закрыть и оставить правки на устройстве</button></footer></div>
+    </div>
+
+    <div id="modal-disband-team-building" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="disband-title" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center" data-tone="danger">
+        <div class="admin-tool-panel">
+            <header class="admin-tool-header"><span class="admin-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m10 14 4-4M8 16l-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0M16 8l1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0M2 2l20 20"/></svg></span><div class="admin-tool-heading"><h3 id="disband-title">Расформировать тимбилдинг?</h3><p>Игры останутся в расписании</p></div><button type="button" class="admin-tool-close" onclick="closeDisbandTeamBuilding();" aria-label="Закрыть окно">×</button></header>
+            <div class="admin-tool-body"><p id="disband-group-name" class="permission-person"></p><p class="admin-tool-note">Игры станут самостоятельными. Их время, ведущие и ответы сотрудников сохранятся.</p></div>
+            <footer class="admin-tool-footer"><button type="button" class="admin-tool-button" onclick="closeDisbandTeamBuilding()">Оставить</button><button type="button" id="btn-confirm-disband" class="admin-tool-button danger" onclick="confirmDisbandTeamBuilding()">Расформировать</button></footer>
         </div>
     </div>
+
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzbpShZ2ejP5I4gXeGeYjqD9o91ye7zkkHMPRLHI0b0ldc39vqPPlq7F4Gsc3AWE0RF/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzMY5xV1tpExms8fsX0FQEw_4XlzZu545orhmXchnn9Tv0T-8klaOwqJG7jlg_74meY/exec";
         // ======================================================================================
 
         function createOperationId() {
@@ -4156,34 +4207,50 @@ const CLIENT_PERMISSIONS = {
             if (toast) { toast.setAttribute('role', 'status'); toast.setAttribute('aria-live', 'polite'); }
 
             const modals = Array.from(document.querySelectorAll('[role="dialog"][id^="modal-"]'));
-            let lastModalTrigger = null;
+            const modalTriggers = new WeakMap(), openModals = [];
+            // Safari does not always focus a button activated by touch.
+            // Capture the opener before its handler changes modal visibility.
+            let modalClickTrigger = null;
+            document.addEventListener('click', event => {
+                const trigger = event.target.closest?.('button, a, [role="button"]') || null;
+                modalClickTrigger = trigger;
+                setTimeout(() => { if (modalClickTrigger === trigger) modalClickTrigger = null; }, 0);
+            }, true);
             const focusableSelector = 'button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
             const updateModal = modal => {
-                const open = !modal.classList.contains('hidden');
-                modal.setAttribute('aria-hidden', open ? 'false' : 'true');
-                if (open) {
-                    lastModalTrigger = document.activeElement;
+                const open = !modal.classList.contains('hidden'), index = openModals.indexOf(modal);
+                if (open && index < 0) {
+                    modalTriggers.set(modal,modalClickTrigger || document.activeElement);
+                    openModals.push(modal);
                     const heading = modal.querySelector('h1,h2,h3,h4');
                     if (heading) {
-                        if (!heading.id) heading.id = `${modal.id}-title`;
+                        if (!heading.id) heading.id = modal.id + '-title';
                         heading.tabIndex = -1;
                         modal.setAttribute('aria-labelledby', heading.id);
-                    } else if (!modal.getAttribute('aria-label')) {
-                        modal.setAttribute('aria-label', 'Диалоговое окно');
-                    }
-                    const panel = modal.firstElementChild;
-                    if (panel) panel.scrollTop = 0;
+                    } else if (!modal.getAttribute('aria-label')) modal.setAttribute('aria-label', 'Диалоговое окно');
+                    const scrollArea = modal.querySelector('.admin-tool-body') || modal.firstElementChild;
+                    if (scrollArea) scrollArea.scrollTop = 0;
                     setTimeout(() => {
-                        if (!modal.classList.contains('hidden')) (heading || modal.querySelector(focusableSelector))?.focus({ preventScroll: true });
+                        if (openModals.at(-1) === modal) (heading || modal.querySelector(focusableSelector))?.focus({ preventScroll: true });
                     }, 0);
-                } else if (lastModalTrigger && document.contains(lastModalTrigger)) {
-                    const trigger = lastModalTrigger;
-                    setTimeout(() => trigger.focus({ preventScroll: true }), 0);
+                } else if (!open && index >= 0) {
+                    openModals.splice(index,1);
+                    const trigger = modalTriggers.get(modal);
+                    setTimeout(() => {
+                        const top = openModals.at(-1);
+                        if (trigger && document.contains(trigger) && (!top || top.contains(trigger))) trigger.focus({ preventScroll: true });
+                        else top?.querySelector('h1,h2,h3,h4')?.focus({ preventScroll: true });
+                    },0);
                 }
-                const hasOpenModal = modals.some(item => !item.classList.contains('hidden'));
+                const top = openModals.at(-1);
+                modals.forEach(item => {
+                    item.inert = item !== top;
+                    item.setAttribute('aria-hidden',item === top ? 'false' : 'true');
+                });
+                openModals.forEach((item,layer) => item.style.zIndex = String(121+layer));
                 ['app-header', 'app-main', 'app-nav', 'view-auth'].forEach(id => {
                     const section = document.getElementById(id);
-                    if (section) section.inert = hasOpenModal;
+                    if (section) section.inert = Boolean(top);
                 });
             };
             modals.forEach(modal => {
@@ -4191,7 +4258,7 @@ const CLIENT_PERMISSIONS = {
                 new MutationObserver(() => updateModal(modal)).observe(modal, { attributes: true, attributeFilter: ['class'] });
             });
             document.addEventListener('keydown', event => {
-                const modal = modals.filter(item => !item.classList.contains('hidden')).at(-1);
+                const modal = openModals.at(-1);
                 if (!modal) return;
                 if (event.key === 'Escape') {
                     event.preventDefault();
@@ -5742,7 +5809,7 @@ const CLIENT_PERMISSIONS = {
             row.innerHTML = `
                 <div class="flex justify-between items-center mb-1">
                     <span class="text-[10px] font-bold text-park-accent uppercase">Игра #${gameRowCounter}</span>
-                    <button type="button" onclick="removeGameRow(${gameRowCounter})" class="text-rose-400 hover:text-rose-500 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                    <button type="button" onclick="removeGameRow(${gameRowCounter})" class="dialog-row-delete" aria-label="Убрать игру ${gameRowCounter} из формы"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg></button>
                 </div>
                 <div>
                     <label class="block text-[8px] font-bold text-slate-500 uppercase mb-0.5">Активность</label>
@@ -5764,7 +5831,7 @@ const CLIENT_PERMISSIONS = {
                     </div>
                     <p class="picker-empty hidden text-xs text-slate-400 px-3 pb-3">Никого не найдено</p>
                 </details>`;
-            container.appendChild(row); container.scrollTop = container.scrollHeight;
+            row.querySelectorAll('input:not([type=checkbox]),select').forEach(input=>input.classList.add('admin-tool-input')); container.appendChild(row); if (!container.closest('[role=dialog]').classList.contains('hidden')) row.scrollIntoView({block:'start'});
         }
 
         function removeGameRow(id) {
@@ -5905,8 +5972,8 @@ const CLIENT_PERMISSIONS = {
                         ${optionsHtml}
                     </select>
                 </div>
-                <button type="button" onclick="removeDutyRow(${dutyRowCounter})" class="text-rose-400 hover:text-rose-500 text-xs pb-2.5 flex-shrink-0"><i class="fa-solid fa-trash-can"></i></button>`;
-            container.appendChild(row); container.scrollTop = container.scrollHeight;
+                <button type="button" onclick="removeDutyRow(${dutyRowCounter})" class="dialog-row-delete" aria-label="Убрать дежурного ${dutyRowCounter}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg></button>`;
+            row.querySelectorAll('input:not([type=checkbox]),select').forEach(input=>input.classList.add('admin-tool-input')); container.appendChild(row); if (!container.closest('[role=dialog]').classList.contains('hidden')) row.scrollIntoView({block:'start'});
         }
 
         function removeDutyRow(id) {
@@ -6101,23 +6168,37 @@ const CLIENT_PERMISSIONS = {
 
         function closeEditGameModal() { document.getElementById('modal-edit-game').classList.add('hidden'); }
 
+        let pendingDisbandGroup = null;
         function disbandCurrentTeamBuilding() {
-            const id = document.getElementById('edit-shift-id').value;
-            const shift = appState.shifts.find(item => item.id === id);
+            if (!ensureAdmin()) return;
+            const shift = appState.shifts.find(item => item.id === document.getElementById('edit-shift-id').value);
             if (!shift || !shift.teamBuildingId) return;
-            const teamBuildingId = shift.teamBuildingId;
-            const teamBuildingName = shift.teamBuildingName || 'Без названия';
-            if (!confirm(`Расформировать тимбилдинг «${teamBuildingName}»? Игры останутся в расписании, но будут обычными.`)) return;
+            pendingDisbandGroup = {id:shift.id, groupId:shift.teamBuildingId};
+            document.getElementById('disband-group-name').textContent = shift.teamBuildingName || 'Без названия';
+            document.getElementById('modal-disband-team-building').classList.remove('hidden');
+        }
 
+        function closeDisbandTeamBuilding() {
+            pendingDisbandGroup = null;
+            document.getElementById('modal-disband-team-building').classList.add('hidden');
+        }
+
+        function confirmDisbandTeamBuilding() {
+            if (!ensureAdmin() || !pendingDisbandGroup) return;
+            const shift = appState.shifts.find(item => item.id === pendingDisbandGroup.id);
+            if (!shift || shift.teamBuildingId !== pendingDisbandGroup.groupId) {
+                closeDisbandTeamBuilding();
+                return showToast('Тимбилдинг изменился. Откройте игру заново.', true);
+            }
+            const teamBuildingId = shift.teamBuildingId, teamBuildingName = shift.teamBuildingName || 'Без названия';
+            closeDisbandTeamBuilding();
             appState.shifts.filter(item => item.teamBuildingId === teamBuildingId).forEach(item => {
                 const oldShiftForNotification = { ...item };
                 delete item.teamBuildingId;
                 delete item.teamBuildingName;
-                item.instructors.forEach(inst => {
-                    queueTelegramNotification(inst, item.date, createGameQueueEvent('changed', oldShiftForNotification));
-                });
+                item.instructors.forEach(inst => queueTelegramNotification(inst, item.date, createGameQueueEvent('changed', oldShiftForNotification)));
             });
-            logAction(appState.name, `Расформировал тимбилдинг «${teamBuildingName}»`);
+            logAction(appState.name, 'Расформировал тимбилдинг «'+teamBuildingName+'»');
             closeEditGameModal();
             renderSchedule();
             showToast('Тимбилдинг расформирован. Игры сохранены как обычные.');
@@ -6499,6 +6580,56 @@ const CLIENT_PERMISSIONS = {
             return saved;
         }
 
+
+        function compactJournalText(value, limit=190) {
+            const text=String(value||'').replace(/\s+/g,' ').trim(), chars=Array.from(text);
+            if(chars.length<=limit)return text;
+            let short=chars.slice(0,limit-1).join('');const space=short.lastIndexOf(' ');
+            if(space>limit*.65)short=short.slice(0,space);
+            return short.replace(/[ ,;:.]+$/,'')+'…';
+        }
+        function summarizeJournalText(value, actor='') {
+            const raw=String(value||'').replace(/\s+/g,' ').trim();
+            const t=raw.replace(/^[\u{1F000}-\u{1FAFF}\u2600-\u27BF\uFE0F\u200D\s]+/u,'').replace(/\s*\(ID:\s*[^)]+\)\.?\s*$/i,'').trim();
+            const dates=[...new Set(t.match(/\b\d{2}\.\d{2}\.\d{4}\b/g)||[])];
+            const dateSummary=dates.length?dates.slice(0,2).join(', ')+(dates.length>2?' · ещё дат: '+(dates.length-2):''):'';
+            let match;
+            if(t.startsWith('ИИ-импорт')&&(match=/добавлено игр — (\d+)/.exec(t)))return 'ИИ-импорт · игр: '+match[1]+(dateSummary?' · '+dateSummary:'');
+            if((match=/^Подтвердил игры через Telegram: (\d+) шт\./.exec(t)))return 'Принял игры через Telegram: '+match[1]+(dateSummary?' · '+dateSummary:'');
+            if((match=/Массово ПРИНЯЛ свои игры \((\d+) шт\.\) на (\d{2}\.\d{2}\.\d{4})/i.exec(t)))return 'Принял игры в приложении: '+match[1]+' · '+match[2];
+            if((match=/^Начал отправку сообщения сотрудникам \((\d+)\):\s*(.*)/.exec(t)))return 'Начал рассылку в Telegram · получателей: '+match[1]+'. '+compactJournalText(match[2],80);
+            if((match=/^Удалил уведомления из очереди(?: отправки)?: (\d+)\./.exec(t))) {
+                const recipients=/Получателей: (\d+)\./.exec(t);
+                return 'Удалил уведомления из очереди: '+match[1]+(recipients?' · получателей: '+recipients[1]:'');
+            }
+            if(/^Изменены (?:персональные права|права роли)\./.test(t)){
+                const parts=[['разрешено',(t.match(/: разрешено(?=[;.])/g)||[]).length],['запрещено',(t.match(/: запрещено(?=[;.])/g)||[]).length],['по умолчанию',(t.match(/: (?:по роли|стандарт роли)(?=[;.])/g)||[]).length]].filter(item=>item[1]);
+                return 'Права: '+(parts.length?parts.map(item=>item[0]+' '+item[1]).join(', '):'изменены')+'.';
+            }
+            if((match=/^(«.*?»)\s+(\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}–\d{2}:\d{2})\.\s*(.*)$/.exec(t))){
+                const label=compactJournalText(match[1],50)+' · '+match[2],details=match[3],parts=details.split('. ').map(part=>part.replace(/\.$/,''));
+                if(details.startsWith('Добавил игру'))return 'Добавил игру · '+label;
+                const response=/^Ответ (.*?) через приложение: .*? → (принято|отказ|ожидается ответ)(?:\. Причина: (.*))?\.?$/.exec(details);
+                if(response){
+                    const action=response[1]===actor?({принято:'Принял игру',отказ:'Отказался от игры','ожидается ответ':'Сбросил ответ на игру'}[response[2]]) : 'Ответ '+compactJournalText(response[1],40)+': '+response[2];
+                    const reason=response[3];
+                    return compactJournalText(action+' · '+label+' · приложение'+(reason?' · Причина: '+reason:''));
+                }
+                if(parts.includes('Игра отменена'))return compactJournalText('Отменил игру · '+label+'. '+(parts.find(part=>part.startsWith('Причина отмены:'))||''));
+                if(parts.includes('Игра восстановлена'))return 'Восстановил игру · '+label;
+                const changed=parts.filter(part=>/^(Дата|Активность|Начало|Окончание|Гости|Беседка|Тимбилдинг|Причина отмены):/.test(part));
+                const added=parts.filter(part=>part.startsWith('Назначен:')),removed=parts.filter(part=>part.startsWith('Снят:'));
+                if(added.length||removed.length)changed.push('Ведущие: '+[added.length?'назначено '+added.length:'',removed.length?'снято '+removed.length:''].filter(Boolean).join(', '));
+                parts.filter(part=>part.startsWith('Ответ ')).forEach(part=>changed.push(part.replace(' через приложение','')));
+                if(parts.some(part=>part.startsWith('Перенёс в другую группу')))changed.push('другая группа тимбилдинга');
+                return compactJournalText('Изменил игру · '+label+(changed.length?'. '+changed.slice(0,2).join('; ')+(changed.length>2?'; ещё изменений: '+(changed.length-2):''):''));
+            }
+            if((match=/^(Дежурство на \d{2}\.\d{2}\.\d{4}): .*? → (.*)$/.exec(t))){
+                const names=match[2].split(', ');return compactJournalText(match[1]+': '+names.slice(0,2).join(', ')+(names.length>2?' и ещё '+(names.length-2):''));
+            }
+            return compactJournalText(t.replace(/\. Тимбилдинг: нет\./g,'.').replace(/\. (?:Ведущие|Состав):.*$/,'').replace(/\. Повторные ошибки для этого аккаунта.*$/,''));
+        }
+
         function getLogIconMeta(text) {
             const t = (text || '').toLowerCase();
             if (t.includes('дежур')) return { icon: 'fa-shield-halved', color: 'text-park-gold', bg: 'bg-park-gold/10' };
@@ -6610,7 +6741,7 @@ const CLIENT_PERMISSIONS = {
             const logKey = log => JSON.stringify([log.kind, log.timestamp, log.user, log.text, log.targetUsername]);
             let logsToShow = (accountOnly ? accountLogs : staffOnly ? staffLogs : allAccountLogs.concat(ordinaryLogs)).map(log => ({...log, time:logTimestampValue(log.timestamp), key:logKey(log)})).filter(log => {
                 if (queryWords.length) {
-                    const searchable = normalizePersonName([log.user, log.targetName, log.targetUsername, log.text, formatLogTimestamp(log.timestamp)].join(' ')).toLocaleLowerCase('ru-RU').replace(/ё/g, 'е');
+                    const searchable = normalizePersonName([log.user, log.targetName, log.targetUsername, log.text, log.summary || summarizeJournalText(log.text,log.user), formatLogTimestamp(log.timestamp)].join(' ')).toLocaleLowerCase('ru-RU').replace(/ё/g, 'е');
                     if (!queryWords.every(word => searchable.includes(word))) return false;
                 }
                 if (period === 'date') return Boolean(log.time) && toLocalDateStr(new Date(log.time)) === selectedDate;
@@ -6649,14 +6780,16 @@ const CLIENT_PERMISSIONS = {
                 const raw = String(l.text || '');
                 const idMatch = /^([\s\S]*?)\s*\(ID:\s*([^)]+)\)\.?\s*$/i.exec(raw);
                 const message = idMatch ? idMatch[1].trim() : raw;
-                const messageHtml = `<span class="journal-message">${escapeHtml(message)}</span>`;
-                const body = idMatch || message.length > 180
-                    ? `<details class="journal-details" ${expanded.has(l.key) ? 'open' : ''}><summary>${messageHtml}<span class="journal-expand" aria-hidden="true"></span></summary>${idMatch ? `<p class="journal-id">ID: ${escapeHtml(idMatch[2])}</p>` : ''}</details>`
-                    : `<p class="journal-message">${escapeHtml(message)}</p>`;
+                const summary = compactJournalText(l.summary || summarizeJournalText(message,l.user));
+                const hasDetails = message.replace(/\s+/g,' ').trim() !== summary;
+                const messageHtml = `<span class="journal-message">${escapeHtml(summary)}</span>`;
+                const body = idMatch || hasDetails
+                    ? `<details class="journal-details" ${expanded.has(l.key) ? 'open' : ''}><summary>${messageHtml}<span class="journal-expand" aria-hidden="true"></span></summary>${hasDetails ? `<p class="journal-full-message">${escapeHtml(message)}</p>` : ''}${idMatch ? `<p class="journal-id">ID: ${escapeHtml(idMatch[2])}</p>` : ''}</details>`
+                    : `<p class="journal-message">${escapeHtml(summary)}</p>`;
                 const meta = l.kind === 'account' ? {icon:'fa-user-gear', color:'text-indigo-300', bg:'bg-indigo-500/10'} : getLogIconMeta(l.text);
                 return `${group}<article class="journal-entry ${l.kind === 'account' ? 'account-log-entry' : ''}" data-log-key="${escapeHtmlAttribute(l.key)}">
                     <div class="journal-entry-head"><span class="journal-dot ${meta.color}" aria-hidden="true"></span><span class="journal-actor">${escapeHtml(l.user || 'Система')}</span><time ${date ? `datetime="${date.toISOString()}"` : ''} title="${escapeHtmlAttribute(formatLogTimestamp(l.timestamp))}">${date ? logTimeFormatter.format(date) : '—'}</time></div>
-                    ${l.kind === 'account' ? `<p class="journal-account-label">${l.targetUsername === appState.user ? 'Ваш аккаунт' : 'Аккаунт: ' + escapeHtml(l.targetName || l.targetUsername)}</p>` : ''}${body}</article>`;
+                    ${l.kind === 'account' ? `<p class="journal-account-label">${l.targetUsername === appState.user ? 'Ваш аккаунт' : (String(l.targetUsername||'').startsWith('role:') ? escapeHtml(l.targetName || l.targetUsername) : 'Аккаунт: ' + escapeHtml(l.targetName || l.targetUsername))}</p>` : ''}${body}</article>`;
             }).join('') + '</section>';
             if (anchorKey) {
                 const nextAnchor = Array.from(container.querySelectorAll('[data-log-key]')).find(el => el.dataset.logKey === anchorKey);
@@ -6666,12 +6799,27 @@ const CLIENT_PERMISSIONS = {
 
         function renderGameManager() {
             const container = document.getElementById('games-list-container');
-            container.innerHTML = appState.games.map((game, index) => `
-                    <div class="flex justify-between items-center bg-slate-950 border border-slate-800 rounded p-1.5 pl-3">
-                        <span class="text-[11px] font-bold text-slate-300">${escapeHtml(game)}</span>
-                        <button onclick="removeGameType(${index})" aria-label="Удалить активность ${escapeHtmlAttribute(game)}" class="text-rose-500 hover:text-rose-400 p-1"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
-                    </div>`).join('');
+            container.innerHTML = appState.games.map((game, index) =>
+                '<div class="catalog-row" role="listitem" data-catalog-name="'+escapeHtmlAttribute(game)+'">'+
+                    '<span class="catalog-row-name">'+escapeHtml(game)+'</span>'+
+                    '<button type="button" onclick="removeGameType('+index+')" aria-label="Удалить активность '+escapeHtmlAttribute(game)+'" class="catalog-remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg></button>'+
+                '</div>').join('');
+            filterGameCatalog();
             updateGlobalGameSelects();
+        }
+
+        function filterGameCatalog() {
+            const normalize=value=>String(value||'').trim().toLocaleLowerCase('ru-RU').replace(/ё/g,'е');
+            const query=normalize(document.getElementById('catalog-search').value);
+            const rows=Array.from(document.querySelectorAll('#games-list-container .catalog-row'));
+            let visible=0;
+            rows.forEach(row=>{row.hidden=!normalize(row.dataset.catalogName).includes(query);if(!row.hidden)visible++;});
+            document.getElementById('catalog-total').textContent=String(rows.length);
+            document.getElementById('catalog-results').textContent=query?'Найдено: '+visible+' из '+rows.length:'Всего активностей: '+rows.length;
+            document.getElementById('games-list-container').classList.toggle('hidden',visible===0);
+            const empty=document.getElementById('catalog-empty');
+            empty.classList.toggle('hidden',visible>0);
+            empty.textContent=rows.length?'Ничего не найдено. Попробуйте другое название.':'Пока нет активностей. Добавьте первую ниже.';
         }
 
         function addNewGameType() {
@@ -6679,7 +6827,7 @@ const CLIENT_PERMISSIONS = {
             const input = document.getElementById('new-game-input'); const newGame = input.value.trim();
             if(!newGame) return showToast("Введите название!", true);
             if(appState.games.includes(newGame)) return showToast("Уже существует!", true);
-            appState.games.push(newGame); input.value = '';
+            appState.games.push(newGame); input.value = ''; document.getElementById('catalog-search').value = '';
             logAction(appState.name, `➕ Добавил активность: ${newGame}`); renderGameManager(); showToast("Активность добавлена");
         }
 
