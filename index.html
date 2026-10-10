@@ -700,6 +700,92 @@
         .admin-tool-modal button:disabled { opacity:.5; cursor:wait; }
         .permission-option { display:grid; grid-template-columns:minmax(0,1fr) 155px; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid #334155; color:#cbd5e1; font-size:13px; }
         @media(max-width:380px) { .permission-option {grid-template-columns:1fr;} }
+        /* Private salary section reuses the existing product palette and dialogs. */
+        #view-salary { display:flex; flex-direction:column; gap:14px; padding-bottom:16px; }
+        #view-salary.hidden { display:none; }
+        .salary-launch { display:flex; width:100%; align-items:center; justify-content:space-between; gap:12px; padding:16px; text-align:left; background:var(--surface-1); border:1px solid var(--line-strong); border-radius:14px; color:var(--text); }
+        .salary-launch.hidden { display:none; }
+        .salary-launch strong,.salary-launch small { display:block; }
+        .salary-launch strong { font-size:15px; font-weight:600; }
+        .salary-launch small { margin-top:4px; font-size:12px; color:var(--muted); }
+        .salary-launch > span:last-child { color:var(--brand); font-size:22px; }
+        .salary-heading { display:flex; gap:12px; align-items:center; }
+        .salary-heading h3 { font-size:18px; font-weight:600; }
+        .salary-heading p { font-size:12px; color:var(--muted); margin-top:4px; }
+        .salary-period { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+        .salary-period label { color:var(--muted); font-size:12px; flex-basis:100%; }
+        .salary-period input { flex:1; width:0; padding:9px; border:1px solid var(--line-strong); border-radius:10px; font-size:16px; }
+        #view-salary button:not(.journal-back) { min-height:44px; }
+        .salary-period button,.salary-action { padding:10px 12px; background:var(--surface-2); border:1px solid var(--line-strong); border-radius:10px; color:var(--text); font-size:13px; }
+        .salary-tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; padding:4px; border:1px solid var(--line); border-radius:12px; background:var(--surface-input); }
+        .salary-tabs button { font-size:13px; border-radius:8px; color:var(--muted); }
+        .salary-tabs button[aria-selected="true"] { background:var(--surface-2); color:var(--brand); }
+        .salary-total { padding:20px; background:var(--surface-1); border:1px solid rgba(16,185,129,.3); border-radius:16px; }
+        .salary-total > span { color:var(--muted); font-size:13px; }
+        .salary-total strong { display:block; margin:6px 0; font-size:32px; line-height:1.2; font-weight:700; color:var(--brand); font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+        .salary-total p,.salary-note { font-size:12px; color:var(--muted); line-height:1.6; }
+        .salary-balances { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:16px 0; }
+        .salary-balances span { display:block; color:var(--muted); font-size:12px; }
+        .salary-balances strong { font-size:20px; font-weight:600; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+        .salary-section-title { font-size:14px; font-weight:600; margin:20px 0 8px; }
+        .salary-row { padding:13px 0; border-bottom:1px solid var(--line); display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+        .salary-row > div { min-width:0; flex:1; }
+        .salary-row strong { font-size:14px; font-weight:600; overflow-wrap:anywhere; }
+        .salary-row small { display:block; font-size:12px; color:var(--muted); margin-top:4px; line-height:1.5; overflow-wrap:anywhere; }
+        .salary-row-amount { text-align:right; font-size:14px; font-variant-numeric:tabular-nums; max-width:45%; overflow-wrap:anywhere; }
+        .salary-row-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+        .salary-row-actions button { padding:7px 9px; font-size:12px; color:var(--muted); border:1px solid var(--line); border-radius:8px; }
+        .salary-warning { background:var(--surface-1); border:1px solid rgba(245,158,11,.3); color:#fcd34d; padding:12px; border-radius:12px; font-size:13px; line-height:1.5; }
+        .salary-warning button { margin-top:8px; padding:8px 12px; border:1px solid var(--line-strong); border-radius:8px; }
+        #salary-status:empty { display:none; }
+        #salary-status { font-size:13px; color:var(--muted); line-height:1.5; }
+        #salary-status[data-error="true"] { color:#fda4af; }
+        .salary-actions { display:flex; flex-wrap:wrap; gap:8px; }
+        .salary-action.primary { background:var(--button-primary); color:var(--surface-input); border-color:transparent; font-weight:600; }
+        #salary-form-fields { display:flex; flex-direction:column; gap:14px; }
+        #salary-form-fields label { display:flex; flex-direction:column; gap:7px; font-size:13px; color:var(--muted); }
+        #salary-form-fields input,#salary-form-fields select,#salary-form-fields textarea { width:100%; min-width:0; }
+        .salary-bulk-list { display:flex; flex-direction:column; gap:14px; }
+        .salary-bulk-row { min-width:0; border:1px solid var(--line); border-radius:12px; padding:12px; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
+        .salary-bulk-row legend { padding:0 5px; font-size:14px; color:var(--text); overflow-wrap:anywhere; max-width:100%; }
+        #salary-calibration-preview { border-top:1px solid var(--line-strong); padding-top:16px; margin-top:12px; }
+        #salary-calibration-preview p { font-size:13px; line-height:1.6; }
+        #modal-salary .admin-tool-footer { flex-wrap:wrap; }
+        #modal-salary .admin-tool-footer button { flex:1; min-width:100px; }
+        @media(max-width:360px) { .salary-total { padding:16px; } .salary-total strong { font-size:28px; } .salary-balances strong { font-size:18px; } }
+
+        .salary-admin-target { padding:14px; border:1px solid rgba(167,139,250,.3); border-radius:14px; background:var(--surface-1); }
+        .salary-admin-target label { display:block; font-size:13px; color:var(--text); margin-bottom:8px; }
+        .salary-admin-target select { padding:10px; width:100%; border:1px solid var(--line-strong); border-radius:10px; font-size:16px; }
+        .salary-admin-target p { font-size:12px; color:var(--muted); margin-top:8px; line-height:1.5; }
+        .salary-admin-target.hidden { display:none; }
+        .salary-audit-entry { border-bottom:1px solid var(--line); padding:14px 0; }
+        .salary-audit-entry h4 { font-size:14px; font-weight:600; }
+        .salary-audit-entry p { font-size:12px; color:var(--muted); line-height:1.6; overflow-wrap:anywhere; }
+        .salary-audit-entry details { margin-top:8px; }
+        .salary-audit-entry summary { font-size:13px; color:var(--violet); min-height:38px; padding:9px 0; }
+        .salary-audit-diff { font-size:12px; white-space:pre-wrap; overflow-wrap:anywhere; padding:10px; border-radius:10px; background:var(--surface-input); color:var(--text); }
+        .self-games-card { padding:14px; border:1px solid var(--line-strong); border-radius:16px; background:var(--surface-1); }
+        .self-games-heading { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center; }
+        .self-games-heading > div { min-width:0; flex:1; }
+        .self-games-heading h4 { font-size:15px; font-weight:600; }
+        .self-games-heading p { font-size:12px; color:var(--muted); line-height:1.5; margin-top:4px; }
+        .self-games-heading label { font-size:12px; color:var(--muted); width:170px; max-width:100%; }
+        .self-games-heading input { display:block; padding:8px; border:1px solid var(--line-strong); border-radius:10px; font-size:16px; width:100%; margin-top:4px; }
+        .self-games-totals { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:16px 0; }
+        .self-games-totals strong { font-size:19px; color:var(--brand); font-weight:600; display:block; }
+        .self-games-totals span { font-size:12px; color:var(--muted); }
+        .self-games-card table { width:100%; table-layout:fixed; margin-top:10px; }
+        .self-games-card th,.self-games-card td { font-size:12px; padding:10px 4px; border-bottom:1px solid var(--line); text-align:left; overflow-wrap:anywhere; }
+        .self-games-card th { color:var(--muted); font-weight:500; }
+        .self-games-card th:first-child { width:44%; }
+        .self-games-card th:nth-child(2) { width:16%; }
+        .self-games-card th:last-child { width:40%; }
+        .self-games-card summary { padding:12px 0; font-size:13px; color:var(--violet); min-height:44px; }
+        .self-games-history-item { font-size:12px; padding:9px 0; border-bottom:1px solid var(--line); overflow-wrap:anywhere; }
+        .self-games-history-item small { display:block; color:var(--muted); margin-top:4px; }
+        @media(max-width:360px){.self-games-heading label{width:100%;}.salary-tabs button{font-size:12px;}}
+
     </style>
     <style>
         /* Keep the account dialog above the fixed navigation; these new styles
@@ -1042,6 +1128,7 @@
         .admin-tool-note { color:#9badc2; font-size:12px !important; line-height:1.55; margin:0; }
         .admin-tool-status { padding:12px 14px; background:#152a36; border:1px solid #315264; border-radius:12px; color:#c4dfeb; font-size:13px; line-height:1.55; white-space:pre-line; overflow-wrap:anywhere; }
         .admin-tool-status:empty { display:none; }
+        .admin-tool-status[data-error="true"] { color:#fecaca; background:#381b25; border-color:#b44c67; }
         .admin-tool-check { display:flex; align-items:flex-start; gap:12px; padding:14px; background:#132336; border:1px solid #304259; border-radius:14px; color:#cbd8e8; }
         .admin-tool-modal input[type=checkbox] { accent-color:#36cfad; width:20px; height:20px; flex-shrink:0; margin-top:2px; }
         .admin-tool-check strong { display:block; font-size:13px; }
@@ -1367,6 +1454,12 @@
                 <p class="text-[8px] text-slate-500 flex items-start"><i class="fa-solid fa-lock text-slate-600 mr-1 mt-0.5"></i> После сохранения дни блокируются — изменить их сможет только администратор.</p>
             </div>
 
+            <section id="my-conducted-games" class="self-games-card" aria-labelledby="self-games-title">
+                <div class="self-games-heading"><div><h4 id="self-games-title">Мои проведённые игры</h4><p>Только ваши игры и отработанное время</p></div><label>Месяц<input id="self-games-month" type="month" onchange="renderMyConductedStats()"></label></div>
+                <div id="self-games-summary" class="self-games-totals" aria-live="polite"></div>
+                <details id="self-games-types-panel"><summary>Игры по активностям</summary><div id="self-games-types"></div></details>
+                <details><summary>Даты и время игр</summary><div id="self-games-history"></div></details>
+            </section>
             <div id="my-avail-summary" class="bg-slate-900 border border-slate-800/80 rounded-xl p-3 shadow-md">
                 <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 border-b border-slate-800 pb-1">Мой заполненный график (Будущее)</h4>
                 <div id="my-avail-list" class="space-y-1.5 max-h-32 overflow-y-auto pr-1 ios-scroll"></div>
@@ -1430,6 +1523,8 @@
         </div>
 
         <div id="view-settings" class="flex flex-col h-full space-y-4 hidden">
+            <button id="salary-launch" type="button" class="hidden salary-launch flex-shrink-0" onclick="openSalary()"><span><strong>Мой заработок</strong><small>Игры, личные тарифы и полученные деньги</small></span><span aria-hidden="true">›</span></button>
+
 
             <div id="profile-tools" class="hidden bg-slate-900 border border-indigo-500/30 rounded-xl p-4 space-y-3 flex-shrink-0">
                 <h3 class="text-white font-bold">Управление сотрудниками</h3>
@@ -1510,6 +1605,26 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
                 </button>
             </div>
+        </div>
+
+        <div id="view-salary" class="hidden" aria-labelledby="salary-title">
+          <header class="salary-heading"><button type="button" class="journal-back" onclick="closeSalary()" aria-label="Вернуться в профиль">←</button><div><h3 id="salary-title">Мой заработок</h3><p>Личный расчёт по проведённым играм</p></div></header>
+          <div id="salary-admin-target" class="salary-admin-target hidden"><label for="salary-target">Расчёт сотрудника</label><select id="salary-target" onchange="changeSalaryTarget()"></select><p>Сисадмин может просматривать и исправлять записи любого сотрудника.</p></div>
+          <div class="salary-period"><label for="salary-month">Расчётный месяц</label><input type="month" id="salary-month" onchange="loadSalary()"><button type="button" onclick="loadSalary()" aria-label="Обновить расчёт">Обновить</button></div>
+          <p id="salary-status" role="status" aria-live="polite"></p>
+          <div id="salary-pending" class="hidden salary-warning"><p>Ответ о сохранении не получен. Повтор проверит ту же операцию.</p><button type="button" onclick="retrySalaryWrite()">Проверить сохранение</button></div>
+          <div class="salary-tabs" role="tablist" aria-label="Разделы заработка">
+            <button id="salary-tab-overview" type="button" role="tab" aria-selected="true" aria-controls="salary-overview" onclick="setSalaryTab('overview')">Обзор</button>
+            <button id="salary-tab-rates" type="button" role="tab" aria-selected="false" aria-controls="salary-rates" onclick="setSalaryTab('rates')">Тарифы</button>
+            <button id="salary-tab-payments" type="button" role="tab" aria-selected="false" aria-controls="salary-payments" onclick="setSalaryTab('payments')">Выплаты</button>
+            <button id="salary-tab-audit" type="button" role="tab" aria-selected="false" aria-controls="salary-audit" onclick="setSalaryTab('audit')">Журнал</button>
+          </div>
+          <div id="salary-content" class="hidden">
+            <section id="salary-overview" role="tabpanel" aria-labelledby="salary-tab-overview"></section>
+            <section id="salary-rates" class="hidden" role="tabpanel" aria-labelledby="salary-tab-rates"></section>
+            <section id="salary-payments" class="hidden" role="tabpanel" aria-labelledby="salary-tab-payments"></section>
+            <section id="salary-audit" class="hidden" role="tabpanel" aria-labelledby="salary-tab-audit"></section>
+          </div>
         </div>
 
         <div id="view-logs" class="hidden">
@@ -1865,10 +1980,18 @@
         </div>
     </div>
 
+    <div id="modal-salary" class="hidden admin-tool-modal fixed inset-0 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="salary-form-title">
+      <form class="admin-tool-panel" onsubmit="event.preventDefault(); saveSalaryForm()">
+        <header class="admin-tool-header"><div class="admin-tool-heading"><h3 id="salary-form-title">Личная запись</h3><p id="salary-form-subtitle"></p></div><button type="button" class="admin-tool-close" onclick="closeSalaryForm()" aria-label="Закрыть">×</button></header>
+        <div class="admin-tool-body"><div id="salary-form-fields"></div><p id="salary-form-status" class="admin-tool-status" role="status" aria-live="polite"></p><div id="salary-calibration-preview" class="hidden"></div></div>
+        <footer class="admin-tool-footer"><button type="button" class="admin-tool-button" onclick="closeSalaryForm()">Закрыть</button><button id="salary-form-preview" type="button" class="admin-tool-button hidden" onclick="previewSalaryCalibration()">Подобрать ставки</button><button id="salary-form-save" type="submit" class="admin-tool-button primary">Сохранить</button></footer>
+      </form>
+    </div>
+
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzMY5xV1tpExms8fsX0FQEw_4XlzZu545orhmXchnn9Tv0T-8klaOwqJG7jlg_74meY/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxgWvPkshqewe-mZjQoRJiS65HJ7lT6CYHYMaC5swOh0S21gwpVXOVL7YzUiBhWU_rk/exec";
         // ======================================================================================
 
         function createOperationId() {
@@ -1953,6 +2076,7 @@
         }
 
         function clearAuthSession() {
+            salaryReset(true);
             authToken = '';
             clearSessionVerificationIssue();
             [BOOT_CACHE_KEY, AUTH_STORAGE_KEY, 'park_v5_session', 'park_v5_users'].forEach(key => {
@@ -1961,6 +2085,7 @@
         }
 
         function returnToLoginScreen(clearSavedLogin = true) {
+            salaryReset(true);
             switchAuthTab('login');
             document.querySelectorAll('[role="dialog"][id^="modal-"]').forEach(modal => modal.classList.add('hidden'));
             closeAccountEditor(true);
@@ -2029,7 +2154,8 @@ const CLIENT_PERMISSIONS = {
   assign_roles: {label:'Назначение ролей сотрудников', roles:['director']},
   create_accounts: {label:'Создание аккаунтов', roles:[]},
   respond_games: {label:'Ответ на свои игры', roles:['director','manager','admin','instructor']},
-  edit_own_availability: {label:'Изменение своего графика', roles:['director','manager','admin','instructor']}
+  edit_own_availability: {label:'Изменение своего графика', roles:['director','manager','admin','instructor']},
+  salary_access: {label:'Личный расчёт заработка', roles:[], personalOnly:true}
 };
 
         function hasPermissionClient(key) {
@@ -2046,6 +2172,7 @@ const CLIENT_PERMISSIONS = {
             return ['send_notifications','delete_notifications','manage_games','manage_availability','manage_duty'].some(hasPermissionClient);
         }
         function applyPermissionVisibility() {
+            salaryVisibility();
             const controls = {'btn-admin-add-game':'manage_games','btn-admin-publish':'publish_schedule','admin-games-box':'manage_catalog','avail-admin-summary':'manage_availability','ai-parser-box':'import_games','btn-create-account':'create_accounts','btn-staff-message':'send_messages','btn-send-queued-notifications':'send_notifications','btn-delete-queued-notifications':'delete_notifications'};
             Object.entries(controls).forEach(([id,key])=>document.getElementById(id)?.classList.toggle('hidden',!hasPermissionClient(key)));
             document.getElementById('btn-admin-notification-queue').classList.toggle('hidden',!canAccessQueueClient());
@@ -2226,8 +2353,8 @@ const CLIENT_PERMISSIONS = {
         }
 
 
-        const PERMISSION_GROUPS=[["Игры и активности",["manage_games","delete_games","import_games","manage_catalog","respond_games"]],["График и дежурства",["manage_availability","edit_own_availability","manage_duty"]],["Сотрудники",["view_staff","create_accounts","assign_roles","ban_accounts"]],["Уведомления и журналы",["send_notifications","delete_notifications","publish_schedule","send_messages","view_logs","view_account_logs"]]];
-        const PERMISSION_DESCRIPTIONS={"manage_games":"Создание, изменение, состав, отмена игр и ответы за сотрудников.","delete_games":"Полное удаление игр из расписания.","import_games":"Распознавание расписания и добавление игр через ИИ.","manage_availability":"Изменение и подтверждение графика сотрудников.","manage_duty":"Назначение и изменение дежурных.","manage_catalog":"Добавление и удаление названий активностей.","view_staff":"Раздел «Персонал» и статистика сотрудников.","view_logs":"Общий журнал действий; свой журнал доступен всегда.","view_account_logs":"Входы и изменения аккаунтов других сотрудников.","send_notifications":"Рассылка изменений игр из очереди в Telegram.","delete_notifications":"Удаление записей только из очереди отправки.","publish_schedule":"Публикация расписания в общий Telegram-чат.","send_messages":"Сообщения выбранным сотрудникам в Telegram.","ban_accounts":"Блокировка и разблокировка в разделе «Персонал». Защищённые роли исключены.","assign_roles":"Назначение обычных ролей в разделе «Персонал». Директор и системный администратор защищены.","create_accounts":"Создание из профиля. Для роли выше инструктора также нужно право назначения ролей.","respond_games":"Принятие и отказ от своих игр в приложении и Telegram.","edit_own_availability":"Изменение собственного графика до его подтверждения."};
+        const PERMISSION_GROUPS=[["Игры и активности",["manage_games","delete_games","import_games","manage_catalog","respond_games"]],["График и дежурства",["manage_availability","edit_own_availability","manage_duty"]],["Сотрудники",["view_staff","create_accounts","assign_roles","ban_accounts","salary_access"]],["Уведомления и журналы",["send_notifications","delete_notifications","publish_schedule","send_messages","view_logs","view_account_logs"]]];
+        const PERMISSION_DESCRIPTIONS={"salary_access":"Закрытый личный расчёт. Только персональное разрешение системного администратора; общим правом роли не выдаётся.","manage_games":"Создание, изменение, состав, отмена игр и ответы за сотрудников.","delete_games":"Полное удаление игр из расписания.","import_games":"Распознавание расписания и добавление игр через ИИ.","manage_availability":"Изменение и подтверждение графика сотрудников.","manage_duty":"Назначение и изменение дежурных.","manage_catalog":"Добавление и удаление названий активностей.","view_staff":"Раздел «Персонал» и статистика сотрудников.","view_logs":"Общий журнал действий; свой журнал доступен всегда.","view_account_logs":"Входы и изменения аккаунтов других сотрудников.","send_notifications":"Рассылка изменений игр из очереди в Telegram.","delete_notifications":"Удаление записей только из очереди отправки.","publish_schedule":"Публикация расписания в общий Telegram-чат.","send_messages":"Сообщения выбранным сотрудникам в Telegram.","ban_accounts":"Блокировка и разблокировка в разделе «Персонал». Защищённые роли исключены.","assign_roles":"Назначение обычных ролей в разделе «Персонал». Директор и системный администратор защищены.","create_accounts":"Создание из профиля. Для роли выше инструктора также нужно право назначения ролей.","respond_games":"Принятие и отказ от своих игр в приложении и Telegram.","edit_own_availability":"Изменение собственного графика до его подтверждения."};
         function renderPermissionOptions(containerId, overrides, role, inherited, roleEditor=false) {
             const list=document.getElementById(containerId);list.replaceChildren();
             PERMISSION_GROUPS.forEach(([title,keys])=>{
@@ -2240,6 +2367,7 @@ const CLIENT_PERMISSIONS = {
                     const select=document.createElement('select');select.dataset[roleEditor?'rolePermission':'permission']=key;select.className='admin-tool-input';
                     const allowed=typeof inherited?.[key]==='boolean'?inherited[key]:definition.roles.includes(normalizeClientRole(role));
                     select.replaceChildren(new Option((roleEditor?'Стандарт: ':'По роли: ')+(allowed?'да':'нет'),'default'),new Option('Разрешить','allow'),new Option('Запретить','deny'));
+                    if(roleEditor && definition.personalOnly){select.replaceChildren(new Option('Только персонально','default'));select.disabled=true;}
                     select.value=overrides?.[key]===true?'allow':overrides?.[key]===false?'deny':'default';
                     select.dataset.choice=select.value;select.addEventListener('change',()=>select.dataset.choice=select.value);
                     label.append(text,select);group.append(label);
@@ -2569,6 +2697,7 @@ const CLIENT_PERMISSIONS = {
             }
             if (!allowErrorStatus && result && result.status === 'error') {
                 const message = String(result.message || 'Сервер отклонил запрос.').replace(/^Error:\s*/i, '');
+                if(body.action==='salary_write'&&body.command==='common_rates'&&/^Неизвестное действие расчёта\.?$/.test(message.trim()))throw salaryServerOutdatedError();
                 const error = new Error(message); error.code = result.code; error.retryable = result.retryable === true;
                 throw error;
             }
@@ -3782,7 +3911,7 @@ const CLIENT_PERMISSIONS = {
             appState.users = data.users;
             appState.shifts = data.shifts.filter(shift => !isStructurallyEmptyShift(shift)).map(normalizeShiftRecord);
             appState.games = data.games;
-            appState.logs = data.logs;
+            appState.logs = sharedActivityLogs(data.logs);
             // Server-generated account events are never cached or sent back in patches.
             appState.accountLogs = Array.isArray(data.accountLogs) ? data.accountLogs : [];
             appState.staffAccountLogs = Array.isArray(data.staffAccountLogs) ? data.staffAccountLogs : [];
@@ -3803,6 +3932,7 @@ const CLIENT_PERMISSIONS = {
             cloudRefreshFailureCount = 0;
             lastCloudReadAt = Date.now();
             setSyncStatus('synced', 'Данные актуальны');
+            salaryVisibility();salaryRefreshIfOpen();
         }
 
         function diffValue(before, after) {
@@ -4310,7 +4440,7 @@ const CLIENT_PERMISSIONS = {
             });
 
             const defaultLog = [{ timestamp: new Date().toLocaleString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }), user: 'Система', text: 'Платформа успешно запущена (Авто-Бэкенд).' }];
-            appState.logs = readLocalJson('park_v5_logs', defaultLog);
+            appState.logs = sharedActivityLogs(readLocalJson('park_v5_logs', defaultLog));
             appState.games = readLocalJson('park_v5_games', defaultGames);
             appState.notifications = readLocalJson('park_v5_notifications', []);
             appState.notificationQueue = readLocalJson('park_v5_notification_queue', []);
@@ -4532,8 +4662,9 @@ const CLIENT_PERMISSIONS = {
                 if (logsChanged && (isViewVisible('view-settings') || isViewVisible('view-logs'))) {
                     renderLogs();
                 }
-                if (isViewVisible('view-availability') && (availabilityChanged || dutyChanged || usersChanged)) {
-                    renderAvailability();
+                if (isViewVisible('view-availability')) {
+                    if (availabilityChanged || dutyChanged || usersChanged) renderAvailability();
+                    else renderMyConductedStats(); // Games and elapsed time can change independently of availability.
                 }
                 if (usersChanged) {
                     if (previousState.role !== appState.role) {
@@ -4573,6 +4704,7 @@ const CLIENT_PERMISSIONS = {
             // to two minutes. Saves and explicit refreshes remain immediate.
             cloudRefreshTimer = setInterval(refreshCloudStateSilently, CLOUD_REFRESH_INTERVAL_MS);
             setSyncStatus('synced', 'Данные актуальны');
+            salaryVisibility();salaryRefreshIfOpen();
         }
 
         let lastCloudWakeAt = 0;
@@ -5061,10 +5193,12 @@ const CLIENT_PERMISSIONS = {
         }
 
         function switchTab(tabId) {
+            if(tabId!=='tab-salary')salaryStopRefresh();
             if (appState.users.find(user => user.username === appState.user)?.activationRequired) tabId = 'tab-settings';
-            if (tabId === 'tab-staff' && !hasPermissionClient('view_staff')) return; 
+            if (tabId === 'tab-staff' && !hasPermissionClient('view_staff')) return;
+            if (tabId === 'tab-salary' && !hasPermissionClient('salary_access')) return; 
             
-            ['view-schedule', 'view-availability', 'view-staff', 'view-settings', 'view-logs'].forEach(id => {
+            ['view-schedule', 'view-availability', 'view-staff', 'view-settings', 'view-logs', 'view-salary'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.add('hidden');
             });
@@ -5074,11 +5208,11 @@ const CLIENT_PERMISSIONS = {
                 if (btn) { btn.classList.remove('text-park-accent', 'is-active'); btn.classList.add('text-slate-500'); }
             });
 
-            const viewMap = { 'tab-schedule': 'view-schedule', 'tab-availability': 'view-availability', 'tab-staff': 'view-staff', 'tab-settings': 'view-settings', 'tab-logs': 'view-logs' };
+            const viewMap = { 'tab-schedule': 'view-schedule', 'tab-availability': 'view-availability', 'tab-staff': 'view-staff', 'tab-settings': 'view-settings', 'tab-logs': 'view-logs', 'tab-salary': 'view-salary' };
             const activeView = document.getElementById(viewMap[tabId]);
             if (activeView) activeView.classList.remove('hidden');
             
-            const activeBtn = document.getElementById('btn-' + (tabId === 'tab-logs' ? 'tab-settings' : tabId));
+            const activeBtn = document.getElementById('btn-' + (['tab-logs','tab-salary'].includes(tabId) ? 'tab-settings' : tabId));
             if (activeBtn) { activeBtn.classList.remove('text-slate-500'); activeBtn.classList.add('text-park-accent', 'is-active'); }
             const main = document.getElementById('app-main');
             if (main) main.scrollTop = 0;
@@ -5087,7 +5221,7 @@ const CLIENT_PERMISSIONS = {
         }
 
         function renderAvailability() {
-            renderDutyRoster();
+            renderMyConductedStats();renderDutyRoster();
             const myAvailList = document.getElementById('my-avail-list');
             if (myAvailList) {
                 const today = toLocalDateStr(new Date());
@@ -5251,7 +5385,7 @@ const CLIENT_PERMISSIONS = {
             if (timeUntilEl) timeUntilEl.value = '';
             document.getElementById('avail-time-from').value = '';
             
-            logAction(appState.name, `Сохранил и подтвердил график с ${formatDateRus(startStr)} по ${formatDateRus(endStr)}: ${statusLabel}${skippedCount > 0 ? ` (пропущено заблокированных дней: ${skippedCount})` : ''}`);
+            if (addedCount > 0) logAction(appState.name, `Сохранил и подтвердил график с ${formatDateRus(startStr)} по ${formatDateRus(endStr)}: ${statusLabel}${skippedCount > 0 ? ` (пропущено заблокированных дней: ${skippedCount})` : ''}`);
             
             document.getElementById('modal-confirm-availability').classList.add('hidden');
             pendingAvailabilityChange = null;
@@ -6713,6 +6847,7 @@ const CLIENT_PERMISSIONS = {
         }
 
         function canViewStaffAudit() { return hasPermissionClient('view_account_logs'); }
+        function sharedActivityLogs(logs) { return Array.isArray(logs)?logs.filter(log=>!String(log&&log.text||'').includes('Подробности в закрытом журнале заработка.')):[]; }
 
         function renderLogs(preservePosition = true) {
             const container = document.getElementById('logs-timeline-container'); if(!container) return;
@@ -6728,7 +6863,7 @@ const CLIENT_PERMISSIONS = {
             const accountLogs = (appState.accountLogs || []).filter(log => log.targetUsername === appState.user).map(log => ({...log, kind:'account'}));
             const staffLogs = canViewStaffAudit() ? (appState.staffAccountLogs || []).map(log => ({...log, kind:'account'})) : [];
             const allAccountLogs = Array.from(new Map(staffLogs.concat(accountLogs).map(log => [JSON.stringify([log.timestamp, log.user, log.text, log.targetUsername]), log])).values());
-            const ordinaryLogs = appState.logs.filter(log => hasPermissionClient('view_logs') || normalizePersonName(log.user) === normalizePersonName(appState.name) || log.user === 'Система').map(log => ({...log, kind:'activity'}));
+            const ordinaryLogs = appState.logs.filter(log => !String(log.text||'').includes('Подробности в закрытом журнале заработка.') && (hasPermissionClient('view_logs') || normalizePersonName(log.user) === normalizePersonName(appState.name) || log.user === 'Система')).map(log => ({...log, kind:'activity'}));
             const query = normalizePersonName(document.getElementById('log-search').value).toLocaleLowerCase('ru-RU').replace(/ё/g, 'е');
             const queryWords = query ? query.split(/\s+/) : [];
             const period = document.getElementById('log-period').value;
@@ -7037,6 +7172,309 @@ const CLIENT_PERMISSIONS = {
                 setButtonBusy(importButton, false);
             }
         }
+
+        let salaryState=null,salaryOwner='',salaryBusy=false,salaryRequest=0,salaryEdit=null,salaryAttempt=null,salaryPlan=null,salaryTab='overview',salaryTimer=null,salaryAuditState=null,salaryAuditAll=false,salaryAuditRequest=0,salaryWriteBlocked='';
+        let salaryLoadTask=null,salaryAuditTask=null,salaryLastLoadedAt=0;
+        function salaryRub(cents) { return (Number(cents)/100).toLocaleString('ru-RU',{maximumFractionDigits:2})+' ₽'; }
+        function salaryInputMoney(value) { const n=Number(String(value).replace(',','.'));if(!Number.isFinite(n)||String(value).trim()===''||Math.abs(n*100-Math.round(n*100))>0.00001)throw new Error('Укажите сумму с точностью до копейки.');return Math.round(n*100); }
+        document.querySelectorAll('.salary-tabs [role="tab"]').forEach((button,index,tabs)=>button.addEventListener('keydown',event=>{
+            if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();
+            const target=event.key==='Home'?0:event.key==='End'?tabs.length-1:(index+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+            tabs[target].click();tabs[target].focus();
+        }));
+        function salaryReset(clearGames=false) {
+            salaryStopRefresh();salaryAuditRequest++;salaryAuditState=null;salaryAuditAll=false;
+            salaryLoadTask=null;salaryAuditTask=null;salaryLastLoadedAt=0;
+            document.getElementById('self-games-types-panel').open=false;
+            document.getElementById('salary-target').replaceChildren();delete document.getElementById('salary-target').dataset.signature;
+            salaryRequest++;salaryState=null;salaryOwner='';salaryEdit=null;salaryAttempt=null;salaryPlan=null;
+            document.getElementById('salary-content')?.classList.add('hidden');document.getElementById('modal-salary')?.classList.add('hidden');
+            ['salary-overview','salary-rates','salary-payments','salary-form-fields','salary-calibration-preview','salary-status','salary-form-status','salary-audit',...(clearGames?['self-games-summary','self-games-types','self-games-history']:[])].forEach(id=>document.getElementById(id)?.replaceChildren());
+            document.getElementById('salary-pending')?.classList.add('hidden');
+        }
+        function salaryVisibility() {
+            salarySyncTargets();const allowed=hasPermissionClient('salary_access');document.getElementById('salary-launch')?.classList.toggle('hidden',!allowed);
+            if(!allowed || (salaryOwner && salaryOwner!==appState.user)){const visible=isViewVisible('view-salary');salaryReset();if(visible)switchTab('tab-settings');}
+        }
+        function salaryStopRefresh(){if(salaryTimer){clearInterval(salaryTimer);salaryTimer=null;}}
+        function salaryRefreshIfOpen(){if(isViewVisible('view-salary')&&!salaryBusy&&!salaryAttempt&&!salaryEdit&&Date.now()-salaryLastLoadedAt>=15000)void loadSalary(true);}
+        function closeSalary() { salaryStopRefresh();switchTab('tab-settings'); }
+        function openSalary() {
+            if(!ensurePermissionClient('salary_access'))return;
+            salarySyncTargets();switchTab('tab-salary');if(!document.getElementById('salary-month').value)document.getElementById('salary-month').value=toLocalDateStr(new Date()).slice(0,7);
+            setSalaryTab(salaryTab,false);void loadSalary();salaryStopRefresh();salaryTimer=setInterval(salaryRefreshIfOpen,60000);
+        }
+        function setSalaryTab(tab,loadAudit=true) {
+            if(!['overview','rates','payments','audit'].includes(tab))return;salaryTab=tab;
+            ['overview','rates','payments','audit'].forEach(name=>{document.getElementById('salary-'+name).classList.toggle('hidden',name!==tab);document.getElementById('salary-tab-'+name).setAttribute('aria-selected',String(name===tab));});
+            if(tab==='audit'&&loadAudit&&salaryState&&salaryState.month===document.getElementById('salary-month').value){if(salaryAuditMatches())renderSalaryAudit();else void loadSalaryAudit();}
+        }
+        function salaryStatus(message,error=false) { const output=document.getElementById('salary-status');output.textContent=message;output.dataset.error=String(error); }
+        function salaryFormStatus(message,error=false) {
+            const output=document.getElementById('salary-form-status');output.textContent=error&&message?'Ошибка: '+message:message;
+            output.dataset.error=String(error);output.setAttribute('aria-live',error?'assertive':'polite');
+        }
+        function salaryServerOutdatedError() {
+            const error=new Error('Сервер приложения ещё не обновлён и не поддерживает сохранение всех тарифов. Системному администратору нужно обновить серверную версию. Введённые цены остаются в форме.');
+            error.code='salary_server_outdated';return error;
+        }
+        function salaryBulkSupported(state) { return isPlainObject(state?.commonRateVersions)&&typeof state?.emptyCommonRateVersion==='string'&&Boolean(state.emptyCommonRateVersion); }
+        async function loadSalary(silent=false) {
+            if(!ensurePermissionClient('salary_access') || !authToken)return;
+            if(salaryBusy||salaryAttempt||salaryEdit)return;
+            const month=document.getElementById('salary-month').value;if(!month)return;
+            const targetUsername=salaryCurrentTarget(),token=authToken,owner=appState.user,key=JSON.stringify([token,owner,targetUsername,month]);
+            if(salaryLoadTask?.key===key)return salaryLoadTask.promise;
+            const request=++salaryRequest,task={key,promise:null};salaryLoadTask=task;
+            const current=salaryState&&salaryOwner===owner&&salaryState.subjectUsername===targetUsername&&salaryState.month===month;
+            if(!silent||!current)salaryStatus('Обновляем личный расчёт…');
+            if(current)document.getElementById('salary-content').classList.remove('hidden');else document.getElementById('salary-content').classList.add('hidden');
+            task.promise=(async()=>{
+                try {const result=await apiPost({action:'salary_get',month,targetUsername,includeAudit:salaryTab==='audit',auditAll:salaryAuditAll&&isSysadminClient()});
+                    if(request!==salaryRequest||token!==authToken||owner!==appState.user||targetUsername!==salaryCurrentTarget()||month!==document.getElementById('salary-month').value)return;
+                    salaryState=result;salaryOwner=owner;salaryLastLoadedAt=Date.now();salaryAcceptAudit(result.audit);salarySyncTargets();renderSalary();salarySetBusy(salaryBusy);salaryStatus(salaryWriteBlocked,Boolean(salaryWriteBlocked));
+                } catch(error){if(request===salaryRequest&&token===authToken){if(error.code==='salary_access_revoked'){salaryReset();appState.permissions={...appState.permissions,salary_access:false};salaryVisibility();switchTab('tab-settings');}else salaryStatus(error.message,true);}}
+                finally{if(salaryLoadTask===task)salaryLoadTask=null;}
+            })();return task.promise;
+        }
+        function salaryAction(label,action,id='',kind='') { return `<button type="button" class="salary-action" data-salary-action="${action}" data-id="${escapeHtml(id)}" data-kind="${kind}">${label}</button>`; }
+        function salaryRow(title,detail,amount,actions='') { return `<div class="salary-row"><div><strong>${escapeHtml(title)}</strong><small>${escapeHtml(detail)}</small>${actions?'<div class="salary-row-actions">'+actions+'</div>':''}</div><span class="salary-row-amount">${amount}</span></div>`; }
+        function renderSalary() {
+            const s=salaryState;if(!s||salaryOwner!==appState.user||s.subjectUsername!==salaryCurrentTarget()||!hasPermissionClient('salary_access'))return;
+            document.getElementById('salary-form-subtitle').dataset.subject=s.subjectUsername;
+            const workCents=s.work.reduce((sum,row)=>sum+Number(row.totalCents),0),gamesCents=s.estimateCents-workCents;
+            const warning=s.missingRates?`<p class="salary-warning">Без тарифа: ${s.missingRates}. Итог пока неполный. ${salaryAction('Задать тарифы','rates')}</p>`:'';
+            const settled=s.settlement;
+            document.getElementById('salary-overview').innerHTML=`${warning}<div class="salary-total"><span>${settled?'Итог после сверки':'Примерная зарплата'}</span><strong>${salaryRub(s.earnedCents)}</strong><p>Игры: ${salaryRub(gamesCents)} · Другая работа: ${salaryRub(workCents)}</p>${settled?'<p>Исходный расчёт сверки: '+salaryRub(settled.estimateCents)+'</p>':''}</div><div class="salary-balances"><div><span>Получено за месяц</span><strong>${salaryRub(s.paidCents)}</strong></div><div><span>${s.balanceCents<0?'Получено сверх расчёта':'Осталось получить'}</span><strong>${salaryRub(Math.abs(s.balanceCents))}</strong></div></div><div class="salary-actions">${salaryAction('Добавить работу','work')}${salaryAction('Получил деньги','payment')}</div><h4 class="salary-section-title">Проведённые игры · ${s.games.length}</h4><p class="salary-note">${(s.minutes/60).toLocaleString('ru-RU',{maximumFractionDigits:2})} ч · автоматически из расписания</p>${s.games.map(row=>salaryRow(row.activity,formatDateRus(row.date)+' · '+row.startTime+'–'+row.endTime+(row.teamBuildingName?' · '+row.teamBuildingName:'')+(row.unit?' · '+salaryRub(row.rateCents)+(row.unit==='hourly'?'/ч':'/игру')+(row.rateSource==='common'?' · общий тариф':' · личный тариф'):''),row.totalCents===null?salaryAction('Указать тариф','rate',row.activity):salaryRub(row.totalCents))).join('') || '<p class="salary-note">За этот месяц проведённых игр пока нет.</p>'}<h4 class="salary-section-title">Дополнительная работа</h4>${s.work.map(row=>salaryRow(row.description,formatDateRus(row.date)+(row.unit==='hourly'?' · '+(row.minutes/60).toLocaleString('ru-RU',{maximumFractionDigits:2})+' ч × '+salaryRub(row.amountCents):' · фиксированная оплата'),salaryRub(row.totalCents),salaryAction('Изменить','work',row.id)+salaryAction('Удалить','void',row.id,'work'))).join('')||'<p class="salary-note">Личные работы по парку и другие задачи вне расписания.</p>'}`;
+            const rateRows=(rows,common)=>rows.map(row=>salaryRow(row.activity,'С '+formatDateRus(row.effectiveDate)+(row.calibrationId?' · подстройка по сверке':''),salaryRub(row.amountCents)+(row.unit==='hourly'?'/ч':'/игру'),(isSysadminClient()?salaryAction('Изменить',common?'common_rate':'rate_edit',row.id):'')+(!row.calibrationId&&(!common||isSysadminClient())?salaryAction('Отменить версию','void',row.id,common?'common_rate':'rate'):''))).join('');
+            document.getElementById('salary-rates').innerHTML=`<p class="salary-note">Общие тарифы автоматически действуют для всех. Личный тариф имеет приоритет с даты начала; его отмена возвращает общий. Суммы остаются приблизительными.</p><h4 class="salary-section-title">Общие тарифы</h4>${isSysadminClient()?'<div class="salary-actions">'+salaryAction('Выставить все тарифы','common_rates')+salaryAction('Добавить общий тариф','common_rate')+'</div>':''}${rateRows(s.commonRates,true)||'<p class="salary-note">Общие тарифы пока не заданы.</p>'}<h4 class="salary-section-title">Личные тарифы · ${escapeHtml(s.subjectName)}</h4><div class="salary-actions">${salaryAction('Добавить личный тариф','rate')}</div>${rateRows(s.personalRates,false)||'<p class="salary-note">Личных исключений нет — используются общие тарифы.</p>'}`;
+            document.getElementById('salary-payments').innerHTML=`<div class="salary-actions">${salaryAction('Получил деньги','payment')}${salaryAction('Сверить месяц','settle')}</div><h4 class="salary-section-title">Выплаты · ${salaryRub(s.paidCents)}</h4>${s.payments.map(row=>salaryRow(row.description||'Выплата',formatDateRus(row.date)+' · за '+formatStatsMonth(row.month),salaryRub(row.amountCents),salaryAction('Изменить','payment',row.id)+salaryAction('Удалить','void',row.id,'payment'))).join('')||'<p class="salary-note">Аванс и окончательный расчёт добавляются отдельно. Дата получения может быть в другом месяце.</p>'}<h4 class="salary-section-title">Сверка месяца</h4>${settled?`<div class="salary-total"><span>Окончательная зарплата</span><strong>${salaryRub(settled.finalCents)}</strong><p>Первоначальная оценка: ${salaryRub(settled.estimateCents)}<br>Расхождение: ${salaryRub(settled.finalCents-settled.estimateCents)}<br>Известная премия / удержание: ${salaryRub(settled.knownCents)}</p><p>${escapeHtml(settled.reason || '')}</p></div>${s.settledChanged?'<p class="salary-warning">После сверки игры или дополнительные работы изменились. Сохранённый итог не переписан. Проверьте месяц и выполните сверку заново.</p>':''}<div class="salary-actions">${settled.calibrationId?salaryAction('Отменить подстройку','undo_calibration',settled.id):salaryAction('Отменить сверку','void',settled.id,'settlement')}</div>`:'<p class="salary-note">После окончательного расчёта можно сохранить фактическую сумму. Аванс не меняет тарифы.</p>'}`;
+            document.getElementById('salary-content').classList.remove('hidden');setSalaryTab(salaryTab,false);
+            if(salaryTab==='audit'){if(salaryAuditMatches())renderSalaryAudit();else void loadSalaryAudit();}
+            document.querySelectorAll('#salary-content [data-salary-action]').forEach(button=>button.addEventListener('click',()=>salaryHandleAction(button.dataset.salaryAction,button.dataset.id,button.dataset.kind)));
+        }
+        function salaryField(name,label,type,value,extra='') { return `<label>${label}<input class="admin-tool-input" name="${name}" type="${type}" value="${escapeHtml(String(value ?? ''))}" ${extra}></label>`; }
+        function salarySelect(name,label,options,value) { return `<label>${label}<select class="admin-tool-input" name="${name}">${options.map(([key,text])=>`<option value="${escapeHtml(key)}"${key===value?' selected':''}>${escapeHtml(text)}</option>`).join('')}</select></label>`; }
+        function salaryHandleAction(command,id='',kind='') {
+            if(salaryBusy || !salaryState || !ensurePermissionClient('salary_access'))return;
+            if(salaryWriteBlocked){salaryStatus(salaryWriteBlocked,true);return;}
+            if(salaryAttempt){salaryStatus('Сначала проверьте сохранение предыдущей операции.',true);return;}
+            if(command==='rates'){setSalaryTab('rates');return;}
+            const s=salaryState,today=s.today,month=s.month;
+            if(command==='rate_edit'){if(!ensureSysadmin())return;command='rate';kind='rate';}
+            if(['common_rate','common_rates'].includes(command)&&!ensureSysadmin())return;
+            const table={work:s.work,payment:s.payments,rate:s.personalRates,common_rate:s.commonRates,settlement:s.settlement?[s.settlement]:[]};
+            const row=(table[kind || command] || []).find(item=>item.id===id);
+            salaryEdit={command,id:row?.id || '',kind,base:row?.revision || '',calculationVersion:s.calculationVersion,targetUsername:s.subjectUsername};salaryPlan=null;
+            const fields=document.getElementById('salary-form-fields');let content='',title='',subtitle='';
+            const amount=(cents)=>cents===undefined?'':String(Number(cents)/100);
+            if(command==='common_rates') {
+                title='Все общие тарифы';subtitle='Одна дата начала и одно сохранение для всех активностей';
+                const unique=new Map();s.activities.concat(s.commonRates.map(row=>row.activity)).forEach(name=>{const key=salaryActivityKey(name);if(key&&!unique.has(key))unique.set(key,name);});
+                salaryEdit.activities=Array.from(unique.values()).sort((a,b)=>a.localeCompare(b,'ru'));salaryEdit.commonRates=s.commonRates.map(row=>({...row}));
+                salaryEdit.commonRateVersions={...s.commonRateVersions};salaryEdit.emptyCommonRateVersion=s.emptyCommonRateVersion;
+                content=salaryField('effectiveDate','Все тарифы действуют с','date',month+'-01','required')+'<p class="salary-note">Заполните цены и выберите оплату за час или за игру. Пустые поля пропускаются; 0 ₽ — бесплатная активность. Сохраняются только изменения.</p><div class="salary-bulk-list">'+salaryEdit.activities.map((name,index)=>`<fieldset class="salary-bulk-row" data-rate-index="${index}"><legend>${escapeHtml(name)}</legend>${salaryField('bulkAmount'+index,'Цена, ₽','number','','min="0" max="100000000" step="0.01" placeholder="Не задана"')}${salarySelect('bulkUnit'+index,'Оплата',[['hourly','За час'],['game','За игру']],'hourly')}</fieldset>`).join('')+'</div>';
+            } else if(command==='rate' || command==='common_rate') {
+                title=command==='common_rate'?'Общий тариф для всех':(row?'Изменить личный тариф':'Личный тариф');subtitle=row?'Изменение будет сохранено в журнале':(command==='common_rate'?'Автоматически используется без личного исключения':'Новая версия ставки с выбранной даты');
+                content=salaryField('activity','Активность','text',row?.activity || id || s.activities[0] || '', 'required maxlength="100" list="salary-activities"')+`<datalist id="salary-activities">${s.activities.map(name=>'<option value="'+escapeHtml(name)+'"></option>').join('')}</datalist>`+salarySelect('unit','Способ оплаты',[['hourly','За час'],['game','За игру']],row?.unit || 'hourly')+salaryField('amount','Ставка, ₽','number',amount(row?.amountCents),'required min="0" max="100000000" step="0.01"')+salaryField('effectiveDate','Действует с','date',row?.effectiveDate || month+'-01','required');
+            } else if(command==='work') {
+                title=row?'Изменить работу':'Дополнительная работа';subtitle='Сохраняется только в личном расчёте';
+                content=salaryField('description','Описание','text',row?.description || '','required maxlength="300"')+salaryField('date','Дата работы','date',row?.date || (today.startsWith(month)?today:month+'-01'),'required')+salarySelect('unit','Способ оплаты',[['hourly','За часы'],['fixed','Фиксированная сумма']],row?.unit || 'hourly')+salaryField('hours','Отработано часов','number',row?.minutes?row.minutes/60:1,'min="0.016666666666666666" max="24" step="any"')+salaryField('amount','Ставка за час / сумма, ₽','number',amount(row?.amountCents),'required min="0" max="100000000" step="0.01"');
+            } else if(command==='payment') {
+                title=row?'Изменить выплату':'Получил деньги';subtitle='Выплата за '+formatStatsMonth(month);
+                content=salaryField('amount','Получено, ₽','number',amount(row?.amountCents),'required min="0.01" max="100000000" step="0.01"')+salaryField('date','Дата получения','date',row?.date || today,'required')+salaryField('description','Комментарий','text',row?.description || '','maxlength="300"');
+            } else if(command==='settle') {
+                title='Сверить месяц';subtitle=formatStatsMonth(month)+' · полная сумма за месяц, включая авансы';
+                salaryEdit.base=s.settlement?.revision || '';
+                content=`<p class="salary-note">Текущая оценка: ${salaryRub(s.estimateCents)}. Выплаты: ${salaryRub(s.paidCents)}. Сверка сохраняет итог, но сама не добавляет выплату.</p>`+salaryField('final','Окончательная зарплата, ₽','number',amount(s.settlement?.finalCents ?? s.estimateCents),'required min="0" max="100000000" step="0.01"')+salaryField('known','Известная премия (+) / удержание (−), ₽','number',amount(s.settlement?.knownCents || 0),'required step="0.01"')+salaryField('reason','Причина премии или удержания','text',s.settlement?.reason || '','maxlength="300"')+salaryField('effectiveDate','Новые ставки действуют с','date',today,'required')+'<p class="salary-note">«Сохранить» фиксирует итог без изменения ставок. «Подобрать ставки» предлагает оценочную поправку только для почасовых игр. Работа по парку и фиксированные суммы не меняются.</p>';
+            } else if(command==='void') {
+                if(!row)return;title='Отменить запись';subtitle='Запись сохранится в истории как отменённая.';content=`<p>Отменить ${escapeHtml(row.description || row.activity || 'сверку месяца')}?</p>`;
+            } else if(command==='undo_calibration') {
+                title='Отменить подстройку';subtitle='Первоначальный итог сверки сохранится';salaryEdit.id=s.settlement.id;salaryEdit.base=s.settlement.revision;content='<p>Отменить версии тарифов, созданные этой подстройкой?</p>';
+            } else return;
+            fields.innerHTML=content;document.getElementById('salary-form-title').textContent=title;document.getElementById('salary-form-subtitle').textContent=(['common_rate','common_rates'].includes(command)?'':s.subjectName+' · ')+subtitle;
+            salaryFormStatus('');document.getElementById('salary-calibration-preview').replaceChildren();document.getElementById('salary-calibration-preview').classList.add('hidden');
+            document.getElementById('salary-form-preview').classList.toggle('hidden',command!=='settle');document.getElementById('salary-form-save').textContent=command==='common_rates'?'Сохранить все тарифы':'Сохранить';
+            document.getElementById('modal-salary').classList.remove('hidden');salarySetBusy(false);
+            fields.querySelectorAll('input,select').forEach(input=>input.addEventListener('input',()=>{salaryPlan=null;document.getElementById('salary-calibration-preview').classList.add('hidden');}));
+            if(command==='common_rates'){
+                salaryFillBulkRates();fields.querySelector('[name="effectiveDate"]').addEventListener('change',salaryFillBulkRates);
+                fields.querySelectorAll('.salary-bulk-row input,.salary-bulk-row select').forEach(input=>input.addEventListener('input',()=>input.closest('fieldset').dataset.edited='true'));
+            }
+        }
+        function closeSalaryForm() { if(salaryBusy)return;document.getElementById('modal-salary').classList.add('hidden');if(!salaryAttempt){salaryEdit=null;salaryPlan=null;}salarySetBusy(false); }
+        function salaryActivityKey(value){return String(value||'').trim().toLowerCase().replace(/ё/g,'е').replace(/\s+/g,' ');}
+        function salaryBulkRateAt(activity,date){return salaryEdit.commonRates.filter(row=>salaryActivityKey(row.activity)===salaryActivityKey(activity)&&row.effectiveDate<=date).sort((a,b)=>b.effectiveDate.localeCompare(a.effectiveDate)||String(b.createdAt).localeCompare(String(a.createdAt)))[0];}
+        function salaryFillBulkRates(){
+            if(salaryEdit?.command!=='common_rates')return;
+            const form=document.querySelector('#modal-salary form'),date=form.elements.effectiveDate.value;
+            document.querySelectorAll('.salary-bulk-row').forEach(row=>{if(row.dataset.edited==='true')return;const index=Number(row.dataset.rateIndex),rate=salaryBulkRateAt(salaryEdit.activities[index],date);form.elements['bulkAmount'+index].value=rate?String(Number(rate.amountCents)/100):'';form.elements['bulkUnit'+index].value=rate?.unit||'hourly';});
+        }
+        async function salaryVerifyBulkServer(rates){
+            const edit=salaryEdit,token=authToken,owner=appState.user;
+            salarySetBusy(true);salaryFormStatus('Проверяем обновление сервера…');
+            try {
+                const state=await apiPost({action:'salary_get',targetUsername:edit.targetUsername,month:salaryState.month});
+                if(token!==authToken||owner!==appState.user||edit!==salaryEdit)return false;
+                if(!salaryBulkSupported(state))throw salaryServerOutdatedError();
+                if(state.subjectUsername!==edit.targetUsername)throw new Error('Сотрудник в ответе сервера изменился. Обновите расчёт.');
+                const snapshot=(rows,activity)=>JSON.stringify(rows.filter(row=>salaryActivityKey(row.activity)===salaryActivityKey(activity))
+                    .map(row=>[row.id,row.revision,row.effectiveDate,row.unit,Number(row.amountCents)]).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))));
+                if(rates.some(row=>snapshot(edit.commonRates,row.activity)!==snapshot(state.commonRates,row.activity))){const error=new Error('Общие тарифы изменились. Обновите расчёт перед сохранением; введённые цены остаются в форме.');error.code='conflict';throw error;}
+                edit.commonRateVersions={...state.commonRateVersions};edit.emptyCommonRateVersion=state.emptyCommonRateVersion;edit.needsServerCheck=false;return true;
+            } finally {salarySetBusy(false);}
+        }
+        function salaryFormData() {
+            const form=document.querySelector('#modal-salary form'),v=name=>form.elements[name]?.value || '',command=salaryEdit.command;
+            const data={id:salaryEdit.id,base:salaryEdit.base};
+            if(command==='common_rates'){
+                const effectiveDate=v('effectiveDate'),rates=[];
+                salaryEdit.activities.forEach((activity,index)=>{
+                    const value=v('bulkAmount'+index);if(!value.trim())return;
+                    const amountCents=salaryInputMoney(value),unit=v('bulkUnit'+index),current=salaryBulkRateAt(activity,effectiveDate);
+                    if(current&&Number(current.amountCents)===amountCents&&current.unit===unit)return;
+                    rates.push({activity,unit,amountCents,baseVersion:salaryEdit.commonRateVersions[salaryActivityKey(activity)]||salaryEdit.emptyCommonRateVersion});
+                });
+                if(!rates.length)throw new Error('Нет изменений: заполните или измените цены нужных активностей.');
+                return {effectiveDate,rates};
+            }
+            if(command==='rate'||command==='common_rate')Object.assign(data,{activity:v('activity'),unit:v('unit'),amountCents:salaryInputMoney(v('amount')),effectiveDate:v('effectiveDate')});
+            if(command==='work'){const hours=Number(v('hours'));if(v('unit')==='hourly'&&Math.abs(hours*60-Math.round(hours*60))>0.001)throw new Error('Длительность должна быть указана с точностью до минуты.');Object.assign(data,{description:v('description'),date:v('date'),unit:v('unit'),minutes:Math.round(hours*60),amountCents:salaryInputMoney(v('amount'))});}
+            if(command==='payment')Object.assign(data,{date:v('date'),description:v('description'),amountCents:salaryInputMoney(v('amount'))});
+            if(command==='settle')Object.assign(data,{finalCents:salaryInputMoney(v('final')),knownCents:salaryInputMoney(v('known')),reason:v('reason'),effectiveDate:v('effectiveDate')});
+            if(command==='void'||command==='restore')data.kind=salaryEdit.kind;
+            return data;
+        }
+        function salarySetBusy(busy) { salaryBusy=busy;document.querySelectorAll('#modal-salary button,#modal-salary input,#modal-salary select').forEach(el=>el.disabled=busy||Boolean(salaryAttempt&&el.matches('input,select'))||Boolean(salaryWriteBlocked&&el.matches('input,select,#salary-form-save,#salary-form-preview,#salary-apply-calibration')));document.querySelectorAll('#salary-content button').forEach(el=>el.disabled=busy||Boolean(salaryAttempt)||Boolean(salaryWriteBlocked&&el.matches('[data-salary-action],[data-restore-audit]')));document.getElementById('salary-month').disabled=busy||Boolean(salaryAttempt)||Boolean(salaryEdit);document.getElementById('salary-target').disabled=busy||Boolean(salaryAttempt)||Boolean(salaryEdit); }
+        async function previewSalaryCalibration() {
+            if(salaryBusy||salaryWriteBlocked||!salaryEdit||!salaryState||!ensurePermissionClient('salary_access'))return;
+            const token=authToken;
+            try {const data=salaryFormData();salarySetBusy(true);salaryFormStatus('Подбираем ставки…');
+                const result=await apiPost({action:'salary_preview',targetUsername:salaryEdit.targetUsername,month:salaryState.month,calculationVersion:salaryEdit.calculationVersion,...data});if(token!==authToken||!salaryEdit)return;
+                salaryPlan={plan:result.plan,key:JSON.stringify(data),version:result.planVersion};const output=document.getElementById('salary-calibration-preview');
+                output.innerHTML='<p>Необъяснённая разница: '+salaryRub(result.plan.deltaCents)+'. Поправка: '+salaryRub(result.plan.hourlyAdjustmentCents)+'/ч.</p>'+result.plan.proposals.map(row=>salaryRow(row.activity,'С '+formatDateRus(row.effectiveDate),salaryRub(row.previousCents)+' → '+salaryRub(row.amountCents))).join('')+'<p class="salary-note">Оценка по общей сумме: точные ставки разных игр по ней восстановить нельзя.</p><button type="button" class="admin-tool-button primary" id="salary-apply-calibration">Применить ставки и сохранить сверку</button>';
+                output.classList.remove('hidden');document.getElementById('salary-apply-calibration').addEventListener('click',()=>saveSalaryForm(true));salaryFormStatus('Проверьте предложенные ставки перед применением.');
+            }catch(error){if(token===authToken)salaryFormStatus(error.message,true);}finally{salarySetBusy(false);}
+        }
+        async function saveSalaryForm(calibrate=false) {
+            if(salaryBusy||salaryWriteBlocked||!salaryEdit||!salaryState||!ensurePermissionClient('salary_access'))return;
+            const edit=salaryEdit,token=authToken;
+            try {
+                if(!salaryAttempt){let data=salaryFormData();
+                    if(edit.command==='common_rates'&&(!salaryBulkSupported(edit)||edit.needsServerCheck)){
+                        if(!await salaryVerifyBulkServer(data.rates))return;data=salaryFormData();
+                    }
+                    if(calibrate&&(!salaryPlan||!salaryPlan.version||salaryPlan.key!==JSON.stringify(data)))throw new Error('Сначала получите актуальное предложение ставок.');
+                    if(calibrate)data.previewPlanVersion=salaryPlan.version;
+                    salaryAttempt={token:authToken,owner:appState.user,payload:{action:'salary_write',targetUsername:salaryEdit.targetUsername,month:salaryState.month,operationId:createOperationId(),command:calibrate?'calibrate':salaryEdit.command,data,calculationVersion:salaryEdit.calculationVersion,includeAudit:salaryTab==='audit',auditAll:salaryAuditAll&&isSysadminClient()}};
+                }
+                await retrySalaryWrite();
+            }catch(error){if(edit===salaryEdit&&token===authToken){
+                if(error.code==='salary_access_revoked'){salaryReset();appState.permissions={...appState.permissions,salary_access:false};salaryVisibility();switchTab('tab-settings');return;}
+                salaryFormStatus(error.message,true);
+            }}
+        }
+        async function retrySalaryWrite() {
+            if(salaryBusy||salaryWriteBlocked||!salaryAttempt||salaryAttempt.token!==authToken||salaryAttempt.owner!==appState.user||!ensurePermissionClient('salary_access'))return;
+            const attempt=salaryAttempt;salaryRequest++;salaryAuditRequest++;salaryLoadTask=null;salaryAuditTask=null;salarySetBusy(true);salaryFormStatus('Сохраняем…');
+            try {const result=await apiPost(attempt.payload,CLOUD_POST_TIMEOUT_MS);if(attempt.token!==authToken||salaryAttempt!==attempt)return;
+                salaryAttempt=null;salaryState=result;salaryOwner=appState.user;salaryLastLoadedAt=Date.now();salaryAcceptAudit(result.audit);document.getElementById('salary-month').value=result.month;renderSalary();document.getElementById('salary-pending').classList.add('hidden');document.getElementById('modal-salary').classList.add('hidden');salaryEdit=null;salaryPlan=null;salaryStatus('Сохранено.');
+            }catch(error){if(attempt.token!==authToken||salaryAttempt!==attempt)return;
+                if(error.code==='salary_access_revoked'){salaryReset();appState.permissions={...appState.permissions,salary_access:false};salaryVisibility();switchTab('tab-settings');return;}
+                if(error.code==='salary_server_outdated'){
+                    salaryAttempt=null;if(salaryEdit)salaryEdit.needsServerCheck=true;document.getElementById('salary-pending').classList.add('hidden');salaryFormStatus(error.message,true);salaryStatus(error.message,true);return;
+                }
+                if(error.code==='rollback_failed'||error.code==='storage_inconsistent'){
+                    salaryWriteBlocked=error.message+' Новые финансовые записи остановлены. После проверки таблицы системным администратором перезагрузите приложение.';
+                    salaryAttempt=null;document.getElementById('salary-pending').classList.add('hidden');salaryFormStatus(salaryWriteBlocked,true);salaryStatus(salaryWriteBlocked,true);return;
+                }
+                const uncertain=!error.code||['network_error','timeout','http_error','invalid_response','storage_unavailable','server_busy','rate_limited'].includes(error.code)||error.retryable;
+                if(!uncertain){salaryAttempt=null;if(error.code==='conflict')salaryFormStatus(error.message+' Закройте форму и обновите расчёт.',true);else salaryFormStatus(error.message,true);}
+                else {document.getElementById('salary-pending').classList.remove('hidden');salaryFormStatus('Ответ не получен. Нажмите «Сохранить» ещё раз: повтор не создаст дубль.',true);}
+                salaryStatus(error.message,true);
+            }finally{salarySetBusy(false);}
+        }
+
+        function salaryCurrentTarget(){return isSysadminClient()?(document.getElementById('salary-target').value||appState.user):appState.user;}
+        function salarySyncTargets(){
+            const panel=document.getElementById('salary-admin-target'),select=document.getElementById('salary-target');if(!panel||!select)return;
+            panel.classList.toggle('hidden',!isSysadminClient());if(!isSysadminClient())return;
+            const chosen=select.value||appState.user;
+            const users=appState.users.slice().sort((a,b)=>Number(b.username===appState.user)-Number(a.username===appState.user)||a.name.localeCompare(b.name,'ru'));
+            const signature=JSON.stringify(users.map(user=>[user.username,user.name]));
+            if(select.dataset.signature!==signature){select.replaceChildren(...users.map(user=>new Option(user.name+(user.username===appState.user?' · мой расчёт':''),user.username)));select.dataset.signature=signature;}
+            if(users.some(user=>user.username===chosen))select.value=chosen;else select.value=appState.user;
+        }
+        function changeSalaryTarget(){
+            if(!ensureSysadmin()||salaryBusy||salaryAttempt||salaryEdit)return;
+            salaryRequest++;salaryAuditRequest++;salaryLoadTask=null;salaryAuditTask=null;salaryState=null;salaryAuditState=null;salaryAuditAll=false;
+            document.getElementById('salary-content').classList.add('hidden');void loadSalary();
+        }
+        function salaryAuditMatches(){return salaryAuditState&&salaryAuditState.subjectUsername===salaryCurrentTarget()&&salaryAuditState.all===(salaryAuditAll&&isSysadminClient());}
+        function salaryAcceptAudit(audit){
+            salaryAuditRequest++;salaryAuditTask=null;
+            salaryAuditState=audit&&audit.subjectUsername===salaryCurrentTarget()&&audit.all===(salaryAuditAll&&isSysadminClient())?audit:null;
+        }
+        async function loadSalaryAudit(append=false){
+            if(!salaryState||!hasPermissionClient('salary_access'))return;
+            if(salaryState.subjectUsername!==salaryCurrentTarget())return;
+            const token=authToken,targetUsername=salaryCurrentTarget(),all=salaryAuditAll&&isSysadminClient();
+            const previous=append&&salaryAuditMatches()?salaryAuditState:null,output=document.getElementById('salary-audit'),beforeId=previous?.entries.at(-1)?.id||'';
+            const key=JSON.stringify([token,targetUsername,all,beforeId]);if(salaryAuditTask?.key===key)return salaryAuditTask.promise;
+            const request=++salaryAuditRequest,task={key,promise:null};salaryAuditTask=task;
+            if(!append&&!salaryAuditMatches())output.innerHTML='<p class="salary-note">Загружаем журнал изменений…</p>';
+            task.promise=(async()=>{try{
+                const result=await apiPost({action:'salary_audit',targetUsername,all,beforeId:previous?.entries.at(-1)?.id||''});
+                if(token!==authToken||request!==salaryAuditRequest||targetUsername!==salaryCurrentTarget()||all!==(salaryAuditAll&&isSysadminClient()))return;
+                const entries=previous?previous.entries.concat(result.entries):result.entries;
+                salaryAuditState={...result,entries};renderSalaryAudit();
+            }catch(error){if(token===authToken&&request===salaryAuditRequest){if(error.code==='salary_access_revoked'){salaryReset();appState.permissions={...appState.permissions,salary_access:false};salaryVisibility();switchTab('tab-settings');}else output.textContent=error.message;}}
+            finally{if(salaryAuditTask===task)salaryAuditTask=null;}})();return task.promise;
+        }
+        function salaryAuditRecord(row){
+            if(!row)return 'Записи не было';
+            const result={};const labels={activity:'Активность',date:'Дата',effectiveDate:'Действует с',month:'Месяц',description:'Описание',unit:'Оплата',amountCents:'Сумма / ставка',totalCents:'Начислено',minutes:'Минуты',finalCents:'Итоговая зарплата',knownCents:'Известная поправка',estimateCents:'Исходная оценка',reason:'Причина',status:'Состояние'};
+            Object.entries(labels).forEach(([key,label])=>{if(row[key]===undefined)return;result[label]=key.endsWith('Cents')?salaryRub(row[key]):key==='status'?(row[key]==='void'?'Отменена':'Действует'):key==='unit'?({hourly:'За час',game:'За игру',fixed:'Фиксированная сумма'}[row[key]]||row[key]):row[key];});
+            return Object.entries(result).map(([key,value])=>key+': '+value).join('\n');
+        }
+        function renderSalaryAudit(){
+            const s=salaryAuditState;if(!s||s.subjectUsername!==salaryCurrentTarget())return;
+            const output=document.getElementById('salary-audit');
+            const changeKey=(change,entry)=>JSON.stringify([change.table,change.id,entry.targetUsername]),latest=new Map();
+            s.entries.forEach(entry=>entry.changes.forEach(change=>{const key=changeKey(change,entry);if(!latest.has(key))latest.set(key,change.after?.revision);}));
+            output.innerHTML=`<div class="salary-actions">${isSysadminClient()?'<button class="salary-action" type="button" id="salary-audit-toggle">'+(salaryAuditAll?'Только выбранный сотрудник':'События всех сотрудников')+'</button>':''}<button class="salary-action" type="button" id="salary-audit-refresh">Обновить журнал</button></div><p class="salary-note">${salaryAuditAll?'Все сотрудники':'Личный расчёт и общие тарифы'} · событий: ${s.total}</p>`+
+                s.entries.map(row=>`<article class="salary-audit-entry"><h4>${escapeHtml(row.details)}</h4><p>${escapeHtml(new Date(row.timestamp).toLocaleString('ru-RU'))} · ${escapeHtml(row.actorName)} → ${escapeHtml(row.targetName)} · ${escapeHtml(row.month)}</p><details><summary>Что изменилось</summary>${row.changes.map(change=>`<pre class="salary-audit-diff">До\n${escapeHtml(salaryAuditRecord(change.before))}\n\nПосле\n${escapeHtml(salaryAuditRecord(change.after))}</pre>`).join('')}</details>${isSysadminClient()?row.changes.filter(change=>change.after?.status==='void'&&latest.get(changeKey(change,row))===change.after.revision&&!change.after.calibrationId&&(row.targetUsername===salaryCurrentTarget()||row.targetUsername==='*')).map(change=>`<button type="button" class="salary-action" data-restore-audit="${escapeHtml(row.id)}" data-restore-record="${escapeHtml(change.id)}">Восстановить запись</button>`).join(''):''}</article>`).join('')+
+                (s.entries.length<s.total?'<button type="button" class="salary-action" id="salary-audit-more">Ещё события</button>':'')+(s.entries.length?'':'<p class="salary-note">Изменений пока нет.</p>');
+            document.getElementById('salary-audit-toggle')?.addEventListener('click',()=>{salaryAuditAll=!salaryAuditAll;void loadSalaryAudit();});
+            document.getElementById('salary-audit-refresh').addEventListener('click',()=>void loadSalaryAudit());
+            document.getElementById('salary-audit-more')?.addEventListener('click',()=>void loadSalaryAudit(true));
+            output.querySelectorAll('[data-restore-audit]').forEach(button=>button.addEventListener('click',()=>{
+                if(salaryBusy||salaryAttempt||salaryWriteBlocked||!ensureSysadmin())return;
+                const entry=s.entries.find(row=>row.id===button.dataset.restoreAudit),change=entry.changes.find(row=>row.id===button.dataset.restoreRecord);
+                const kind={SalaryRates:'rate',SalaryCommonRates:'common_rate',SalaryWork:'work',SalaryPayments:'payment',SalarySettlements:'settlement'}[change.table];
+                if(!kind)return;
+                salaryEdit={command:'restore',kind,id:change.after.id,base:change.after.revision,targetUsername:salaryCurrentTarget(),calculationVersion:salaryState.calculationVersion};
+                document.getElementById('salary-form-title').textContent='Восстановить запись';document.getElementById('salary-form-subtitle').textContent=entry.targetName;
+                const preview=document.createElement('pre');preview.className='salary-audit-diff';preview.textContent=salaryAuditRecord(change.after);document.getElementById('salary-form-fields').replaceChildren(preview);
+                salaryFormStatus('Если запись уже изменена, восстановление будет отклонено.');
+                document.getElementById('salary-form-preview').classList.add('hidden');document.getElementById('salary-calibration-preview').classList.add('hidden');
+                document.getElementById('salary-form-save').textContent='Восстановить';document.getElementById('modal-salary').classList.remove('hidden');salarySetBusy(false);
+            }));
+        }
+        function myGameMinutes(shift){const start=cleanTime(shift.startTime),end=cleanTime(shift.endTime);if(!isValidShiftTimeRange(start,end))return 0;return Number(end.slice(0,2))*60+Number(end.slice(3))-Number(start.slice(0,2))*60-Number(start.slice(3));}
+        function myGameDuration(minutes){return (Math.floor(minutes/60)?Math.floor(minutes/60)+' ч ':'')+(minutes%60?minutes%60+' мин':'')||'0 мин';}
+        function renderMyConductedStats(){
+            const input=document.getElementById('self-games-month'),summary=document.getElementById('self-games-summary'),types=document.getElementById('self-games-types'),history=document.getElementById('self-games-history');
+            if(!input||!summary||!appState.name)return;
+            if(!input.value)input.value=toLocalDateStr(new Date()).slice(0,7);
+            const games=getConductedShiftsForUser(appState.name,input.value),byType=new Map();
+            games.forEach(shift=>{const key=normalizePersonName(shift.game),entry=byType.get(key)||{name:shift.game,count:0,minutes:0};entry.count++;entry.minutes+=myGameMinutes(shift);byType.set(key,entry);});
+            const totalMinutes=games.reduce((total,shift)=>total+myGameMinutes(shift),0);
+            summary.innerHTML=`<div><strong>${games.length}</strong><span>Проведено игр</span></div><div><strong>${myGameDuration(totalMinutes)}</strong><span>Отработано на играх</span></div>`;
+            types.innerHTML=games.length?'<table aria-label="Ваши игры по активностям"><thead><tr><th>Активность</th><th>Игр</th><th>Время</th></tr></thead><tbody>'+Array.from(byType.values()).sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name,'ru')).map(row=>`<tr><td>${escapeHtml(row.name)}</td><td>${row.count}</td><td>${myGameDuration(row.minutes)}</td></tr>`).join('')+'</tbody></table>':'<p class="salary-note">За этот месяц у вас пока нет проведённых игр.</p>';
+            history.innerHTML=games.map(shift=>`<div class="self-games-history-item"><strong>${escapeHtml(shift.game)}</strong><small>${escapeHtml(formatDateRus(shift.date))} · ${escapeHtml(cleanTime(shift.startTime))}–${escapeHtml(cleanTime(shift.endTime))} · ${myGameDuration(myGameMinutes(shift))}</small></div>`).join('')||'<p class="salary-note">Здесь появятся даты и время ваших игр.</p>';
+        }
+
     </script>
 </body>
 </html>
