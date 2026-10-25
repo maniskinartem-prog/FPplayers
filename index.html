@@ -2,7 +2,7 @@
 <html lang="ru" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="application-version" content="public-vip-20261021-v52">
+    <meta name="application-version" content="salary-unit-change-20261025-v53">
     <meta name="theme-color" content="#0b0f19">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.googleusercontent.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
@@ -939,7 +939,7 @@
         #app-main .shift-instructors { gap: 5px 8px; align-items: center; }
         #app-main .shift-instructors-label { font-size: 11px !important; text-transform: none; font-weight: 500; }
         #app-main .shift-instructors > div:last-child { flex: 1 1 150px; }
-        #app-main .shift-instructors span { font-size: 11px !important; font-weight: 500; line-height: 1.35 !important; padding: 4px 6px; }
+        #app-main .shift-instructors > div:last-child > span { font-size: 11px !important; font-weight: 500; line-height: 1.35 !important; padding: 4px 6px; }
         #app-main .shift-admin-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: 7px; padding-top: 9px; border-top: 1px solid #263244; }
         #app-main .shift-admin-actions.has-delete { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px; }
         #app-main .shift-admin-actions.only-delete { display: flex; justify-content: flex-end; }
@@ -1791,7 +1791,8 @@ body { width:100%; max-width:none !important; border:0 !important; }
             --role-border:var(--person-line); --role-dot:var(--person-accent);
         }
         .vip-mark { display:inline-flex; align-items:center; gap:4px; margin-left:6px; padding:2px 5px; border:1px solid var(--person-line); border-radius:5px; color:var(--person-ink); background:var(--person-soft); font-size:9px; font-weight:600; line-height:1.4; vertical-align:middle; white-space:nowrap; }
-        .vip-spark { display:inline-block; margin-left:5px; color:var(--person-accent); font-size:10px; vertical-align:middle; }
+        .vip-spark { display:inline-flex; align-items:center; justify-content:center; flex:0 0 10px; width:10px; padding:0; margin-left:3px; color:var(--person-accent); font-size:10px; line-height:1; vertical-align:middle; }
+        .shift-instructors .vip-spark { margin-left:0; }
         #app-main .staff-card[data-public-theme] { border-top-color:var(--person-line); }
         #app-main .vip-accepted[data-public-theme] { color:var(--person-ink); background:var(--person-soft); border-color:var(--person-line); }
         .staff-card-header h4 { overflow-wrap:anywhere; }
@@ -2683,7 +2684,7 @@ body { width:100%; max-width:none !important; border:0 !important; }
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxWh9_32tBAXaOycBCEc-CdvMI6I9D3CDSE8Xx3tKkHuUyXvjp3eEhRJfoMFV_XeA92/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbw_0G3K1xBm7CdUUJ0vkWOCRuUYTXRm1OV4bT2iHEkNFOO0PqEZZ3ZFD4aGo4HgZ1NZ/exec";
         // ======================================================================================
 
         function createOperationId() {
@@ -6452,10 +6453,7 @@ const CLIENT_PERMISSIONS = {
                 statusHtml = '<span class="unassigned-status"><i class="fa-solid fa-user-plus"></i> Без инструктора</span>';
                 borderClass = 'is-unassigned';
             } else if (shift.status === 'accepted') {
-                // Shared themes can tint the summary; mixed teams keep the standard success color.
-                const profiles=shift.instructors.map(publicProfileByName), themes=profiles.map(publicAppearanceTheme);
-                const shared=themes[0] && themes.every(theme=>theme?.id===themes[0].id) ? profiles[0] : null;
-                statusHtml = '<span class="vip-accepted bg-emerald-500/10 text-emerald-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-emerald-500/20 uppercase"'+publicAppearanceAttrs(shared)+'>Принята всеми</span>';
+                statusHtml = '<span class="bg-emerald-500/10 text-emerald-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-emerald-500/20 uppercase">Принята всеми</span>';
                 borderClass = 'border-emerald-500/30';
             } else if (shift.status === 'declined') {
                 statusHtml = '<span class="bg-rose-500/10 text-rose-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-rose-500/20 uppercase">Есть отказы</span>';
@@ -8280,9 +8278,9 @@ const CLIENT_PERMISSIONS = {
                 title=row?'Изменить выплату':'Получил деньги';subtitle='Выплата за '+formatStatsMonth(month);
                 content=salaryField('amount','Получено, ₽','number',amount(row?.amountCents),'required min="0.01" max="100000000" step="0.01"')+salaryField('date','Дата получения','date',row?.date || today,'required')+salaryField('description','Комментарий','text',row?.description || '','maxlength="300"');
             } else if(command==='settle') {
-                title='Сверить месяц';subtitle=formatStatsMonth(month)+' · полная сумма за месяц, включая авансы';
+                title='Сверить месяц';subtitle=formatStatsMonth(month);
                 salaryEdit.base=s.settlement?.revision || '';
-                content=`<p id="salary-settlement-summary" class="salary-note">${salarySettlementSummary(s)}</p>`+salaryField('final','Полная зарплата за месяц с авансами, ₽','number',amount(s.settlement?.finalCents ?? s.estimateCents),'required min="0" max="100000000" step="0.01"')+`<div><button id="salary-use-payments" type="button" class="admin-tool-button">Взять сумму записанных выплат</button><p class="salary-note">Используйте, если зарплата за месяц уже выплачена полностью. Частичная выплата не определяет новые ставки.</p></div>`+salaryField('known','Известная премия (+) / удержание (−), ₽','number',amount(s.settlement?.knownCents || 0),'required step="0.01"')+salaryField('reason','Причина премии или удержания','text',s.settlement?.reason || '','maxlength="300"')+salaryField('effectiveDate','Новые ставки действуют с','date',today,'required')+'<p class="salary-note">«Сохранить» фиксирует итог без изменения ставок. «Подобрать ставки» доступно после окончания месяца и предлагает оценочную поправку только для почасовых игр. Работа по парку и фиксированные суммы не меняются.</p>';
+                content=`<p id="salary-settlement-summary" class="salary-note">${salarySettlementSummary(s)}</p>`+salaryField('final','Вся зарплата за месяц с авансами, ₽','number',amount(s.settlement?.finalCents ?? s.estimateCents),'required min="0" max="100000000" step="0.01"')+`<div><button id="salary-use-payments" type="button" class="admin-tool-button">Взять сумму выплат</button><p class="salary-note">Если месяц выплачен полностью.</p></div>`+salaryField('known','Известная премия (+) / удержание (−), ₽','number',amount(s.settlement?.knownCents || 0),'required step="0.01"')+salaryField('reason','Причина','text',s.settlement?.reason || '','maxlength="300"')+salaryField('effectiveDate','Новые ставки с','date',today,'required')+'<p class="salary-note">Подбор меняет будущие почасовые ставки. «Сохранить» — только итог месяца.</p>';
             } else if(command==='void') {
                 if(!row)return;title='Отменить запись';subtitle='Запись сохранится в истории как отменённая.';content=`<p>Отменить ${escapeHtml(row.description || row.activity || 'сверку месяца')}?</p>`;
             } else if(command==='undo_calibration') {
@@ -8346,7 +8344,16 @@ const CLIENT_PERMISSIONS = {
         }
         function salarySetBusy(busy) { salaryBusy=busy;document.querySelectorAll('#modal-salary button,#modal-salary input,#modal-salary select').forEach(el=>el.disabled=busy||Boolean(salaryAttempt&&el.matches('input,select'))||Boolean(salaryWriteBlocked&&el.matches('input,select,#salary-form-save,#salary-form-preview,#salary-apply-calibration')));document.querySelectorAll('#salary-content button').forEach(el=>el.disabled=busy||Boolean(salaryAttempt)||Boolean(salaryWriteBlocked&&el.matches('[data-salary-action],[data-restore-audit]')));document.getElementById('salary-month').disabled=busy||Boolean(salaryAttempt)||Boolean(salaryEdit);document.getElementById('salary-target').disabled=busy||Boolean(salaryAttempt)||Boolean(salaryEdit); }
         function salarySettlementSummary(state) {
-            return 'Текущая оценка: '+salaryRub(state.estimateCents)+'. Выплаты: '+salaryRub(state.paidCents)+'. Сверка сохраняет итог, но сама не добавляет выплату.';
+            return 'Расчёт: '+salaryRub(state.estimateCents)+' · Выплачено: '+salaryRub(state.paidCents);
+        }
+        function salaryCalibrationExclusions(plan) {
+            const excluded=plan.excludedActivities || [];
+            if(!excluded.length)return '';
+            const details=excluded.map(row=>{
+                const reason=row.reason==='missing_rate'?'нет тарифа на выбранную дату':row.unit==='game'?'оплата за игру':'другой способ оплаты';
+                return '<li><b>'+escapeHtml(row.activity)+'</b>: '+reason+(row.rateEffectiveDate?' с '+escapeHtml(formatDateRus(row.rateEffectiveDate)):'')+'.</li>';
+            }).join('');
+            return '<div class="salary-note salary-calibration-exclusions"><p>Без изменения:</p><ul>'+details+'</ul>'+(plan.proposals.length?'<p>Разница распределена по оставшимся почасовым играм ('+Number(plan.minutes)+' мин).</p>':'')+'</div>';
         }
         async function previewSalaryCalibration() {
             if(salaryBusy||salaryAttempt||salaryWriteBlocked||!salaryEdit||!salaryState||!ensurePermissionClient('salary_access'))return;
@@ -8371,12 +8378,12 @@ const CLIENT_PERMISSIONS = {
                 }
                 if(token!==authToken||edit!==salaryEdit)return;
                 if(!result.plan.proposals.length){
-                    output.textContent=result.plan.message||'Ставки менять не нужно. Можно сохранить сверку.';output.classList.remove('hidden');
-                    salaryFormStatus('Можно сохранить итог без изменения ставок.');return;
+                    output.innerHTML='<p>'+escapeHtml(result.plan.message||'Ставки менять не нужно. Можно сохранить сверку.')+'</p>'+salaryCalibrationExclusions(result.plan);output.classList.remove('hidden');
+                    salaryFormStatus('');return;
                 }
                 salaryPlan={plan:result.plan,key:JSON.stringify(data),version:result.planVersion};
-                output.innerHTML='<p>Необъяснённая разница: '+salaryRub(result.plan.deltaCents)+'. Поправка: '+salaryRub(result.plan.hourlyAdjustmentCents)+'/ч.</p>'+result.plan.proposals.map(row=>salaryRow(row.activity,'С '+formatDateRus(row.effectiveDate),salaryRub(row.previousCents)+' → '+salaryRub(row.amountCents))).join('')+'<p class="salary-note">Оценка по общей сумме: точные ставки разных игр по ней восстановить нельзя.</p><button type="button" class="admin-tool-button primary" id="salary-apply-calibration">Применить ставки и сохранить сверку</button>';
-                output.classList.remove('hidden');document.getElementById('salary-apply-calibration').addEventListener('click',()=>saveSalaryForm(true));salaryFormStatus('Проверьте предложенные ставки перед применением.');
+                output.innerHTML=salaryCalibrationExclusions(result.plan)+'<p>Разница: '+salaryRub(result.plan.deltaCents)+'. Поправка: '+salaryRub(result.plan.hourlyAdjustmentCents)+'/ч.</p>'+result.plan.proposals.map(row=>salaryRow(row.activity,'С '+formatDateRus(row.effectiveDate)+' · за час',salaryRub(row.previousCents)+' → '+salaryRub(row.amountCents))).join('')+'<p class="salary-note">Оценка по итоговой сумме, не точные ставки.</p><button type="button" class="admin-tool-button primary" id="salary-apply-calibration">Применить и сохранить</button>';
+                output.classList.remove('hidden');document.getElementById('salary-apply-calibration').addEventListener('click',()=>saveSalaryForm(true));salaryFormStatus('');
             }catch(error){if(token===authToken&&edit===salaryEdit)salaryFormStatus(error.message,true);}finally{if(token===authToken&&edit===salaryEdit)salarySetBusy(false);}
         }
         async function saveSalaryForm(calibrate=false) {
