@@ -2,7 +2,7 @@
 <html lang="ru" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="application-version" content="instructor-wording-20261016-v49">
+    <meta name="application-version" content="public-vip-20261021-v52">
     <meta name="theme-color" content="#0b0f19">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.googleusercontent.com; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
@@ -1784,14 +1784,19 @@ body { width:100%; max-width:none !important; border:0 !important; }
         html[data-app-theme] :is(input,select,textarea):focus { border-color:var(--brand) !important; box-shadow:0 0 0 3px var(--brand-soft); }
         /* Acceptance remains green, regardless of a person's accent color. */
         html[data-app-theme] #app-main .shift-card[class*="border-emerald-"] { --card-accent:#10b981; }
-        /* Only the instructor identity in the header follows the personal theme. */
-        html[data-app-theme] #app-header .header-profile[data-role="instructor"],
-        html[data-app-theme] #app-header #role-badge[data-role="instructor"] {
-            --role-text:var(--brand-lit);
-            --role-fill:color-mix(in srgb,var(--brand) 14%,var(--surface-input));
-            --role-border:var(--brand-line);
-            --role-dot:var(--brand);
+        /* Public accents belong to the named employee, independent of the viewer's theme. */
+        [data-public-theme] { --person-ink:color-mix(in srgb,var(--person-accent) 72%,#f8fafc); }
+        [data-public-theme][data-role="instructor"] {
+            --role-text:var(--person-ink); --role-fill:var(--person-soft);
+            --role-border:var(--person-line); --role-dot:var(--person-accent);
         }
+        .vip-mark { display:inline-flex; align-items:center; gap:4px; margin-left:6px; padding:2px 5px; border:1px solid var(--person-line); border-radius:5px; color:var(--person-ink); background:var(--person-soft); font-size:9px; font-weight:600; line-height:1.4; vertical-align:middle; white-space:nowrap; }
+        .vip-spark { display:inline-block; margin-left:5px; color:var(--person-accent); font-size:10px; vertical-align:middle; }
+        #app-main .staff-card[data-public-theme] { border-top-color:var(--person-line); }
+        #app-main .vip-accepted[data-public-theme] { color:var(--person-ink); background:var(--person-soft); border-color:var(--person-line); }
+        .staff-card-header h4 { overflow-wrap:anywhere; }
+        .staff-card-header > .min-w-0 > .flex { flex-wrap:wrap; row-gap:4px; }
+        #role-badge .vip-mark { margin:0 0 0 3px; border:0; padding:0 0 0 5px; border-left:1px solid var(--person-line); border-radius:0; background:transparent; }
         html[data-app-theme] #app-main :is(.journal-launch,.salary-launch) {
             gap:14px; border-color:var(--brand-line); background-color:var(--surface-1);
             background-image:var(--panel-sheen); box-shadow:inset 0 1px 0 color-mix(in srgb,var(--brand) 7%,transparent);
@@ -1892,7 +1897,7 @@ body { width:100%; max-width:none !important; border:0 !important; }
         .appearance-preview-game > div:first-child { display:grid; gap:6px; flex:1 1 140px; }
         .appearance-preview-game strong { font-size:14px; color:#f8fafc; }
         .appearance-preview-game div > span { font-size:11px; color:var(--preview-muted); }
-        .appearance-preview-accepted { color:#6ee7b7; font-size:10px; }
+        .appearance-preview-accepted { color:var(--preview-accent); font-size:10px; }
         .appearance-preview-person { flex-basis:100%; display:flex; flex-wrap:wrap; gap:8px; padding-top:10px; border-top:1px solid var(--preview-line); color:var(--preview-muted); font-size:11px; }
         .appearance-preview-person b { color:#f8fafc; }
         .appearance-preview-button { justify-self:start; padding:10px 12px; border-radius:9px; background:var(--preview-accent); color:#020617; font-size:11px; font-weight:600; }
@@ -2354,7 +2359,7 @@ body { width:100%; max-width:none !important; border:0 !important; }
       <aside id="appearance-preview" class="appearance-preview" aria-label="Предпросмотр темы">
         <div class="appearance-preview-heading"><span>Предпросмотр</span><strong id="appearance-preview-name"></strong></div>
         <div class="appearance-preview-app"><div class="appearance-preview-nav"><b>✦ Family Park</b><span>Расписание</span></div><div class="appearance-preview-content"><div class="appearance-preview-date"><strong>Ваш день</strong><span>Пятница, 16 октября</span></div><div class="appearance-preview-game"><div><strong>🎮 Пейнтбол</strong><span>15:00 – 16:30 · 10 гостей</span></div><span class="appearance-preview-accepted">✓ Принята</span><div class="appearance-preview-person">Инструктор(а) <b>Анна</b></div></div><span class="appearance-preview-button">＋ Добавить игру</span></div></div>
-        <p>Цвета, карточки и акценты — в одной палитре.</p>
+        <p>С VIP ваши коллеги увидят выбранный цвет в плашках принятых игр и рядом с вашим именем.</p>
       </aside>
     </div>
         </section></div>
@@ -2678,7 +2683,7 @@ body { width:100%; max-width:none !important; border:0 !important; }
     <script>
         // ======================================================================================
         // ВАЖНО: ВСТАВЬ СЮДА ССЫЛКУ ОТ ГУГЛ СКРИПТА ОДИН РАЗ, И ОНА БУДЕТ РАБОТАТЬ ДЛЯ ВСЕХ
-        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwEpYDRsrY4NewzmOpUzfTTmlVLZ4OXnwrh10p7eHAivAu8ATfDDbqSP5SnSsXd4Bj_/exec";
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxWh9_32tBAXaOycBCEc-CdvMI6I9D3CDSE8Xx3tKkHuUyXvjp3eEhRJfoMFV_XeA92/exec";
         // ======================================================================================
 
         function createOperationId() {
@@ -2793,7 +2798,7 @@ body { width:100%; max-width:none !important; border:0 !important; }
             telegramAnchor.classList.add('hidden');
             if (clearSavedLogin) clearAuthSession();
             if (cloudRefreshTimer) { clearInterval(cloudRefreshTimer); cloudRefreshTimer = null; }
-            appState.user = null; appState.role = null; appState.name = null; appState.users = [];
+            appState.user = null; appState.role = null; appState.name = null; appState.publicThemeId = null; appState.users = [];
             cloudRefreshAfterWrite = false;
             cloudBaseline = null;
             setLastConfirmedCloudState(null);
@@ -2811,6 +2816,7 @@ body { width:100%; max-width:none !important; border:0 !important; }
             appState.rolePermissions = profile.rolePermissions ? {...profile.rolePermissions} : null;
             appState.rolePermissionOverrides = profile.rolePermissionOverrides || {};
             appState.themeId = appearanceTheme(profile.themeId).id;
+            appState.publicThemeId = publicAppearanceTheme(profile)?.id || null;
             applyAppearanceTheme(appState.themeId);
             renderHeaderRole();
         }
@@ -2824,9 +2830,13 @@ body { width:100%; max-width:none !important; border:0 !important; }
             badge.textContent = roleLabel(role);
             badge.className = 'role-badge';
             badge.dataset.role = role;
-            document.querySelector('.header-profile').dataset.role = role;
+            const profile = document.querySelector('.header-profile');
+            profile.dataset.role = role;
+            const identity = {publicThemeId:appState.publicThemeId};
+            applyPublicAppearance(badge, identity); applyPublicAppearance(profile, identity);
+            if (publicAppearanceTheme(identity)) badge.insertAdjacentHTML('beforeend', publicVipMark(identity));
         }
-        // Fixed palettes: one root update, no per-card styling or extra requests.
+        // Fixed palettes only. Public identity never accepts CSS from account data.
         const APPEARANCE_PALETTES = [
             {id:'emerald',name:'Изумруд',emoji:'🌿',accent:'#10b981',strong:'#059669',bg:'#0b0f19',card:'#0f172a',input:'#020617',raised:'#1e293b',line:'#334155',muted:'#94a3b8'},
             {id:'rose',name:'Розовый сад',emoji:'🌸',accent:'#f093c0',strong:'#db74a6',bg:'#160f18',card:'#241a29',input:'#100b13',raised:'#352639',line:'#59415c',muted:'#baa7bf'},
@@ -2837,6 +2847,23 @@ body { width:100%; max-width:none !important; border:0 !important; }
         ];
         let appearanceDraft = null, appearanceRequest = null, appearanceOwner = null, appearanceMessage = '', appearanceMessageError = false;
         function appearanceTheme(id) { return APPEARANCE_PALETTES.find(theme=>theme.id===id) || APPEARANCE_PALETTES[0]; }
+        function publicAppearanceTheme(user) { return APPEARANCE_PALETTES.find(theme=>theme.id===user?.publicThemeId) || null; }
+        function publicAppearanceStyle(theme) { return '--person-accent:'+theme.accent+';--person-soft:'+theme.accent+'14;--person-line:'+theme.accent+'40'; }
+        function publicAppearanceAttrs(user) {
+            const theme=publicAppearanceTheme(user);
+            return theme ? ' data-public-theme="'+theme.id+'" style="'+publicAppearanceStyle(theme)+'"' : '';
+        }
+        function applyPublicAppearance(element,user) {
+            const theme=publicAppearanceTheme(user);
+            delete element.dataset.publicTheme;
+            ['--person-accent','--person-soft','--person-line'].forEach(key=>element.style.removeProperty(key));
+            if(theme) { element.dataset.publicTheme=theme.id; element.style.setProperty('--person-accent',theme.accent); element.style.setProperty('--person-soft',theme.accent+'14'); element.style.setProperty('--person-line',theme.accent+'40'); }
+        }
+        function publicVipMark(user,compact=false) {
+            const theme=publicAppearanceTheme(user);
+            return theme ? '<span class="'+(compact?'vip-spark':'vip-mark')+'"'+publicAppearanceAttrs(user)+' title="VIP · '+theme.name+'" aria-label="VIP, оформление '+theme.name+'"><span aria-hidden="true">◇</span>'+(compact?'':' VIP')+'</span>' : '';
+        }
+        function publicProfileByName(name) { const key=normalizePersonName(name); return appState.users.find(user=>normalizePersonName(user.name)===key); }
         function applyAppearanceTheme(id) {
             const theme = appearanceTheme(id), root = document.documentElement;
             if (root.dataset.appTheme === theme.id) return;
@@ -2893,7 +2920,7 @@ body { width:100%; max-width:none !important; border:0 !important; }
             select.value=d.username; select.disabled=busy;
             document.getElementById('appearance-account-field').classList.toggle('hidden',!owner);
             const other=d.username!==appState.user;
-            document.getElementById('appearance-description').textContent=!allowed?'Цвет установлен для вашего аккаунта. Доступ к выбору открывает системный администратор.':other?'Оформление для '+target.name+'. Изменения появятся на всех устройствах этого аккаунта.':'Выберите палитру для своего приложения. Она сохранится на всех ваших устройствах.';
+            document.getElementById('appearance-description').textContent=!allowed?'Цвет установлен для вашего аккаунта. Доступ к выбору и VIP-акцентам открывает системный администратор.':other?'Оформление для '+target.name+'. При открытом доступе коллеги увидят персональные акценты.':'Выберите палитру для своего приложения. Коллеги увидят ваш цвет в принятых играх и VIP-отметках.';
             const palettes=document.getElementById('appearance-palettes');
             if(!palettes.children.length) APPEARANCE_PALETTES.forEach(palette=>{
                 const button=document.createElement('button'); button.type='button'; button.className='appearance-swatch'; button.dataset.themeId=palette.id;
@@ -3307,6 +3334,7 @@ const CLIENT_PERMISSIONS = {
                 const avatar=document.createElement('span');avatar.className='staff-recipient-avatar';avatar.setAttribute('aria-hidden','true');avatar.textContent=user.name.trim().slice(0,1).toLocaleUpperCase('ru');
                 const copy=document.createElement('span');copy.className='staff-recipient-copy';
                 const name=document.createElement('strong');name.textContent=user.name;
+                name.insertAdjacentHTML('beforeend',publicVipMark(user,true));
                 const detail=document.createElement('small');detail.textContent=reason||roleLabel(user.role)+' · Telegram подключён';
                 copy.append(name,detail);label.append(input,avatar,copy);list.append(label);
             });
@@ -3421,8 +3449,11 @@ const CLIENT_PERMISSIONS = {
 
         let sessionVerificationIssue = null;
         function clearSessionVerificationIssue() {
+            const previousMessage = sessionVerificationIssue?.message;
             sessionVerificationIssue = null;
             document.getElementById('session-recovery')?.classList.add('hidden');
+            const salaryStatusElement = document.getElementById('salary-status');
+            if (salaryStatusElement?.dataset.sessionIssue === 'true' || (previousMessage && salaryStatusElement?.textContent === previousMessage)) salaryStatus('');
         }
 
         function showSessionVerificationIssue(result) {
@@ -3493,6 +3524,13 @@ const CLIENT_PERMISSIONS = {
                 }
             });
             if (body.token && body.token !== authToken) throw new Error('Сессия изменилась. Войдите снова.');
+            // doGet's public service response has not checked the POST token.
+            // Treat it as an unexpected response, never as evidence of lost access.
+            if (body.token && result.status === 'auth_required' && !result.code && result.service === 'Family-Park-Координатор PRO') {
+                const error = new Error('Сервер не обработал запрос приложения. Повторите обновление.');
+                error.code = 'invalid_response'; error.retryable = true;
+                throw error;
+            }
             const accessCodes = ['session_expired', 'session_missing', 'session_revoked', 'account_changed', 'account_blocked', 'account_unblocked', 'role_changed', 'password_changed'];
             // Older deployments returned only these exact expiry messages.
             // A generic storage/network error mentioning a session is not logout.
@@ -3548,7 +3586,7 @@ const CLIENT_PERMISSIONS = {
                     return data;
                 } catch (error) {
                     lastError = error;
-                    if (attempt >= retryCount || !isRetryableCloudError(error) || error.code === 'rate_limited' || error.retryAfterMs || token !== authToken) break;
+                    if (attempt >= retryCount || (!isRetryableCloudError(error) && !error.sessionUnverified) || error.code === 'rate_limited' || error.retryAfterMs || token !== authToken) break;
                     await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1) + Math.floor(Math.random() * 400)));
                 }
             }
@@ -3883,7 +3921,7 @@ const CLIENT_PERMISSIONS = {
 
         function safeBootCore(state) {
             const core = cloneCoreState(state);
-            const fields = ['username', 'name', 'role', 'themeId', 'telegramLinked', 'activationRequired', 'assignable', 'blocked', 'banUntil', 'permissions', 'permissionOverrides', 'rolePermissions', 'rolePermissionOverrides'];
+            const fields = ['username', 'name', 'role', 'themeId', 'publicThemeId', 'telegramLinked', 'activationRequired', 'assignable', 'blocked', 'banUntil', 'permissions', 'permissionOverrides', 'rolePermissions', 'rolePermissionOverrides'];
             core.users = core.users.map(user => {
                 const linked = telegramBindingState(user);
                 const safe = Object.fromEntries(fields.filter(key => key in user).map(key => [key, user[key]]));
@@ -3897,7 +3935,7 @@ const CLIENT_PERMISSIONS = {
             if (!authToken || !appState.user || !lastConfirmedCloudState) return;
             return tryLocalStorageWrite(() => {
                 const serialized = JSON.stringify({ token: authToken,
-                    profile: { username: appState.user, name: appState.name, role: appState.role, themeId:appState.themeId, permissions:appState.permissions, rolePermissions:appState.rolePermissions, rolePermissionOverrides:appState.rolePermissionOverrides },
+                    profile: { username: appState.user, name: appState.name, role: appState.role, themeId:appState.themeId, publicThemeId:appState.publicThemeId, permissions:appState.permissions, rolePermissions:appState.rolePermissions, rolePermissionOverrides:appState.rolePermissionOverrides },
                     confirmed: safeBootCore(lastConfirmedCloudState), local: safeBootCore(appState), notifications: appState.notifications });
                 if (localStorage.getItem(BOOT_CACHE_KEY) !== serialized) localStorage.setItem(BOOT_CACHE_KEY, serialized);
             });
@@ -5482,6 +5520,28 @@ const CLIENT_PERMISSIONS = {
             if (!appState.user || cloudWriteInProgress || notificationSendInProgress || cloudRefreshInProgress) return;
             const minInterval = Math.min(120000, CLOUD_REFRESH_INTERVAL_MS * Math.pow(2, cloudRefreshFailureCount));
             if (!force && Date.now() - Math.max(lastCloudReadAt, lastBackgroundAttemptAt) < minInterval) return;
+            // Access checks must also run while a rejected save or open editor
+            // prevents applying server data. This read never replaces drafts.
+            if (sessionVerificationIssue) {
+                const token = authToken;
+                cloudRefreshInProgress = true;
+                lastBackgroundAttemptAt = Date.now();
+                try {
+                    await fetchAuthenticatedState(0);
+                    if (token !== authToken) return false;
+                    if (lastCloudSaveError?.authRequired) lastCloudSaveError = null;
+                    cloudRefreshFailureCount = 0;
+                    lastCloudRefreshError = null;
+                    setSyncStatus('offline', cloudSaveBlocked ? 'Есть несохранённые правки' : 'Вход подтверждён. Обновить');
+                    return true;
+                } catch (error) {
+                    if (token !== authToken) return false;
+                    cloudRefreshFailureCount++;
+                    lastCloudRefreshError = error;
+                    setSyncStatus('error', 'Проверить вход');
+                    return false;
+                } finally { cloudRefreshInProgress = false; }
+            }
             // После неуспешной записи локальное состояние важнее серверного.
             // Фоновый GET не имеет права стирать игры, которые ещё не удалось отправить.
             if (cloudSaveBlocked) {
@@ -5966,7 +6026,7 @@ const CLIENT_PERMISSIONS = {
                 saveAuthSession(login.token, login.expiresAt);
                 if (keepDrafts) {
                     previousCache.token = login.token;
-                    previousCache.profile = {username:login.user.username, name:login.user.name, role:login.user.role, permissions:login.user.permissions, rolePermissions:login.user.rolePermissions, rolePermissionOverrides:login.user.rolePermissionOverrides};
+                    previousCache.profile = {username:login.user.username, name:login.user.name, role:login.user.role, themeId:login.user.themeId, publicThemeId:login.user.publicThemeId, permissions:login.user.permissions, rolePermissions:login.user.rolePermissions, rolePermissionOverrides:login.user.rolePermissionOverrides};
                     try { localStorage.setItem(BOOT_CACHE_KEY, JSON.stringify(previousCache)); } catch (error) {}
                 }
                 document.getElementById('login-pass').value = '';
@@ -6154,7 +6214,7 @@ const CLIENT_PERMISSIONS = {
                     dutyDisplay.innerHTML = dutyNames.length > 0
                         ? dutyNames.map(n => `
                             <span class="inline-flex items-center bg-slate-950 border border-park-gold/40 text-park-gold font-bold text-[10px] px-2 py-1 rounded-lg">
-                                <i class="fa-solid fa-shield-halved mr-1"></i>${escapeHtml(n)}
+                                <i class="fa-solid fa-shield-halved mr-1"></i>${escapeHtml(n)}${publicVipMark(publicProfileByName(n),true)}
                                 <button onclick="removeDutyPerson('${escapeJsString(targetDateStr)}', '${escapeJsString(n)}')" aria-label="Снять с дежурства ${escapeHtmlAttribute(n)}" class="ml-1.5 text-rose-400 hover:text-rose-300"><i class="fa-solid fa-xmark"></i></button>
                             </span>`).join('')
                         : '<span class="text-[10px] text-slate-500 italic">Дежурный не назначен</span>';
@@ -6170,7 +6230,7 @@ const CLIENT_PERMISSIONS = {
                     const entry = parseAvailEntry(appState.availability[targetDateStr]?.[u.name]);
                     const lockIcon = entry.locked ? '<i class="fa-solid fa-lock text-slate-500 ml-1 text-[9px]"></i>' : '<i class="fa-solid fa-pen text-slate-600 ml-1 text-[9px]"></i>';
                     const nameSafe = escapeJsString(u.name);
-                    const nameHtml = escapeHtml(u.name);
+                    const nameHtml = escapeHtml(u.name)+publicVipMark(u,true);
 
                     if (entry.status === 'yes') {
                         counts.yes++;
@@ -6392,7 +6452,10 @@ const CLIENT_PERMISSIONS = {
                 statusHtml = '<span class="unassigned-status"><i class="fa-solid fa-user-plus"></i> Без инструктора</span>';
                 borderClass = 'is-unassigned';
             } else if (shift.status === 'accepted') {
-                statusHtml = '<span class="bg-emerald-500/10 text-emerald-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-emerald-500/20 uppercase">Принята всеми</span>';
+                // Shared themes can tint the summary; mixed teams keep the standard success color.
+                const profiles=shift.instructors.map(publicProfileByName), themes=profiles.map(publicAppearanceTheme);
+                const shared=themes[0] && themes.every(theme=>theme?.id===themes[0].id) ? profiles[0] : null;
+                statusHtml = '<span class="vip-accepted bg-emerald-500/10 text-emerald-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-emerald-500/20 uppercase"'+publicAppearanceAttrs(shared)+'>Принята всеми</span>';
                 borderClass = 'border-emerald-500/30';
             } else if (shift.status === 'declined') {
                 statusHtml = '<span class="bg-rose-500/10 text-rose-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-rose-500/20 uppercase">Есть отказы</span>';
@@ -6445,13 +6508,16 @@ const CLIENT_PERMISSIONS = {
             const instructorsListHtml = (shift.instructors || []).map(instructor => {
                 const responseKey = Object.keys(shift.responses || {}).find(key => normalizePersonName(key) === normalizePersonName(instructor));
                 const response = responseKey ? (shift.responses[responseKey] || 'pending') : 'pending';
+                const profile=publicProfileByName(instructor);
+                const vipAttrs=shift.status!=='cancelled' && response==='accepted' ? publicAppearanceAttrs(profile) : '';
                 const badgeClass = shift.status === 'cancelled' ? 'cancelled-instructor' : response === 'accepted'
                     ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
                     : (response === 'declined' ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' : 'text-amber-400 bg-amber-500/10 border-amber-500/20');
                 const icon = shift.status === 'cancelled' ? '' : response === 'accepted'
                     ? '<i class="fa-solid fa-check"></i>'
                     : (response === 'declined' ? '<i class="fa-solid fa-xmark"></i>' : '<i class="fa-regular fa-clock"></i>');
-                return `<span class="px-1.5 py-1 rounded border ${badgeClass} text-[9px] font-bold flex items-center gap-1">${icon} ${escapeHtml(instructor)}</span>`;
+                const statusLabel=shift.status==='cancelled'?'Игра отменена':response==='accepted'?'Принял игру':response==='declined'?'Отказался':'Ожидает ответа';
+                return `<span class="vip-accepted px-1.5 py-1 rounded border ${badgeClass} text-[9px] font-bold flex items-center gap-1"${vipAttrs} title="${statusLabel}" aria-label="${escapeHtmlAttribute(instructor)}: ${statusLabel}">${icon} ${escapeHtml(instructor)}${publicVipMark(profile,true)}</span>`;
             }).join('') || (canOperateClient() && shift.status !== 'cancelled'
                 ? `<button onclick="openEditGameModal('${shiftIdSafe}')" class="assign-instructor-button"><i class="fa-solid fa-user-plus"></i><span>Назначить инструктора</span><i class="fa-solid fa-chevron-right"></i></button>`
                 : '<span class="unassigned-note"><i class="fa-regular fa-clock"></i> Инструктор пока не назначен</span>');
@@ -6821,7 +6887,7 @@ const CLIENT_PERMISSIONS = {
                 return `
                 <label class="flex items-center space-x-2 text-[11px] ${meta.text} bg-slate-900 p-1.5 rounded-lg border ${meta.wrap} cursor-pointer transition">
                     <input type="checkbox" value="${escapeHtmlAttribute(u.name)}" aria-label="Назначить ${escapeHtmlAttribute(u.name)}" class="row-instructor-cb rounded bg-slate-950 border-slate-800 accent-park-accent w-3.5 h-3.5 flex-shrink-0">
-                    <span class="instructor-choice-name font-bold">${meta.icon}${escapeHtml(u.name)}</span>
+                    <span class="instructor-choice-name font-bold">${meta.icon}${escapeHtml(u.name)}${publicVipMark(u,true)}</span>
                 </label>
             `;
             }).join('');
@@ -7048,7 +7114,7 @@ const CLIENT_PERMISSIONS = {
                 box.classList.remove('hidden');
                 namesEl.innerHTML = dutyNames.map(n => `
                     <span class="duty-banner-person">
-                        ${escapeHtml(n)}
+                        ${escapeHtml(n)}${publicVipMark(publicProfileByName(n),true)}
                     </span>`).join('');
             } else if (isAdmin) {
                 box.classList.remove('hidden');
@@ -7500,7 +7566,7 @@ const CLIENT_PERMISSIONS = {
                 leaderboardContainer.innerHTML = ranked.length
                     ? `<div class="text-[8px] text-slate-500 uppercase font-bold">Кто проводил · ${escapeHtml(monthLabel)}</div>` + ranked.map((stat, index) => `
                         <div class="staff-ranking-row">
-                            <span class="staff-ranking-name text-slate-300 font-bold"><span class="text-indigo-400 mr-1">${index + 1}.</span>${escapeHtml(stat.user.name)}</span>
+                            <span class="staff-ranking-name text-slate-300 font-bold"><span class="text-indigo-400 mr-1">${index + 1}.</span>${escapeHtml(stat.user.name)}${publicVipMark(stat.user,true)}</span>
                             <span class="staff-ranking-result text-slate-500"><b class="text-park-accent">${stat.games.length}</b> игр · <b class="text-park-gold">${stat.hours.toFixed(1)}</b> ч</span>
                         </div>`).join('')
                     : `<div class="text-[9px] text-slate-500 text-center py-2">В ${escapeHtml(monthLabel)} завершённых игр пока нет.</div>`;
@@ -7521,14 +7587,14 @@ const CLIENT_PERMISSIONS = {
                 const banBadge = isUserBanned ? `<span class="text-[8px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded font-bold uppercase ml-2">Забанен</span>` : '';
 
                 return `
-                    <div class="staff-card p-3 bg-slate-900 border border-slate-800/80 rounded-xl space-y-2.5 shadow-md animate-fade-in">
+                    <div class="staff-card p-3 bg-slate-900 border border-slate-800/80 rounded-xl space-y-2.5 shadow-md animate-fade-in"${publicAppearanceAttrs(u)}>
                         <div class="staff-card-header flex justify-between items-center">
                             <div class="min-w-0">
                                 <div class="flex items-center">
                                     <h4 class="font-brand font-bold text-xs text-white">${escapeHtml(u.name)}</h4>
-                                    ${banBadge}
+                                    ${publicVipMark(u)}${banBadge}
                                 </div>
-                                <p class="text-[9px] text-slate-400">@${escapeHtml(u.username)} <span class="staff-role" data-role="${normalizeClientRole(u.role)}">(${escapeHtml(roleLabel(u.role))})</span></p>
+                                <p class="text-[9px] text-slate-400">@${escapeHtml(u.username)} <span class="staff-role" data-role="${normalizeClientRole(u.role)}"${publicAppearanceAttrs(u)}>(${escapeHtml(roleLabel(u.role))})</span></p>
                             </div>
                             <div class="staff-account-actions">${banBtnHtml}${accountButtonHtml(u)}</div>
                         </div>
@@ -7887,7 +7953,7 @@ const CLIENT_PERMISSIONS = {
                 return `
                 <label class="flex items-center space-x-2 text-[11px] ${meta.text} bg-slate-900 p-1.5 rounded-lg border ${meta.wrap} cursor-pointer transition">
                     <input type="checkbox" value="${escapeHtmlAttribute(u.name)}" aria-label="Назначить ${escapeHtmlAttribute(u.name)}" class="rounded bg-slate-950 border-slate-800 accent-park-accent w-3.5 h-3.5 flex-shrink-0">
-                    <span class="truncate font-bold">${meta.icon}${escapeHtml(u.name)}</span>
+                    <span class="instructor-choice-name font-bold">${meta.icon}${escapeHtml(u.name)}${publicVipMark(u,true)}</span>
                 </label>
             `;
             }).join('');
@@ -8133,7 +8199,13 @@ const CLIENT_PERMISSIONS = {
             ['overview','rates','payments','audit'].forEach(name=>{document.getElementById('salary-'+name).classList.toggle('hidden',name!==tab);document.getElementById('salary-tab-'+name).setAttribute('aria-selected',String(name===tab));});
             if(tab==='audit'&&loadAudit&&salaryState&&salaryState.month===document.getElementById('salary-month').value){if(salaryAuditMatches())renderSalaryAudit();else void loadSalaryAudit();}
         }
-        function salaryStatus(message,error=false) { const output=document.getElementById('salary-status');output.textContent=message;output.dataset.error=String(error); }
+        function salaryStatus(message,error=false) {
+            const output=document.getElementById('salary-status');
+            const sessionIssue=Boolean(sessionVerificationIssue && String(message).includes(sessionVerificationIssue.message));
+            output.dataset.sessionIssue=String(sessionIssue);
+            output.textContent=sessionIssue?'':message;
+            output.dataset.error=String(error&&!sessionIssue);
+        }
         function salaryFormStatus(message,error=false) {
             const output=document.getElementById('salary-form-status');output.textContent=error&&message?'Ошибка: '+message:message;
             output.dataset.error=String(error);output.setAttribute('aria-live',error?'assertive':'polite');
@@ -8210,7 +8282,7 @@ const CLIENT_PERMISSIONS = {
             } else if(command==='settle') {
                 title='Сверить месяц';subtitle=formatStatsMonth(month)+' · полная сумма за месяц, включая авансы';
                 salaryEdit.base=s.settlement?.revision || '';
-                content=`<p class="salary-note">Текущая оценка: ${salaryRub(s.estimateCents)}. Выплаты: ${salaryRub(s.paidCents)}. Сверка сохраняет итог, но сама не добавляет выплату.</p>`+salaryField('final','Окончательная зарплата, ₽','number',amount(s.settlement?.finalCents ?? s.estimateCents),'required min="0" max="100000000" step="0.01"')+salaryField('known','Известная премия (+) / удержание (−), ₽','number',amount(s.settlement?.knownCents || 0),'required step="0.01"')+salaryField('reason','Причина премии или удержания','text',s.settlement?.reason || '','maxlength="300"')+salaryField('effectiveDate','Новые ставки действуют с','date',today,'required')+'<p class="salary-note">«Сохранить» фиксирует итог без изменения ставок. «Подобрать ставки» предлагает оценочную поправку только для почасовых игр. Работа по парку и фиксированные суммы не меняются.</p>';
+                content=`<p id="salary-settlement-summary" class="salary-note">${salarySettlementSummary(s)}</p>`+salaryField('final','Полная зарплата за месяц с авансами, ₽','number',amount(s.settlement?.finalCents ?? s.estimateCents),'required min="0" max="100000000" step="0.01"')+`<div><button id="salary-use-payments" type="button" class="admin-tool-button">Взять сумму записанных выплат</button><p class="salary-note">Используйте, если зарплата за месяц уже выплачена полностью. Частичная выплата не определяет новые ставки.</p></div>`+salaryField('known','Известная премия (+) / удержание (−), ₽','number',amount(s.settlement?.knownCents || 0),'required step="0.01"')+salaryField('reason','Причина премии или удержания','text',s.settlement?.reason || '','maxlength="300"')+salaryField('effectiveDate','Новые ставки действуют с','date',today,'required')+'<p class="salary-note">«Сохранить» фиксирует итог без изменения ставок. «Подобрать ставки» доступно после окончания месяца и предлагает оценочную поправку только для почасовых игр. Работа по парку и фиксированные суммы не меняются.</p>';
             } else if(command==='void') {
                 if(!row)return;title='Отменить запись';subtitle='Запись сохранится в истории как отменённая.';content=`<p>Отменить ${escapeHtml(row.description || row.activity || 'сверку месяца')}?</p>`;
             } else if(command==='undo_calibration') {
@@ -8221,6 +8293,9 @@ const CLIENT_PERMISSIONS = {
             document.getElementById('salary-form-preview').classList.toggle('hidden',command!=='settle');document.getElementById('salary-form-save').textContent=command==='common_rates'?'Сохранить все тарифы':'Сохранить';
             document.getElementById('modal-salary').classList.remove('hidden');salarySetBusy(false);
             fields.querySelectorAll('input,select').forEach(input=>input.addEventListener('input',()=>{salaryPlan=null;document.getElementById('salary-calibration-preview').classList.add('hidden');}));
+            if(command==='settle')document.getElementById('salary-use-payments').addEventListener('click',()=>{
+                const input=fields.querySelector('[name="final"]');input.value=String(salaryState.paidCents/100);input.dispatchEvent(new Event('input',{bubbles:true}));
+            });
             if(command==='common_rates'){
                 salaryFillBulkRates();fields.querySelector('[name="effectiveDate"]').addEventListener('change',salaryFillBulkRates);
                 fields.querySelectorAll('.salary-bulk-row input,.salary-bulk-row select').forEach(input=>input.addEventListener('input',()=>input.closest('fieldset').dataset.edited='true'));
@@ -8270,15 +8345,39 @@ const CLIENT_PERMISSIONS = {
             return data;
         }
         function salarySetBusy(busy) { salaryBusy=busy;document.querySelectorAll('#modal-salary button,#modal-salary input,#modal-salary select').forEach(el=>el.disabled=busy||Boolean(salaryAttempt&&el.matches('input,select'))||Boolean(salaryWriteBlocked&&el.matches('input,select,#salary-form-save,#salary-form-preview,#salary-apply-calibration')));document.querySelectorAll('#salary-content button').forEach(el=>el.disabled=busy||Boolean(salaryAttempt)||Boolean(salaryWriteBlocked&&el.matches('[data-salary-action],[data-restore-audit]')));document.getElementById('salary-month').disabled=busy||Boolean(salaryAttempt)||Boolean(salaryEdit);document.getElementById('salary-target').disabled=busy||Boolean(salaryAttempt)||Boolean(salaryEdit); }
+        function salarySettlementSummary(state) {
+            return 'Текущая оценка: '+salaryRub(state.estimateCents)+'. Выплаты: '+salaryRub(state.paidCents)+'. Сверка сохраняет итог, но сама не добавляет выплату.';
+        }
         async function previewSalaryCalibration() {
-            if(salaryBusy||salaryWriteBlocked||!salaryEdit||!salaryState||!ensurePermissionClient('salary_access'))return;
-            const token=authToken;
+            if(salaryBusy||salaryAttempt||salaryWriteBlocked||!salaryEdit||!salaryState||!ensurePermissionClient('salary_access'))return;
+            const token=authToken,edit=salaryEdit,month=salaryState.month,output=document.getElementById('salary-calibration-preview');
+            salaryPlan=null;output.replaceChildren();output.classList.add('hidden');
             try {const data=salaryFormData();salarySetBusy(true);salaryFormStatus('Подбираем ставки…');
-                const result=await apiPost({action:'salary_preview',targetUsername:salaryEdit.targetUsername,month:salaryState.month,calculationVersion:salaryEdit.calculationVersion,...data});if(token!==authToken||!salaryEdit)return;
-                salaryPlan={plan:result.plan,key:JSON.stringify(data),version:result.planVersion};const output=document.getElementById('salary-calibration-preview');
+                const preview=()=>apiPost({action:'salary_preview',targetUsername:edit.targetUsername,month,calculationVersion:edit.calculationVersion,...data});
+                let result;
+                try {result=await preview();}
+                catch(error){
+                    if(error.code!=='conflict'||token!==authToken||edit!==salaryEdit)throw error;
+                    const fresh=await apiPost({action:'salary_get',targetUsername:edit.targetUsername,month});
+                    if(token!==authToken||edit!==salaryEdit)return;
+                    if(fresh.subjectUsername!==edit.targetUsername||fresh.month!==month)throw new Error('Получен расчёт другого сотрудника или месяца. Повторите загрузку.');
+                    // Refresh only the calculation inputs. Never silently accept
+                    // a concurrently edited settlement as the base for a write.
+                    if((fresh.settlement?.revision||'')!==(edit.base||''))throw new Error('Сверка месяца изменена в другом окне. Введённая сумма сохранена в форме; перед сохранением проверьте новую сверку.');
+                    salaryState=fresh;salaryOwner=appState.user;salaryLastLoadedAt=Date.now();edit.calculationVersion=fresh.calculationVersion;
+                    renderSalary();salarySetBusy(true);
+                    document.getElementById('salary-settlement-summary').textContent=salarySettlementSummary(fresh);
+                    result=await preview();
+                }
+                if(token!==authToken||edit!==salaryEdit)return;
+                if(!result.plan.proposals.length){
+                    output.textContent=result.plan.message||'Ставки менять не нужно. Можно сохранить сверку.';output.classList.remove('hidden');
+                    salaryFormStatus('Можно сохранить итог без изменения ставок.');return;
+                }
+                salaryPlan={plan:result.plan,key:JSON.stringify(data),version:result.planVersion};
                 output.innerHTML='<p>Необъяснённая разница: '+salaryRub(result.plan.deltaCents)+'. Поправка: '+salaryRub(result.plan.hourlyAdjustmentCents)+'/ч.</p>'+result.plan.proposals.map(row=>salaryRow(row.activity,'С '+formatDateRus(row.effectiveDate),salaryRub(row.previousCents)+' → '+salaryRub(row.amountCents))).join('')+'<p class="salary-note">Оценка по общей сумме: точные ставки разных игр по ней восстановить нельзя.</p><button type="button" class="admin-tool-button primary" id="salary-apply-calibration">Применить ставки и сохранить сверку</button>';
                 output.classList.remove('hidden');document.getElementById('salary-apply-calibration').addEventListener('click',()=>saveSalaryForm(true));salaryFormStatus('Проверьте предложенные ставки перед применением.');
-            }catch(error){if(token===authToken)salaryFormStatus(error.message,true);}finally{salarySetBusy(false);}
+            }catch(error){if(token===authToken&&edit===salaryEdit)salaryFormStatus(error.message,true);}finally{if(token===authToken&&edit===salaryEdit)salarySetBusy(false);}
         }
         async function saveSalaryForm(calibrate=false) {
             if(salaryBusy||salaryWriteBlocked||!salaryEdit||!salaryState||!ensurePermissionClient('salary_access'))return;
@@ -8313,7 +8412,10 @@ const CLIENT_PERMISSIONS = {
                     salaryAttempt=null;document.getElementById('salary-pending').classList.add('hidden');salaryFormStatus(salaryWriteBlocked,true);salaryStatus(salaryWriteBlocked,true);return;
                 }
                 const uncertain=!error.code||['network_error','timeout','http_error','invalid_response','storage_unavailable','server_busy','rate_limited'].includes(error.code)||error.retryable;
-                if(!uncertain){salaryAttempt=null;if(error.code==='conflict')salaryFormStatus(error.message+' Закройте форму и обновите расчёт.',true);else salaryFormStatus(error.message,true);}
+                if(!uncertain){salaryAttempt=null;document.getElementById('salary-pending').classList.add('hidden');if(error.code==='conflict'){
+                    salaryPlan=null;document.getElementById('salary-calibration-preview').classList.add('hidden');
+                    salaryFormStatus(error.message+(attempt.payload.command==='calibrate'?' Нажмите «Подобрать ставки» ещё раз; введённые суммы сохранены.':' Закройте форму и обновите расчёт.'),true);
+                }else salaryFormStatus(error.message,true);}
                 else {document.getElementById('salary-pending').classList.remove('hidden');salaryFormStatus('Ответ не получен. Нажмите «Сохранить» ещё раз: повтор не создаст дубль.',true);}
                 salaryStatus(error.message,true);
             }finally{salarySetBusy(false);}
